@@ -1,0 +1,223 @@
+import { supabase } from './supabaseClient';
+import {
+  Deck,
+  DeckWithItems,
+  SpeakingItem,
+  DictionaryItem,
+  ConversationItem,
+  LeaderboardEntry,
+  Profile,
+  ReviewRecord,
+} from '@/types/database';
+import { initialDecks, sampleLearningItems } from '@/data/mockData';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+  meta?: Record<string, any>;
+  error?: {
+    code: string;
+    message: string;
+    details?: any;
+  };
+}
+
+/**
+ * Hàm gọi API chung tự động xử lý base URL và unwrap dữ liệu chuẩn
+ */
+export async function request<T>(
+  endpoint: string,
+  options: RequestInit = {},
+  fallbackData?: T
+): Promise<T> {
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${API_BASE_URL}${cleanEndpoint}`;
+
+  try {
+    const res = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(options.headers || {}),
+      },
+    });
+
+    if (!res.ok) {
+      if (fallbackData !== undefined) return fallbackData;
+      throw new Error(`API error: ${res.status} ${res.statusText}`);
+    }
+
+    const json = (await res.json()) as ApiResponse<T>;
+    if (json && json.success && json.data !== undefined) {
+      return json.data;
+    }
+
+    // Tương thích nếu backend trả về thẳng data (không qua wrapper)
+    return (json as unknown as T) || (fallbackData as T);
+  } catch (err) {
+    if (fallbackData !== undefined) {
+      console.warn(`[API] Fallback for ${endpoint}:`, err);
+      return fallbackData;
+    }
+    throw err;
+  }
+}
+
+/**
+ * Hàm gọi API có kèm token xác thực Supabase Bearer Token
+ */
+export async function requestWithAuth<T>(
+  endpoint: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(options.headers as Record<string, string> || {}),
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  const url = `${API_BASE_URL}${cleanEndpoint}`;
+
+  const res = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  const json = (await res.json()) as ApiResponse<T>;
+  if (!res.ok || !json.success) {
+    const errMsg = json?.error?.message || `API error: ${res.status}`;
+    throw new Error(errMsg);
+  }
+
+  return json.data;
+}
+
+/**
+ * Bộ SDK gọi API chuẩn cho toàn bộ ứng dụng SpeakUp
+ */
+export const api = {
+  // Bộ thẻ chủ đề
+  decks: {
+    getAll: async (): Promise<Deck[]> => {
+      return request<Deck[]>('/decks', {}, initialDecks);
+    },
+    getById: async (id: string): Promise<DeckWithItems> => {
+      const isDaily = id === 'daily';
+      const targetSlug = isDaily ? 'daily-conversations' : id.replace(/^deck-/, '');
+      const fallbackDeck =
+        initialDecks.find((d) => d.id === id || d.slug === targetSlug) || initialDecks[0];
+      const fallbackItems =
+        (id && sampleLearningItems[id]) ||
+        sampleLearningItems[fallbackDeck.id] ||
+        sampleLearningItems['deck-daily-conversations'] ||
+        [];
+
+      const defaultDeckWithItems: DeckWithItems = {
+        ...fallbackDeck,
+        flashcards: fallbackItems,
+      };
+
+      return request<DeckWithItems>(`/decks/${id}`, {}, defaultDeckWithItems);
+    },
+  },
+
+  // Luyện nói (Speaking)
+  speaking: {
+    getItems: async (limit = 50, level?: string): Promise<SpeakingItem[]> => {
+      const query = new URLSearchParams();
+      if (limit) query.set('limit', limit.toString());
+      if (level) query.set('level', level);
+
+      const fallbackList: SpeakingItem[] = Object.values(sampleLearningItems)
+        .flat()
+        .slice(0, limit)
+        .map((item) => ({
+          id: item.id,
+          english_text: item.english_text,
+          phonetic_ipa: item.phonetic_ipa,
+          vietnamese_meaning: item.vietnamese_meaning,
+          difficulty_level: item.difficulty_level,
+          type: item.type,
+        }));
+
+      return request<SpeakingItem[]>(`/speaking?${query.toString()}`, {}, fallbackList);
+    },
+  },
+
+  // Từ điển AI (Dictionary)
+  dictionary: {
+    search: async (q = '', limit = 30): Promise<DictionaryItem[]> => {
+      const query = new URLSearchParams();
+      if (q) query.set('q', q);
+      if (limit) query.set('limit', limit.toString());
+
+      return request<DictionaryItem[]>(`/dictionary?${query.toString()}`, {}, []);
+    },
+  },
+
+  // Hội thoại giao tiếp (Conversations)
+  conversations: {
+    getAll: async (): Promise<ConversationItem[]> => {
+      const defaultConversations: ConversationItem[] = initialDecks.map((deck) => ({
+        id: `conv-${deck.slug || deck.id}`,
+        title: deck.title,
+        level: 'A2',
+        scenario: deck.description,
+        deckId: deck.slug || deck.id,
+        totalWords: deck.total_words,
+      }));
+
+      return request<ConversationItem[]>('/conversations', {}, defaultConversations);
+    },
+  },
+
+  // Bảng xếp hạng (Leaderboard)
+  leaderboard: {
+    get: async (): Promise<LeaderboardEntry[]> => {
+      return request<LeaderboardEntry[]>('/leaderboard', {}, []);
+    },
+  },
+
+  // Hồ sơ & Cài đặt (Profile)
+  profile: {
+    getMe: async (): Promise<Profile> => {
+      return requestWithAuth<Profile>('/profile/me');
+    },
+    updateMe: async (data: Partial<Profile>): Promise<Profile> => {
+      return requestWithAuth<Profile>('/profile/me', {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      });
+    },
+  },
+
+  // Tiến độ học (Progress SM-2)
+  progress: {
+    get: async (): Promise<ReviewRecord[]> => {
+      return requestWithAuth<ReviewRecord[]>('/progress');
+    },
+    record: async (record: {
+      itemId: string;
+      repetitions: number;
+      intervalDays: number;
+      easeFactor: number;
+      nextReviewAt: string;
+      lastQuality: number;
+    }) => {
+      return requestWithAuth('/progress/record', {
+        method: 'POST',
+        body: JSON.stringify(record),
+      });
+    },
+  },
+};
