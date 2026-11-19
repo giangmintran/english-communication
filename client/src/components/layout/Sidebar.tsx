@@ -33,14 +33,18 @@ export function Sidebar() {
   ];
 
   return (
-    <aside className="w-64 bg-white dark:bg-[#111827] border-r border-slate-100 dark:border-slate-800/80 flex flex-col justify-between p-5 min-h-screen shrink-0 sticky top-0 h-screen overflow-y-auto transition-colors duration-150">
+    <aside className="hidden md:flex flex-col justify-between p-3.5 lg:p-5 md:w-20 lg:w-64 bg-white dark:bg-[#111827] border-r border-slate-100 dark:border-slate-800/80 min-h-screen shrink-0 sticky top-0 h-screen overflow-y-auto transition-all duration-200 z-30">
       <div>
         {/* SpeakUp Logo */}
-        <Link to="/" className="flex items-center gap-2.5 px-3 py-2 mb-8 group">
-          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform">
+        <Link
+          to="/"
+          className="flex items-center justify-center lg:justify-start gap-2.5 px-2 lg:px-3 py-2 mb-8 group"
+          title="SpeakUp"
+        >
+          <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 group-hover:scale-105 transition-transform shrink-0">
             <MessageCircle className="w-6 h-6 fill-white" />
           </div>
-          <span className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+          <span className="hidden lg:inline text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
             Speak<span className="text-blue-600 dark:text-blue-400">Up</span>
           </span>
         </Link>
@@ -55,8 +59,9 @@ export function Sidebar() {
               <Link
                 key={item.href}
                 to={item.href}
+                title={item.name}
                 className={cn(
-                  'flex items-center gap-3.5 px-4 py-3 rounded-2xl text-[15px] font-medium transition-all duration-200',
+                  'flex items-center justify-center lg:justify-start gap-3.5 px-3 lg:px-4 py-3 rounded-2xl text-[15px] font-medium transition-all duration-200',
                   isActive
                     ? 'bg-blue-50 dark:bg-blue-600/15 text-blue-600 dark:text-blue-400 shadow-xs font-semibold'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50/80 dark:hover:bg-slate-800/60'
@@ -64,19 +69,19 @@ export function Sidebar() {
               >
                 <Icon
                   className={cn(
-                    'w-5 h-5 transition-colors',
+                    'w-5 h-5 transition-colors shrink-0',
                     isActive ? 'text-blue-600 dark:text-blue-400 stroke-[2.2]' : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'
                   )}
                 />
-                <span>{item.name}</span>
+                <span className="hidden lg:inline">{item.name}</span>
               </Link>
             );
           })}
         </nav>
       </div>
 
-      {/* Upgrade to Pro Card */}
-      <div className="bg-gradient-to-b from-blue-50/90 to-blue-100/60 dark:from-slate-800/80 dark:to-slate-800/40 rounded-3xl p-5 border border-blue-100/80 dark:border-slate-700/60 text-center mt-6">
+      {/* Upgrade to Pro - Desktop full card */}
+      <div className="hidden lg:block bg-gradient-to-b from-blue-50/90 to-blue-100/60 dark:from-slate-800/80 dark:to-slate-800/40 rounded-3xl p-5 border border-blue-100/80 dark:border-slate-700/60 text-center mt-6">
         <div className="w-9 h-9 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto mb-2.5 shadow-xs">
           <Crown className="w-5 h-5 fill-amber-500" />
         </div>
@@ -92,6 +97,15 @@ export function Sidebar() {
           <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
+
+      {/* Upgrade to Pro - Tablet icon button */}
+      <button
+        onClick={() => alert(t('nav.upgradeAlert'))}
+        className="lg:hidden flex items-center justify-center p-3 rounded-2xl bg-gradient-to-b from-amber-50 to-amber-100/60 dark:from-slate-800 dark:to-slate-800/60 border border-amber-200/70 dark:border-slate-700 text-amber-600 dark:text-amber-400 shadow-xs hover:scale-105 transition-all mt-6 cursor-pointer"
+        title={t('nav.upgradePro')}
+      >
+        <Crown className="w-5 h-5 fill-amber-500" />
+      </button>
     </aside>
   );
 }

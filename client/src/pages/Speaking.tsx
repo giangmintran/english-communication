@@ -103,18 +103,18 @@ export default function SpeakingPracticePage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto py-4 space-y-6">
+    <div className="max-w-2xl mx-auto py-2 sm:py-4 space-y-5 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-1 flex items-center gap-2.5">
-          <Mic className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-1 flex items-center gap-2 sm:gap-2.5">
+          <Mic className="w-7 h-7 sm:w-8 sm:h-8 text-blue-600 dark:text-blue-400 shrink-0" />
           <span>{t('speaking.title')}</span>
         </h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm">
+        <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
           {t('speaking.subtitle')}
         </p>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-100 dark:border-slate-800 shadow-card text-center space-y-6 transition-colors">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-8 border border-slate-100 dark:border-slate-800 shadow-card text-center space-y-5 sm:space-y-6 transition-colors">
         <div className="flex items-center justify-between text-xs text-slate-400 dark:text-slate-500 font-semibold">
           <span>{currentItem.difficulty_level ? `Level ${currentItem.difficulty_level}` : 'Everyday Speaking'}</span>
           <span>
@@ -122,24 +122,24 @@ export default function SpeakingPracticePage() {
           </span>
         </div>
 
-        <div className="py-4">
-          <h2 className="text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight">
+        <div className="py-2 sm:py-4">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight break-words">
             "{currentItem.english_text}"
           </h2>
           {currentItem.phonetic_ipa && (
-            <p className="text-sm font-mono text-slate-400 dark:text-slate-500 mb-2">
+            <p className="text-xs sm:text-sm font-mono text-slate-400 dark:text-slate-500 mb-2">
               {currentItem.phonetic_ipa}
             </p>
           )}
-          <p className="text-sm font-medium text-blue-600 dark:text-blue-400">
+          <p className="text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400">
             {currentItem.vietnamese_meaning}
           </p>
         </div>
 
-        <div className="flex items-center justify-center gap-4">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
           <button
             onClick={handleListen}
-            className="px-5 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs flex items-center gap-2 transition-colors cursor-pointer"
+            className="w-full sm:w-auto px-5 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
           >
             <Volume2 className="w-4 h-4 text-blue-600 dark:text-blue-400" />
             <span>{t('speaking.listenNative')}</span>
@@ -149,7 +149,7 @@ export default function SpeakingPracticePage() {
             onClick={handleStartSpeaking}
             disabled={isRecording}
             className={cn(
-              'px-6 py-3 rounded-2xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-xs',
+              'w-full sm:w-auto px-6 py-3 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs',
               isRecording
                 ? 'bg-red-500 text-white animate-pulse'
                 : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/25'

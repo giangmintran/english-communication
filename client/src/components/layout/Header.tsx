@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, Flame, LogOut, Settings, Sun, Moon, Globe } from 'lucide-react';
+import { Bell, Flame, LogOut, Settings, Sun, Moon, Menu, MessageCircle } from 'lucide-react';
 import { useLearningStore } from '@/lib/store';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -8,11 +8,33 @@ import { useTranslation, Language } from '@/context/LanguageContext';
 import { GoogleIcon } from '@/components/auth/GoogleIcon';
 import { UserAvatar } from '@/components/common/UserAvatar';
 
-export function Header() {
-  const { streakDays, profile } = useLearningStore();
+interface HeaderProps {
+  onOpenMobileMenu?: () => void;
+  onOpenReminder?: () => void;
+}
+
+export function Header({ onOpenMobileMenu, onOpenReminder }: HeaderProps) {
+  const { streakDays, profile, todayGoal, todayLearned, reviews, collectionReviews } = useLearningStore();
   const { user, isLoading, signInWithGoogle, signOut } = useAuth();
   const { resolvedTheme, toggleTheme } = useTheme();
   const { t, language, setLanguage } = useTranslation();
+
+  // Kiểm tra xem hôm nay có nhiệm vụ học / từ đến hạn ôn tập không để hiện chấm thông báo
+  const hasPendingTasks = React.useMemo(() => {
+    const wordsRemaining = (todayGoal || 20) - (todayLearned || 0);
+    if (wordsRemaining > 0) return true;
+
+    const now = new Date();
+    const hasDueDaily = Object.values(reviews).some(
+      (r) => r.next_review_at && new Date(r.next_review_at) <= now
+    );
+    if (hasDueDaily) return true;
+
+    const hasDueCol = Object.values(collectionReviews).some(
+      (r) => r.next_review_at && new Date(r.next_review_at) <= now
+    );
+    return hasDueCol;
+  }, [todayGoal, todayLearned, reviews, collectionReviews]);
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -56,26 +78,50 @@ export function Header() {
   };
 
   return (
-    <header className="w-full flex items-center justify-end py-4 px-8 bg-transparent relative z-30">
-      <div className="flex items-center gap-3 md:gap-4">
+    <header className="w-full flex items-center justify-between py-3 px-4 sm:px-6 lg:px-8 bg-transparent relative z-30">
+      {/* Mobile Branding & Hamburger */}
+      <div className="flex items-center gap-2.5 md:hidden">
+        <button
+          type="button"
+          onClick={onOpenMobileMenu}
+          className="p-2 -ml-1 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+          aria-label="Open navigation menu"
+        >
+          <Menu className="w-5 h-5" />
+        </button>
+
+        <Link to="/" className="flex items-center gap-2 group">
+          <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-sm shadow-blue-500/20">
+            <MessageCircle className="w-4 h-4 fill-white" />
+          </div>
+          <span className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+            Speak<span className="text-blue-600 dark:text-blue-400">Up</span>
+          </span>
+        </Link>
+      </div>
+
+      {/* Right Controls Container */}
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-4 ml-auto">
         {/* Streak Pill */}
-        <div className="flex items-center gap-2 px-3.5 py-1.5 md:px-4 md:py-2 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-800/40 rounded-full text-amber-800 dark:text-amber-300 text-xs md:text-sm font-semibold shadow-2xs transition-colors">
-          <Flame className="w-4 h-4 fill-amber-500 text-amber-500 animate-pulse" />
-          <span>{streakDays} {t('header.streak')}</span>
+        <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-3.5 sm:py-1.5 md:px-4 md:py-2 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-800/40 rounded-full text-amber-800 dark:text-amber-300 text-xs md:text-sm font-semibold shadow-2xs transition-colors shrink-0">
+          <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-500 text-amber-500 animate-pulse shrink-0" />
+          <span>
+            {streakDays} <span className="hidden sm:inline">{t('header.streak')}</span>
+          </span>
         </div>
 
-        {/* Quick Language Switcher Dropdown */}
-        <div className="relative" ref={langMenuRef}>
+        {/* Quick Language Switcher Dropdown (Hidden on mobile phones, accessible via Mobile Drawer) */}
+        <div className="hidden sm:block relative" ref={langMenuRef}>
           <button
             onClick={() => setLangMenuOpen(!langMenuOpen)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-full transition-all shadow-2xs cursor-pointer"
+            className="flex items-center gap-1 sm:gap-1.5 px-2.5 py-1.5 sm:px-3 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-full transition-all shadow-2xs cursor-pointer"
             title={t('header.switchLang')}
             aria-label="Change language"
           >
             <span className="text-base leading-none">
               {language === 'vi' ? '🇻🇳' : '🇬🇧'}
             </span>
-            <span className="uppercase text-[11px] tracking-wider font-bold">
+            <span className="uppercase text-[11px] tracking-wider font-bold hidden sm:inline">
               {language}
             </span>
           </button>
@@ -108,45 +154,48 @@ export function Header() {
           )}
         </div>
 
-        {/* Quick Theme Toggle Button */}
+        {/* Quick Theme Toggle Button (Hidden on mobile phones, accessible via Mobile Drawer) */}
         <button
           onClick={toggleTheme}
-          className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 rounded-full transition-colors cursor-pointer"
+          className="hidden sm:flex p-1.5 sm:p-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 rounded-full transition-colors cursor-pointer shrink-0 items-center justify-center"
           title={resolvedTheme === 'dark' ? t('header.themeLight') : t('header.themeDark')}
           aria-label="Toggle theme"
         >
           {resolvedTheme === 'dark' ? (
-            <Sun className="w-5 h-5 text-amber-400 transition-transform hover:rotate-45" />
+            <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400 transition-transform hover:rotate-45" />
           ) : (
-            <Moon className="w-5 h-5 text-slate-600 transition-transform hover:-rotate-12" />
+            <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-600 transition-transform hover:-rotate-12" />
           )}
         </button>
 
         {/* Vertical divider */}
-        <div className="h-6 w-px bg-slate-200 dark:bg-slate-800" />
+        <div className="hidden sm:block h-5 sm:h-6 w-px bg-slate-200 dark:bg-slate-800" />
 
-        {/* Notification Bell */}
+        {/* Notification Bell / Daily Study Reminder */}
         <button
-          className="relative p-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 rounded-full transition-colors cursor-pointer"
+          className="relative p-1.5 sm:p-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 rounded-full transition-colors cursor-pointer shrink-0"
           title={t('header.notifications')}
-          onClick={() => alert(t('header.noNotifications'))}
+          onClick={onOpenReminder}
+          aria-label="Open study reminder"
         >
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-slate-900" />
+          <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
+          {hasPendingTasks && (
+            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-slate-900 animate-pulse" />
+          )}
         </button>
 
         {/* Auth Section */}
         {isLoading ? (
-          <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-800 animate-pulse" />
+          <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-slate-200 dark:bg-slate-800 animate-pulse" />
         ) : user ? (
           /* User Profile Dropdown */
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="flex items-center gap-2 pl-1 cursor-pointer group focus:outline-hidden"
+              className="flex items-center gap-2 pl-0.5 sm:pl-1 cursor-pointer group focus:outline-hidden"
               aria-label="User menu"
             >
-              <div className="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-blue-500/20 group-hover:ring-blue-500 transition-all shadow-2xs">
+              <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden ring-2 ring-blue-500/20 group-hover:ring-blue-500 transition-all shadow-2xs">
                 <UserAvatar
                   src={avatarSrc}
                   name={displayName}
@@ -156,11 +205,11 @@ export function Header() {
 
             {/* Dropdown Menu */}
             {dropdownOpen && (
-              <div className="absolute right-0 mt-2.5 w-72 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-2 animate-in fade-in slide-in-from-top-2 duration-150 z-50">
+              <div className="absolute right-0 mt-2.5 w-64 sm:w-72 max-w-[calc(100vw-2rem)] bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-2 animate-in fade-in slide-in-from-top-2 duration-150 z-50">
                 {/* User Info Header */}
                 <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-3">
-                    <div className="relative w-11 h-11 rounded-full overflow-hidden ring-1 ring-slate-200 dark:ring-slate-700 shrink-0">
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden ring-1 ring-slate-200 dark:ring-slate-700 shrink-0">
                       <UserAvatar
                         src={avatarSrc}
                         name={displayName}
@@ -204,12 +253,12 @@ export function Header() {
             )}
           </div>
         ) : (
-          /* Sign In with Google Button */
+          /* Sign In with Google Button (Hidden on mobile phones, accessible via bottom nav/drawer) */
           <button
             onClick={() => signInWithGoogle()}
-            className="flex items-center gap-2.5 px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 font-semibold text-sm rounded-full border border-slate-200 dark:border-slate-700 shadow-2xs hover:shadow-xs hover:border-slate-300 dark:hover:border-slate-600 transition-all cursor-pointer"
+            className="hidden sm:flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 font-semibold text-xs sm:text-sm rounded-full border border-slate-200 dark:border-slate-700 shadow-2xs hover:shadow-xs hover:border-slate-300 dark:hover:border-slate-600 transition-all cursor-pointer"
           >
-            <GoogleIcon className="w-4 h-4" />
+            <GoogleIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span>{t('header.login')}</span>
           </button>
         )}

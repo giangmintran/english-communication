@@ -34,26 +34,26 @@ export default function DictionaryPage() {
   }, [query]);
 
   return (
-    <div className="max-w-4xl mx-auto py-4 space-y-6">
+    <div className="max-w-4xl mx-auto py-2 sm:py-4 space-y-5 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-1 flex items-center gap-2.5">
-          <BookOpen className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-1 flex items-center gap-2 sm:gap-2.5">
+          <BookOpen className="w-7 h-7 sm:w-8 sm:h-8 text-blue-600 dark:text-blue-400 shrink-0" />
           <span>{t('dictionary.title')}</span>
         </h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm">
+        <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
           {t('dictionary.subtitle')}
         </p>
       </div>
 
       {/* Search Input */}
       <div className="relative">
-        <Search className="w-5 h-5 absolute left-4 top-3.5 text-slate-400" />
+        <Search className="w-5 h-5 absolute left-3.5 sm:left-4 top-3.5 text-slate-400" />
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t('dictionary.searchPlaceholder')}
-          className="w-full pl-12 pr-10 py-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 shadow-xs transition-colors"
+          className="w-full pl-11 sm:pl-12 pr-10 py-3 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 text-sm text-slate-900 dark:text-white focus:outline-hidden focus:ring-2 focus:ring-blue-500 shadow-xs transition-colors"
         />
         {loading && (
           <div className="absolute right-4 top-3.5">
@@ -74,11 +74,11 @@ export default function DictionaryPage() {
           results.map((item, index) => (
             <div
               key={item.id || `${item.word}-${index}`}
-              className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-card flex items-start justify-between gap-4 hover:border-blue-100 dark:hover:border-slate-700 transition-colors"
+              className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-100 dark:border-slate-800 shadow-card flex items-start justify-between gap-3 sm:gap-4 hover:border-blue-100 dark:hover:border-slate-700 transition-colors"
             >
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-1">
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">{item.word}</h3>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">{item.word}</h3>
                   {item.ipa && (
                     <span className="text-xs font-mono text-slate-400 dark:text-slate-500">
                       {item.ipa}
@@ -92,11 +92,11 @@ export default function DictionaryPage() {
                     <Volume2 className="w-4 h-4" />
                   </button>
                 </div>
-                <p className="text-sm font-medium text-blue-700 dark:text-blue-400 mb-2">
+                <p className="text-xs sm:text-sm font-medium text-blue-700 dark:text-blue-400 mb-2">
                   {item.meaning}
                 </p>
                 {item.example && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400 italic bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 italic bg-slate-50 dark:bg-slate-800/60 p-2 sm:p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
                     "{item.example}"
                   </p>
                 )}

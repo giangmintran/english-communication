@@ -8,6 +8,7 @@ import dictionaryRouter from './routes/dictionary';
 import conversationsRouter from './routes/conversations';
 import leaderboardRouter from './routes/leaderboard';
 import profileRouter from './routes/profile';
+import collectionsRouter from './routes/collections';
 import { errorHandler } from './middlewares/errorHandler';
 import { sendSuccess } from './utils/response';
 
@@ -37,6 +38,7 @@ app.use('/api/dictionary', dictionaryRouter);
 app.use('/api/conversations', conversationsRouter);
 app.use('/api/leaderboard', leaderboardRouter);
 app.use('/api/profile', profileRouter);
+app.use('/api/collections', collectionsRouter);
 
 // Global Error Handler Middleware
 app.use(errorHandler);

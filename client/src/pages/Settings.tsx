@@ -142,20 +142,20 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="max-w-2xl mx-auto py-4 space-y-6">
+    <div className="max-w-2xl mx-auto py-2 sm:py-4 space-y-5 sm:space-y-6">
       {/* Header Title */}
       <div>
-        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-1 flex items-center gap-2.5">
-          <Settings className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-1 flex items-center gap-2 sm:gap-2.5">
+          <Settings className="w-7 h-7 sm:w-8 sm:h-8 text-blue-600 dark:text-blue-400 shrink-0" />
           <span>{t('settings.title')}</span>
         </h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm">
+        <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
           {t('settings.subtitle')}
         </p>
       </div>
 
       {/* Account Status Card */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-card transition-colors space-y-4">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 border border-slate-100 dark:border-slate-800 shadow-card transition-colors space-y-4">
         <h2 className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
           {t('settings.accountSection')}
         </h2>
@@ -383,7 +383,7 @@ export default function SettingsPage() {
           </select>
         </div>
 
-        <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
           {saved ? (
             <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1.5 animate-in fade-in">
               <Check className="w-4 h-4" /> {t('settings.savedSuccess')}
@@ -393,7 +393,7 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={isSaving}
-            className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold text-xs rounded-xl flex items-center gap-2 transition-colors shadow-xs cursor-pointer"
+            className="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold text-xs rounded-xl flex items-center justify-center gap-2 transition-colors shadow-xs cursor-pointer"
           >
             <Save className="w-4 h-4" />
             <span>{isSaving ? t('settings.saving') : t('settings.saveChanges')}</span>

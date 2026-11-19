@@ -1,3 +1,5 @@
+import { LearningItem } from '@/types/database';
+
 export interface SRSItemState {
   repetitions: number;
   interval_days: number;
@@ -52,4 +54,57 @@ export function calculateSM2(
     next_review_at: nextDate.toISOString(),
     last_quality: grade,
   };
+}
+
+/**
+ * Kiểm tra xem một thẻ từ đã đến hạn ôn tập SRS hay chưa
+ */
+export function isItemDue(review?: SRSItemState, now = new Date()): boolean {
+  if (!review) return false;
+  return new Date(review.next_review_at).getTime() <= now.getTime();
+}
+
+/**
+ * Kiểm tra xem một từ đã đạt chuẩn "Đã thuộc" (Mastered) hay chưa
+ * Điều kiện: Đúng liên tiếp >= 3 lần HOẶC khoảng cách ôn tập >= 7 ngày
+ */
+export function isItemMastered(review?: SRSItemState): boolean {
+  if (!review) return false;
+  return review.repetitions >= 3 || review.interval_days >= 7;
+}
+
+export interface DeckSRSCategorization {
+  newItems: LearningItem[];
+  dueItems: LearningItem[];
+  learningItems: LearningItem[];
+  masteredItems: LearningItem[];
+}
+
+/**
+ * Phân loại từ vựng trong bộ sưu tập thành 4 nhóm theo chu trình SRS
+ */
+export function categorizeDeckItems(
+  items: LearningItem[],
+  reviews: Record<string, SRSItemState>,
+  now = new Date()
+): DeckSRSCategorization {
+  const newItems: LearningItem[] = [];
+  const dueItems: LearningItem[] = [];
+  const learningItems: LearningItem[] = [];
+  const masteredItems: LearningItem[] = [];
+
+  for (const item of items) {
+    const review = reviews[item.id];
+    if (!review) {
+      newItems.push(item);
+    } else if (isItemDue(review, now)) {
+      dueItems.push(item);
+    } else if (isItemMastered(review)) {
+      masteredItems.push(item);
+    } else {
+      learningItems.push(item);
+    }
+  }
+
+  return { newItems, dueItems, learningItems, masteredItems };
 }

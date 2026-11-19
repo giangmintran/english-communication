@@ -8,8 +8,11 @@ import {
   LeaderboardEntry,
   Profile,
   ReviewRecord,
+  Collection,
+  CollectionItem,
 } from '@/types/database';
-import { initialDecks, sampleLearningItems } from '@/data/mockData';
+import { initialDecks, sampleLearningItems, initialCollections, sampleCollectionItems } from '@/data/mockData';
+import { DailyReviewProgress } from '@/types/quiz';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -106,20 +109,19 @@ export async function requestWithAuth<T>(
  * Bộ SDK gọi API chuẩn cho toàn bộ ứng dụng SpeakUp
  */
 export const api = {
-  // Bộ thẻ chủ đề
+  // Bộ thẻ chủ đề (Dành riêng cho Daily Lesson)
   decks: {
     getAll: async (): Promise<Deck[]> => {
       return request<Deck[]>('/decks', {}, initialDecks);
     },
     getById: async (id: string): Promise<DeckWithItems> => {
-      const isDaily = id === 'daily';
-      const targetSlug = isDaily ? 'daily-conversations' : id.replace(/^deck-/, '');
+      const isDaily = id === 'daily' || id === 'deck-daily';
+      const targetSlug = isDaily ? 'daily' : id.replace(/^deck-/, '');
       const fallbackDeck =
         initialDecks.find((d) => d.id === id || d.slug === targetSlug) || initialDecks[0];
       const fallbackItems =
         (id && sampleLearningItems[id]) ||
         sampleLearningItems[fallbackDeck.id] ||
-        sampleLearningItems['deck-daily-conversations'] ||
         [];
 
       const defaultDeckWithItems: DeckWithItems = {
@@ -128,6 +130,38 @@ export const api = {
       };
 
       return request<DeckWithItems>(`/decks/${id}`, {}, defaultDeckWithItems);
+    },
+  },
+
+  // Bộ sưu tập chuyên đề (Hoàn toàn độc lập với decks/items của Daily Lesson)
+  collections: {
+    getAll: async (): Promise<Collection[]> => {
+      // Tự động fallback sang initialCollections nếu chưa có API backend
+      return request<Collection[]>('/collections', {}, initialCollections);
+    },
+    getById: async (idOrSlug: string): Promise<Collection & { items: CollectionItem[] }> => {
+      const cleanKey = idOrSlug.replace(/^col-/, '');
+      const fallbackCol =
+        initialCollections.find((c) => c.id === idOrSlug || c.slug === cleanKey || c.id === `col-${cleanKey}`) ||
+        initialCollections[0];
+
+      const phrases =
+        sampleCollectionItems[idOrSlug] ||
+        sampleCollectionItems[fallbackCol.id] ||
+        sampleCollectionItems[fallbackCol.slug] ||
+        [];
+
+      const defaultCollectionWithItems = {
+        ...fallbackCol,
+        items: phrases,
+        phrases: phrases,
+      };
+
+      return request<Collection & { items: CollectionItem[] }>(
+        `/collections/${idOrSlug}`,
+        {},
+        defaultCollectionWithItems
+      );
     },
   },
 
@@ -218,6 +252,44 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(record),
       });
+    },
+
+    // Lấy tiến trình ôn tập 20 từ (60 câu)
+    getDailyReview: async (dateStr?: string): Promise<DailyReviewProgress | null> => {
+      const targetDate = dateStr || new Date().toISOString().split('T')[0];
+      try {
+        return await requestWithAuth<DailyReviewProgress | null>(
+          `/progress/daily-review?date=${targetDate}`
+        );
+      } catch {
+        return null;
+      }
+    },
+
+    // Lưu tiến trình ôn tập lên server
+    saveDailyReview: async (progress: DailyReviewProgress): Promise<DailyReviewProgress> => {
+      return requestWithAuth<DailyReviewProgress>('/progress/daily-review', {
+        method: 'POST',
+        body: JSON.stringify({ progress }),
+      });
+    },
+
+    // Gộp tiến trình từ client lên server khi đăng nhập
+    mergeDailyReview: async (clientProgress: DailyReviewProgress): Promise<DailyReviewProgress> => {
+      return requestWithAuth<DailyReviewProgress>('/progress/daily-review/merge', {
+        method: 'POST',
+        body: JSON.stringify({ clientProgress }),
+      });
+    },
+
+    // Đặt lại / làm lại bài tập
+    resetDailyReview: async (dateStr?: string): Promise<void> => {
+      const targetDate = dateStr || new Date().toISOString().split('T')[0];
+      try {
+        await requestWithAuth(`/progress/daily-review?date=${targetDate}`, {
+          method: 'DELETE',
+        });
+      } catch (_) {}
     },
   },
 };

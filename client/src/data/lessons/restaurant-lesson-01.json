@@ -1,0 +1,405 @@
+{
+  "lesson": {
+    "id": "lesson-restaurant-01",
+    "deck_id": "deck-restaurant",
+    "title": "Ordering Food at a Restaurant",
+    "description": "Học cách đặt bàn, gọi món lịch sự, hỏi gợi ý của bồi bàn và thanh toán hóa đơn.",
+    "topic": "Dining & Restaurant Communication",
+    "level": "A2",
+    "estimated_minutes": 35,
+    "order_index": 1,
+    "image_url": "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80"
+  },
+  "warmup": {
+    "situation": "Bạn đang đi du lịch hoặc công tác tại một thành phố quốc tế và bước vào một nhà hàng ấm cúng vào buổi tối. Bạn cần giao tiếp tự tin với nhân viên phục vụ từ lúc bước vào đến khi nhận hóa đơn.",
+    "objective": "Sau bài học, bạn có thể tự tin đặt bàn cho 2-4 người, gọi món và đồ uống bằng cấu trúc lịch sự, hỏi món đặc sắc của nhà hàng và yêu cầu thanh toán hóa đơn.",
+    "warm_up_question": "When you enter a restaurant abroad, what is the very first sentence you would say to the host or waiter?",
+    "key_phrases": [
+      "Table for two, please",
+      "Could we have the menu?",
+      "What do you recommend?",
+      "Could I get the check?"
+    ],
+    "image_url": "https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?auto=format&fit=crop&w=800&q=80"
+  },
+  "vocabulary": [
+    {
+      "id": "rv-1",
+      "word": "reservation",
+      "phonetic_ipa": "/ˌrez.ɚˈveɪ.ʃən/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "sự đặt chỗ trước, đặt bàn",
+      "collocations": ["make a reservation", "have a reservation under (name)", "cancel a reservation"],
+      "example_sentence": "I have a dinner reservation for two under the name David.",
+      "example_meaning": "Tôi có đặt bàn ăn tối cho 2 người dưới tên David."
+    },
+    {
+      "id": "rv-2",
+      "word": "appetizer",
+      "phonetic_ipa": "/ˈæp.ə.taɪ.zɚ/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "món khai vị",
+      "collocations": ["order an appetizer", "start with an appetizer", "appetizer platter"],
+      "example_sentence": "Would you like to start with some garlic bread as an appetizer?",
+      "example_meaning": "Quý khách có muốn bắt đầu với bánh mì bơ tỏi làm món khai vị không?"
+    },
+    {
+      "id": "rv-3",
+      "word": "main course",
+      "phonetic_ipa": "/ˌmeɪn ˈkɔːrs/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "món chính (trong bữa ăn)",
+      "collocations": ["for the main course", "serve the main course"],
+      "example_sentence": "For my main course, I will have the grilled salmon.",
+      "example_meaning": "Cho món chính, tôi sẽ dùng món cá hồi nướng."
+    },
+    {
+      "id": "rv-4",
+      "word": "beverage",
+      "phonetic_ipa": "/ˈbev.ɚ.ɪdʒ/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "đồ uống, thức uống",
+      "collocations": ["cold beverage", "complimentary beverage", "alcoholic beverage"],
+      "example_sentence": "Can I get you started with some beverages while you check the menu?",
+      "example_meaning": "Tôi có thể mang đồ uống ra trước cho quý khách trong khi quý khách xem thực đơn không?"
+    },
+    {
+      "id": "rv-5",
+      "word": "recommend",
+      "phonetic_ipa": "/ˌrek.əˈmend/",
+      "part_of_speech": "verb",
+      "vietnamese_meaning": "gợi ý, tiến cử món ngon",
+      "collocations": ["highly recommend", "recommend the chef's special", "recommend a wine"],
+      "example_sentence": "What dish would you recommend for someone who loves spicy seafood?",
+      "example_meaning": "Bạn gợi ý món nào cho người thích hải sản cay?"
+    },
+    {
+      "id": "rv-6",
+      "word": "allergic",
+      "phonetic_ipa": "/əˈlɝː.dʒɪk/",
+      "part_of_speech": "adjective",
+      "vietnamese_meaning": "bị dị ứng (với thức ăn/thành phần)",
+      "collocations": ["allergic to peanuts", "allergic to shellfish", "severe allergic reaction"],
+      "example_sentence": "Please make sure there are no nuts in this salad; I am severely allergic.",
+      "example_meaning": "Làm ơn chắc chắn món salad này không có đậu phộng; tôi bị dị ứng rất nặng."
+    },
+    {
+      "id": "rv-7",
+      "word": "side dish",
+      "phonetic_ipa": "/ˈsaɪd ˌdɪʃ/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "món ăn kèm",
+      "collocations": ["order a side dish", "come with a side dish", "side dish of fries"],
+      "example_sentence": "Does the steak come with a side dish like mashed potatoes?",
+      "example_meaning": "Món bít tết có kèm món ăn phụ như khoai tây nghiền không?"
+    },
+    {
+      "id": "rv-8",
+      "word": "bill / check",
+      "phonetic_ipa": "/bɪl/ - /tʃek/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "hóa đơn thanh toán (bill: Anh-Anh, check: Anh-Mỹ)",
+      "collocations": ["ask for the check", "split the bill", "pay the bill"],
+      "example_sentence": "Excuse me, could we please have the check when you have a moment?",
+      "example_meaning": "Xin lỗi phục vụ, khi nào tiện cho chúng tôi xin hóa đơn nhé?"
+    },
+    {
+      "id": "rv-9",
+      "word": "split",
+      "phonetic_ipa": "/splɪt/",
+      "part_of_speech": "verb",
+      "vietnamese_meaning": "chia đều (tiền, hóa đơn)",
+      "collocations": ["split the bill evenly", "split between two cards"],
+      "example_sentence": "Can we split the bill between three cards, please?",
+      "example_meaning": "Chúng tôi có thể chia đều hóa đơn trên 3 thẻ được không?"
+    },
+    {
+      "id": "rv-10",
+      "word": "tip",
+      "phonetic_ipa": "/tɪp/",
+      "part_of_speech": "noun / verb",
+      "vietnamese_meaning": "tiền boa, cho tiền boa",
+      "collocations": ["leave a generous tip", "include a tip", "tip the waiter"],
+      "example_sentence": "The service was exceptional, so we left a fifteen percent tip.",
+      "example_meaning": "Dịch vụ xuất sắc nên chúng tôi đã để lại mười lăm phần trăm tiền boa."
+    }
+  ],
+  "grammar": {
+    "title": "Modal Verbs for Polite Requests (Could / Would / May)",
+    "explanation": "Trong nhà hàng và các tình huống giao tiếp lịch sự, người bản xứ hiếm khi dùng mệnh lệnh 'Give me...' hay 'I want...'. Thay vào đó, họ luôn sử dụng modal verbs (Could / Would) để lời đề nghị trở nên nhã nhặn và chuyên nghiệp.",
+    "formula": "Could we / I + have / get + [noun], please? | Would you like + [noun / to verb]?",
+    "examples": [
+      {
+        "english": "Could we have a table for two by the window, please?",
+        "vietnamese": "Làm ơn cho chúng tôi xin một bàn hai người cạnh cửa sổ được không?",
+        "highlight": "Could we have"
+      },
+      {
+        "english": "Could I get a glass of sparkling water?",
+        "vietnamese": "Cho tôi xin một ly nước có ga được không?",
+        "highlight": "Could I get"
+      },
+      {
+        "english": "I would like to order the roast beef, please.",
+        "vietnamese": "Tôi muốn gọi món thịt bò nướng, làm ơn.",
+        "highlight": "I would like"
+      }
+    ],
+    "common_mistakes": [
+      {
+        "wrong": "Give me the menu. / I want beef.",
+        "correct": "Could I see the menu, please? / I would like the beef.",
+        "explanation": "'Give me' hoặc 'I want' nghe cộc lốc và thiếu tôn trọng nhân viên phục vụ. Hãy luôn thêm 'Could I...' hoặc 'I would like...' và kết thúc bằng 'please'."
+      },
+      {
+        "wrong": "Can we have the bill? (Dùng 'Can' có được không?)",
+        "correct": "Could we have the check / bill, please?",
+        "explanation": "'Can' vẫn được hiểu, nhưng 'Could' lịch sự và trang trọng hơn rất nhiều trong môi trường dịch vụ ăn uống."
+      }
+    ]
+  },
+  "expressions": [
+    {
+      "id": "re-1",
+      "expression": "Could we have a table for two, please?",
+      "phonetic_ipa": "/kʊd wiː hæv ə ˈteɪbl fɔː tuː pliːz/",
+      "meaning": "Làm ơn cho chúng tôi xin một bàn hai người được không?",
+      "context": "Nói với nhân viên lễ tân (host/hostess) ngay khi vừa bước chân vào nhà hàng mà chưa đặt bàn trước.",
+      "formality": "polite",
+      "variations": [
+        "A table for two, please.",
+        "Do you have a free table for two?",
+        "We haven't booked, do you have any tables available?"
+      ]
+    },
+    {
+      "id": "re-2",
+      "expression": "What do you recommend?",
+      "phonetic_ipa": "/wɒt duː juː ˌrekəˈmend/",
+      "meaning": "Bạn gợi ý món nào ngon / đặc sắc ở đây?",
+      "context": "Hỏi người phục vụ khi bạn phân vân chưa biết chọn món gì hoặc muốn thử đặc sản của quán.",
+      "formality": "neutral",
+      "variations": [
+        "What is today's special?",
+        "What is the most popular dish here?",
+        "What would you suggest for the main course?"
+      ]
+    },
+    {
+      "id": "re-3",
+      "expression": "Could I get the check, please?",
+      "phonetic_ipa": "/kʊd aɪ ɡet ðə tʃek pliːz/",
+      "meaning": "Làm ơn cho tôi xin hóa đơn thanh toán.",
+      "context": "Dùng khi cả nhóm đã ăn xong và muốn thanh toán.",
+      "formality": "polite",
+      "variations": [
+        "Check, please!",
+        "Could we have the bill whenever you're ready?",
+        "We are ready for the check."
+      ]
+    },
+    {
+      "id": "re-4",
+      "expression": "Can we split the bill?",
+      "phonetic_ipa": "/kæn wiː splɪt ðə bɪl/",
+      "meaning": "Chúng tôi có thể chia đều hóa đơn được không?",
+      "context": "Hỏi người phục vụ trước khi thanh toán nếu muốn chia tiền riêng từng người hoặc quẹt nhiều thẻ.",
+      "formality": "neutral",
+      "variations": [
+        "Could we pay separately?",
+        "Is it possible to split the check between two cards?",
+        "We'd like to pay individually, please."
+      ]
+    }
+  ],
+  "listening": [
+    {
+      "id": "rl-1",
+      "title": "Ordering Dinner at The Olive Tree",
+      "dialogue": [
+        {
+          "speaker": "Waiter",
+          "text": "Good evening! Welcome to The Olive Tree. Do you have a reservation tonight?",
+          "vietnamese": "Chào buổi tối! Chào mừng quý khách tới nhà hàng Olive Tree. Quý khách có đặt bàn tối nay chưa ạ?"
+        },
+        {
+          "speaker": "Customer",
+          "text": "Good evening! Yes, we have a reservation for two under the name Anderson.",
+          "vietnamese": "Chào anh! Vâng, chúng tôi có đặt bàn cho hai người dưới tên Anderson."
+        },
+        {
+          "speaker": "Waiter",
+          "text": "Ah, yes, Mr. Anderson! Right this way, please. Here are your menus. Can I get you started with something to drink?",
+          "vietnamese": "À vâng, thưa ông Anderson! Mời đi lối này ạ. Đây là thực đơn. Tôi có thể mang món đồ uống nào ra trước không ạ?"
+        },
+        {
+          "speaker": "Customer",
+          "text": "Just two glasses of sparkling water with lemon, please. Also, what is today's special dish?",
+          "vietnamese": "Cho chúng tôi hai ly nước có ga kèm chanh nhé. Ngoài ra, món đặc biệt hôm nay là gì vậy anh?"
+        },
+        {
+          "speaker": "Waiter",
+          "text": "Today our chef highly recommends the grilled sea bass with asparagus. It is fresh and very flavorful.",
+          "vietnamese": "Hôm nay bếp trưởng đặc biệt gợi ý món cá vược nướng ăn kèm măng tây. Cá rất tươi và đậm đà."
+        },
+        {
+          "speaker": "Customer",
+          "text": "That sounds delicious! We will both take that for our main course.",
+          "vietnamese": "Nghe tuyệt quá! Cả hai chúng tôi đều sẽ chọn món đó cho món chính."
+        }
+      ],
+      "questions": [
+        {
+          "id": "lq-1",
+          "question": "What name was the reservation made under?",
+          "options": ["David", "Anderson", "Olive", "Smith"],
+          "correct_answer": 1,
+          "explanation": "Khách hàng nói: 'we have a reservation for two under the name Anderson'."
+        },
+        {
+          "id": "lq-2",
+          "question": "What beverages did the customer order first?",
+          "options": ["Red wine", "Iced tea", "Sparkling water with lemon", "Fresh orange juice"],
+          "correct_answer": 2,
+          "explanation": "Khách gọi: 'Just two glasses of sparkling water with lemon, please.'"
+        },
+        {
+          "id": "lq-3",
+          "question": "What was today's special recommended by the chef?",
+          "options": ["Roast beef", "Grilled sea bass with asparagus", "Spaghetti seafood", "Garlic butter salmon"],
+          "correct_answer": 1,
+          "explanation": "Người phục vụ giới thiệu: 'Today our chef highly recommends the grilled sea bass with asparagus.'"
+        }
+      ]
+    }
+  ],
+  "speaking": {
+    "situation": "Bạn đang dùng bữa tối cùng bạn thân tại nhà hàng. Bạn hãy thực hành nói các câu giao tiếp cần thiết từ việc gọi đồ uống, hỏi gợi ý cho đến việc xin tính tiền.",
+    "sample_dialogue": [
+      {
+        "speaker": "Waiter",
+        "text": "Are you ready to order, or would you like a few more minutes?",
+        "vietnamese": "Quý khách đã sẵn sàng gọi món chưa, hay cần thêm vài phút ạ?"
+      },
+      {
+        "speaker": "You",
+        "text": "We are ready. What do you recommend for the appetizer?",
+        "vietnamese": "Chúng tôi sẵn sàng rồi. Bạn gợi ý món nào cho khai vị?"
+      },
+      {
+        "speaker": "Waiter",
+        "text": "The garlic bread and mushroom soup are our guests' favorites.",
+        "vietnamese": "Bánh mì bơ tỏi và súp nấm là hai món được khách yêu thích nhất."
+      },
+      {
+        "speaker": "You",
+        "text": "Sounds great! Could we start with the garlic bread, please?",
+        "vietnamese": "Tuyệt! Cho chúng tôi bắt đầu với bánh mì bơ tỏi nhé."
+      }
+    ],
+    "practice_sentences": [
+      {
+        "id": "sp-1",
+        "text": "Excuse me, could we have a table for two, please?",
+        "phonetic_ipa": "/ɪkˈskjuːz miː, kʊd wiː hæv ə ˈteɪbl fɔː tuː pliːz/",
+        "vietnamese_hint": "Xin lỗi, cho chúng tôi một bàn 2 người được không?"
+      },
+      {
+        "id": "sp-2",
+        "text": "What do you recommend for dinner tonight?",
+        "phonetic_ipa": "/wɒt duː juː ˌrekəˈmend fɔː ˈdɪnər təˈnaɪt/",
+        "vietnamese_hint": "Bạn gợi ý món gì cho bữa tối nay?"
+      },
+      {
+        "id": "sp-3",
+        "text": "Could I get the check when you have a moment, please?",
+        "phonetic_ipa": "/kʊd aɪ ɡet ðə tʃek wen juː hæv ə ˈmoʊmənt pliːz/",
+        "vietnamese_hint": "Làm ơn cho tôi xin hóa đơn khi nào bạn tiện nhé?"
+      },
+      {
+        "id": "sp-4",
+        "text": "Can we split the bill between two cards?",
+        "phonetic_ipa": "/kæn wiː splɪt ðə bɪl bɪˈtwiːn tuː kɑːrdz/",
+        "vietnamese_hint": "Chúng tôi có thể chia hóa đơn thanh toán trên 2 thẻ không?"
+      }
+    ]
+  },
+  "practice": [
+    {
+      "id": "pq-1",
+      "type": "vocabulary_quiz",
+      "question": "Which word means 'the main dish of a meal'?",
+      "options": ["Appetizer", "Main course", "Side dish", "Dessert"],
+      "correct_answer": 1,
+      "explanation": "'Main course' nghĩa là món ăn chính trong bữa ăn."
+    },
+    {
+      "id": "pq-2",
+      "type": "vocabulary_quiz",
+      "question": "What is the small amount of extra money given to a waiter for good service called?",
+      "options": ["Check", "Receipt", "Tip", "Discount"],
+      "correct_answer": 2,
+      "explanation": "'Tip' là tiền boa dành cho nhân viên phục vụ."
+    },
+    {
+      "id": "pq-3",
+      "type": "grammar_quiz",
+      "question": "Choose the most polite way to ask for the menu in a restaurant:",
+      "options": [
+        "Give me the menu right now.",
+        "Could we have the menu, please?",
+        "I want the menu.",
+        "Pass the menu here."
+      ],
+      "correct_answer": 1,
+      "explanation": "Cấu trúc 'Could we have + [noun], please?' là cách diễn đạt lịch sự và tự nhiên nhất."
+    },
+    {
+      "id": "pq-4",
+      "type": "grammar_quiz",
+      "question": "Fill in the blank: 'I ______ like to order the grilled salmon, please.'",
+      "options": ["could", "would", "shall", "must"],
+      "correct_answer": 1,
+      "explanation": "Cụm 'would like to + verb' dùng để diễn tả mong muốn một cách nhã nhặn ('tôi muốn...')."
+    },
+    {
+      "id": "pq-5",
+      "type": "sentence_building",
+      "vietnamese": "Làm ơn cho chúng tôi xin một bàn hai người cạnh cửa sổ.",
+      "scrambled_words": ["Could", "have", "please?", "the window,", "table", "a", "by", "for two", "we"],
+      "correct_order": ["Could", "we", "have", "a", "table", "for two", "by", "the window,", "please?"],
+      "hint": "Bắt đầu bằng modal verb 'Could we have...'"
+    },
+    {
+      "id": "pq-6",
+      "type": "sentence_building",
+      "vietnamese": "Chúng tôi có thể chia đôi hóa đơn giữa hai thẻ không?",
+      "scrambled_words": ["the bill", "between", "Can", "cards?", "split", "we", "two"],
+      "correct_order": ["Can", "we", "split", "the bill", "between", "two", "cards?"],
+      "hint": "Cụm 'split the bill between...'"
+    },
+    {
+      "id": "pq-7",
+      "type": "translation",
+      "source_text": "Cho tôi xin hóa đơn thanh toán được không?",
+      "source_lang": "vi",
+      "correct_answer": "Could I get the check, please?",
+      "accept_answers": [
+        "Could I get the check please",
+        "Could I get the bill, please?",
+        "Could I get the bill please",
+        "Could we have the check, please?",
+        "Could we have the bill, please?",
+        "Can I get the check, please?"
+      ],
+      "hint": "Gợi ý: Dùng 'Could I get the check, please?'"
+    },
+    {
+      "id": "pq-8",
+      "type": "speaking_challenge",
+      "prompt": "The waiter asks you: 'What would you like to drink tonight?'. How do you politely order two glasses of cold water?",
+      "sample_answer": "Could we have two glasses of cold water, please?",
+      "vietnamese_hint": "Nói bằng tiếng Anh: 'Could we have two glasses of cold water, please?'"
+    }
+  ]
+}

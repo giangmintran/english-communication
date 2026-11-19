@@ -1,4 +1,5 @@
 import { Deck, LearningItem, Profile } from '../types/database';
+import dailyItemsJson from './dailyItems.json';
 
 export const mockProfile: Profile = {
   id: 'user-demo',
@@ -6,7 +7,7 @@ export const mockProfile: Profile = {
   avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
   streak_count: 8,
   last_active_date: new Date().toISOString(),
-  daily_goal_words: 10,
+  daily_goal_words: 20,
   current_level: 'A2',
   created_at: new Date().toISOString(),
 };
@@ -245,7 +246,7 @@ export const sampleLearningItems: Record<string, LearningItem[]> = {
   ],
   'deck-daily-conversations': [
     {
-      id: 'daily-1',
+      id: 'conv-1',
       deck_id: 'deck-daily-conversations',
       type: 'phrase',
       english_text: 'Long time no see! How have you been?',
@@ -256,7 +257,64 @@ export const sampleLearningItems: Record<string, LearningItem[]> = {
       difficulty_level: 'A2',
     },
     {
-      id: 'daily-2',
+      id: 'conv-2',
+      deck_id: 'deck-daily-conversations',
+      type: 'phrase',
+      english_text: 'Do you fancy grabbing a coffee this weekend?',
+      phonetic_ipa: '/duː juː ˈfænsi ˈɡræbɪŋ ə ˈkɒfi ðɪs ˌwiːkˈend/',
+      vietnamese_meaning: 'Cuối tuần này bạn có hứng đi uống cà phê không?',
+      example_sentence: 'The weather is great today. Do you fancy grabbing a coffee this weekend?',
+      example_meaning: 'Thời tiết hôm nay đẹp quá. Cuối tuần này bạn có muốn đi cà phê không?',
+      difficulty_level: 'B1',
+    },
+    {
+      id: 'conv-3',
+      deck_id: 'deck-daily-conversations',
+      type: 'phrase',
+      english_text: 'How is work treating you lately?',
+      phonetic_ipa: '/haʊ ɪz wɜːk ˈtriːtɪŋ juː ˈleɪtli/',
+      vietnamese_meaning: 'Dạo này công việc của bạn thế nào?',
+      example_sentence: 'I heard you started a new role. How is work treating you lately?',
+      example_meaning: 'Tôi nghe nói bạn vừa nhận việc mới. Dạo này công việc thế nào?',
+      difficulty_level: 'B1',
+    },
+    {
+      id: 'conv-4',
+      deck_id: 'deck-daily-conversations',
+      type: 'phrase',
+      english_text: 'It was wonderful running into you today!',
+      phonetic_ipa: '/ɪt wɒz ˈwʌndəfl ˈrʌnɪŋ ˈɪntuː juː təˈdeɪ/',
+      vietnamese_meaning: 'Thật tuyệt vời khi tình cờ gặp lại bạn hôm nay!',
+      example_sentence: 'I must head out now, but it was wonderful running into you today!',
+      example_meaning: 'Giờ tôi phải đi rồi, nhưng thật tuyệt khi tình cờ gặp lại bạn hôm nay!',
+      difficulty_level: 'A2',
+    },
+    {
+      id: 'conv-5',
+      deck_id: 'deck-daily-conversations',
+      type: 'phrase',
+      english_text: 'Let us keep in touch and catch up soon!',
+      phonetic_ipa: '/let ʌs kiːp ɪn tʌtʃ ænd kætʃ ʌp suːn/',
+      vietnamese_meaning: 'Hãy giữ liên lạc và sớm gặp lại nhau nhé!',
+      example_sentence: 'Take care, let us keep in touch and catch up soon!',
+      example_meaning: 'Bảo trọng nhé, hãy giữ liên lạc và sớm gặp lại nhé!',
+      difficulty_level: 'A2',
+    },
+  ],
+  'daily-conversations': [
+    {
+      id: 'conv-1',
+      deck_id: 'deck-daily-conversations',
+      type: 'phrase',
+      english_text: 'Long time no see! How have you been?',
+      phonetic_ipa: '/lɒŋ taɪm nəʊ siː haʊ hæv juː biːn/',
+      vietnamese_meaning: 'Lâu quá không gặp! Dạo này bạn thế nào?',
+      example_sentence: 'Hey Learner, long time no see! How have you been holding up?',
+      example_meaning: 'Chào Learner, lâu quá không gặp! Dạo này bạn thế nào rồi?',
+      difficulty_level: 'A2',
+    },
+    {
+      id: 'conv-2',
       deck_id: 'deck-daily-conversations',
       type: 'phrase',
       english_text: 'Do you fancy grabbing a coffee this weekend?',
@@ -267,4 +325,6 @@ export const sampleLearningItems: Record<string, LearningItem[]> = {
       difficulty_level: 'B1',
     },
   ],
+  'deck-daily': dailyItemsJson as LearningItem[],
+  'daily': dailyItemsJson as LearningItem[],
 };

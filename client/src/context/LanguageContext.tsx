@@ -6,7 +6,11 @@ export type { Language };
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  t: (path: string, fallback?: string) => string;
+  t: (
+    path: string,
+    paramsOrFallback?: Record<string, string | number> | string,
+    fallback?: string
+  ) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -38,9 +42,14 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     } catch (_) {}
   };
 
-  const t = (path: string, fallback?: string): string => {
+  const t = (
+    path: string,
+    paramsOrFallback?: Record<string, string | number> | string,
+    fallback?: string
+  ): string => {
     const keys = path.split('.');
     let current: any = translations[language];
+    let resolvedStr: string | undefined;
 
     for (const k of keys) {
       if (current && typeof current === 'object' && k in current) {
@@ -56,12 +65,38 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             break;
           }
         }
-        if (typeof enCurrent === 'string') return enCurrent;
-        return fallback || path;
+        if (typeof enCurrent === 'string') {
+          resolvedStr = enCurrent;
+        } else {
+          resolvedStr =
+            typeof paramsOrFallback === 'string'
+              ? paramsOrFallback
+              : fallback || path;
+        }
+        break;
       }
     }
 
-    return typeof current === 'string' ? current : (fallback || path);
+    if (!resolvedStr) {
+      resolvedStr =
+        typeof current === 'string'
+          ? current
+          : typeof paramsOrFallback === 'string'
+          ? paramsOrFallback
+          : fallback || path;
+    }
+
+    // Interpolate params like {count}
+    if (paramsOrFallback && typeof paramsOrFallback === 'object') {
+      for (const [pKey, pVal] of Object.entries(paramsOrFallback)) {
+        resolvedStr = resolvedStr.replace(
+          new RegExp(`\\{${pKey}\\}`, 'g'),
+          String(pVal)
+        );
+      }
+    }
+
+    return resolvedStr;
   };
 
   return (

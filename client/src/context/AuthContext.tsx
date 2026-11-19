@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { useLearningStore } from '@/lib/store';
+import { api } from '@/lib/api';
 
 interface AuthContextType {
   user: User | null;
@@ -57,10 +58,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const isSyncingRef = useRef(false);
+
   // Helper to synchronize user metadata with DB profiles & local store
   const syncUserProfile = useCallback(async (currentUser: User) => {
     // 1. Immediately apply metadata from token to flush out any mock data
     applyUserMetadata(currentUser);
+
+    // Tránh gọi trùng lặp nhiều request đồng thời
+    if (isSyncingRef.current) return;
+    isSyncingRef.current = true;
 
     try {
       // 2. Query public.profiles
@@ -91,7 +98,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       const reviewsMap: Record<string, any> = {};
       const todayStr = new Date().toISOString().split('T')[0];
-      let todayReviewedCount = 0;
 
       if (userReviews && userReviews.length > 0) {
         userReviews.forEach((rev) => {
@@ -102,16 +108,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             next_review_at: rev.next_review_at,
             last_quality: rev.last_quality,
           };
-          if (rev.last_reviewed_at && rev.last_reviewed_at.startsWith(todayStr)) {
-            todayReviewedCount++;
-          }
         });
       }
 
-      const totalWordsLearned = Object.keys(reviewsMap).length;
+      // 3b. Query bảng riêng collection_reviews (khi người dùng đã tạo bảng trên DB)
+      const collectionReviewsMap: Record<string, any> = {};
+      try {
+        const { data: colData, error: colError } = await supabase
+          .from('collection_reviews')
+          .select('*')
+          .eq('user_id', currentUser.id);
+
+        if (!colError && colData && colData.length > 0) {
+          colData.forEach((rev) => {
+            collectionReviewsMap[rev.item_id] = {
+              repetitions: rev.repetitions,
+              interval_days: rev.interval_days,
+              ease_factor: rev.ease_factor,
+              next_review_at: rev.next_review_at,
+              last_quality: rev.last_quality,
+            };
+          });
+        }
+      } catch (_) {
+        // Bảng collection_reviews sẽ được người dùng tạo sau
+      }
+
+      // Tổng hợp từ vựng đã học từ cả Daily và Collection (loại bỏ trùng ID nếu có)
+      const allLearnedItemIds = new Set([
+        ...Object.keys(reviewsMap),
+        ...Object.keys(collectionReviewsMap),
+      ]);
+      const totalWordsLearned = allLearnedItemIds.size;
       const streakCount = dbProfile?.streak_count ?? 1;
-      const dailyGoal = dbProfile?.daily_goal_words ?? 10;
+      const dailyGoal = dbProfile?.daily_goal_words ?? 20;
       const progressPercent = totalWordsLearned > 0 ? Math.min(100, Math.round((totalWordsLearned / 700) * 100)) : 0;
+
+      // Tính số từ đã học cho Daily Routine hôm nay (tách biệt hoàn toàn với Collections)
+      const existingClientDailyProgress = useLearningStore.getState().getTodayReviewProgress(todayStr);
+      let initialDailyLearned = 0;
+      if (existingClientDailyProgress) {
+        if (existingClientDailyProgress.results && Object.keys(existingClientDailyProgress.results).length > 0) {
+          const uniqueWords = new Set(
+            Object.values(existingClientDailyProgress.results).map((r: any) => r.question?.wordId || r.questionId).filter(Boolean)
+          );
+          initialDailyLearned = Math.min(dailyGoal, uniqueWords.size);
+        } else if (existingClientDailyProgress.wordIds && existingClientDailyProgress.wordIds.length > 0) {
+          initialDailyLearned = Math.min(dailyGoal, existingClientDailyProgress.wordIds.length);
+        }
+      }
 
       // 4. Update Zustand store with actual user data (Zero mock data)
       useLearningStore.getState().setUserData({
@@ -127,10 +172,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
         streakDays: streakCount,
         todayGoal: dailyGoal,
-        todayLearned: todayReviewedCount,
+        todayLearned: initialDailyLearned,
         totalWordsLearned: totalWordsLearned,
         overallProgressPercent: progressPercent,
         reviews: reviewsMap,
+        collectionReviews: collectionReviewsMap,
       });
 
       // 5. Upsert to profiles table if row doesn't exist yet
@@ -145,8 +191,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           last_active_date: new Date().toISOString(),
         });
       }
+
+      // 6. Gộp tiến trình ôn tập 20 từ (Daily Review) giữa client (máy khách) và server
+      try {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const clientProgress = useLearningStore.getState().getTodayReviewProgress(todayStr);
+        let activeDailyProgress = clientProgress;
+
+        if (clientProgress && clientProgress.answeredCount > 0) {
+          // Có tiến trình lưu ở máy khách -> Gọi merge lên server
+          const merged = await api.progress.mergeDailyReview(clientProgress);
+          if (merged) {
+            activeDailyProgress = merged;
+            await useLearningStore.getState().saveDailyReviewProgress(merged, currentUser.id);
+          }
+        } else {
+          // Chưa có ở máy khách -> Lấy tiến trình trên server về máy khách
+          const serverProgress = await api.progress.getDailyReview(todayStr);
+          if (serverProgress) {
+            activeDailyProgress = serverProgress;
+            await useLearningStore.getState().saveDailyReviewProgress(serverProgress, currentUser.id);
+          }
+        }
+
+        // Cập nhật lại todayLearned chính xác từ số từ thực tế của tiến trình Daily Routine
+        if (activeDailyProgress) {
+          if (activeDailyProgress.results && Object.keys(activeDailyProgress.results).length > 0) {
+            const uniqueWords = new Set(
+              Object.values(activeDailyProgress.results).map((r: any) => r.question?.wordId || r.questionId).filter(Boolean)
+            );
+            useLearningStore.getState().setTodayLearned(Math.min(dailyGoal, uniqueWords.size));
+          } else if (activeDailyProgress.wordIds && activeDailyProgress.wordIds.length > 0) {
+            useLearningStore.getState().setTodayLearned(Math.min(dailyGoal, activeDailyProgress.wordIds.length));
+          }
+        }
+      } catch (reviewSyncErr) {
+        console.warn('Lỗi đồng bộ tiến trình Daily Review:', reviewSyncErr);
+      }
     } catch (err) {
       console.warn('Profile sync warning:', err);
+    } finally {
+      isSyncingRef.current = false;
     }
   }, [applyUserMetadata]);
 
@@ -169,7 +254,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [syncUserProfile]);
 
   useEffect(() => {
-    // 1. Initial check
+    // 1. Initial check khi app khởi động
     refreshUser();
 
     // 2. Subscribe to auth changes
@@ -180,7 +265,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const currentUser = newSession?.user ?? null;
       setUser(currentUser);
 
-      if (currentUser) {
+      // Chỉ gọi sync toàn bộ profile & reviews khi người dùng thực sự đăng nhập mới (SIGNED_IN)
+      // hoặc cập nhật tài khoản (USER_UPDATED).
+      // KHÔNG gọi lại 3-4 API này khi đổi tab / focus tab chỉ phát sinh TOKEN_REFRESHED hoặc INITIAL_SESSION.
+      if (currentUser && (event === 'SIGNED_IN' || event === 'USER_UPDATED')) {
         await syncUserProfile(currentUser);
       } else if (event === 'SIGNED_OUT') {
         clearAuthStorage();

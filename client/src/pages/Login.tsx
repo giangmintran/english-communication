@@ -58,21 +58,21 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="max-w-md mx-auto my-8 space-y-6">
-      <div className="text-center space-y-2">
+    <div className="max-w-md mx-auto my-4 sm:my-8 px-1 sm:px-0 space-y-5 sm:space-y-6">
+      <div className="text-center space-y-1.5 sm:space-y-2">
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/40 rounded-full text-xs font-semibold mb-1">
           <Sparkles className="w-3.5 h-3.5" />
           <span>{t('login.badge')}</span>
         </div>
-        <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
           {t('login.welcome')}
         </h1>
-        <p className="text-slate-500 dark:text-slate-400 text-sm">
+        <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
           {t('login.subtitle')}
         </p>
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-100 dark:border-slate-800 shadow-card space-y-6 transition-colors">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-8 border border-slate-100 dark:border-slate-800 shadow-card space-y-5 sm:space-y-6 transition-colors">
         {/* Google Sign-in Button */}
         <button
           onClick={handleGoogleLogin}

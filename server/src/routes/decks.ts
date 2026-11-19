@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { supabase } from '../config/supabase';
-import { initialDecks } from '../data/mockData';
+import { initialDecks, sampleLearningItems } from '../data/mockData';
 import { sendSuccess, sendError } from '../utils/response';
 import { edgeCache } from '../middlewares/cache';
 
@@ -34,8 +34,8 @@ router.get('/', edgeCache(600), async (_req: Request, res: Response) => {
 router.get('/:id', edgeCache(600), async (req: Request, res: Response) => {
   const { id } = req.params;
   try {
-    const isDaily = id === 'daily';
-    const targetSlug = isDaily ? 'daily-conversations' : id.replace(/^deck-/, '');
+    const isDaily = id === 'daily' || id === 'deck-daily';
+    const targetSlug = isDaily ? 'daily' : id.replace(/^deck-/, '');
     const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
 
     let query = supabase.from('decks').select('*, items(*)');
@@ -48,14 +48,35 @@ router.get('/:id', edgeCache(600), async (req: Request, res: Response) => {
     const { data: deck, error: deckError } = await query.maybeSingle();
 
     if (deckError || !deck) {
+      if (isDaily) {
+        const dailyItems = sampleLearningItems['deck-daily'] || sampleLearningItems['daily'] || [];
+        const dailyFallbackDeck = {
+          id: 'deck-daily',
+          title: "Today's Goal",
+          slug: 'daily',
+          description: 'Mục tiêu học 20 từ vựng mỗi ngày',
+          category: 'Daily Routine',
+          icon_name: 'Target',
+          image_url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80',
+          total_words: 20,
+          flashcards: dailyItems,
+        };
+        return sendSuccess(res, dailyFallbackDeck, 'Lấy chi tiết Daily Routine thành công (fallback)');
+      }
+
       const fallbackDeck =
         initialDecks.find((d) => d.id === id || d.slug === targetSlug) || initialDecks[0];
-      return sendSuccess(res, fallbackDeck, 'Lấy chi tiết deck thành công (fallback)');
+      const items = sampleLearningItems[fallbackDeck.id] || sampleLearningItems[fallbackDeck.slug] || [];
+      return sendSuccess(
+        res,
+        { ...fallbackDeck, flashcards: items },
+        'Lấy chi tiết deck thành công (fallback)'
+      );
     }
 
     const formattedDeck = {
       ...deck,
-      title: isDaily ? "Today's Goal (Mục tiêu hôm nay)" : deck.title,
+      title: isDaily ? "Today's Goal" : deck.title,
       flashcards: deck.items || [],
     };
 

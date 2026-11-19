@@ -18,10 +18,10 @@ export function YourProgressCard() {
   const strokeDashoffset = circumference - (overallProgressPercent / 100) * circumference;
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-card flex flex-col justify-between h-full transition-colors">
+    <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-100 dark:border-slate-800 shadow-card flex flex-col justify-between h-full transition-colors">
       {/* Title */}
       <div>
-        <div className="flex items-center gap-2 mb-6">
+        <div className="flex items-center gap-2 mb-4 sm:mb-6">
           <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
           <h3 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
             {t('home.yourProgress')}
@@ -29,7 +29,7 @@ export function YourProgressCard() {
         </div>
 
         {/* Circular Progress Gauge */}
-        <div className="flex justify-center my-4">
+        <div className="flex justify-center my-3 sm:my-4">
           <div className="relative flex items-center justify-center">
             <svg width={size} height={size} className="transform -rotate-90">
               {/* Background Circle */}
@@ -70,8 +70,8 @@ export function YourProgressCard() {
         </div>
       </div>
 
-      {/* Stats List */}
-      <div className="space-y-4 pt-6 border-t border-slate-100 dark:border-slate-800">
+      {/* Stats List: 1 col on mobile, 3 cols on tablet, 1 col on desktop xl sidebar */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-1 gap-4 pt-5 sm:pt-6 border-t border-slate-100 dark:border-slate-800">
         {/* Words Learned */}
         <div className="flex items-center gap-3.5">
           <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">

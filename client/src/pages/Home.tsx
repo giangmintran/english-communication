@@ -3,6 +3,7 @@ import { TodaysGoalCard } from '@/components/dashboard/TodaysGoalCard';
 import { ContinueLearningCard } from '@/components/dashboard/ContinueLearningCard';
 import { ExploreCollections } from '@/components/dashboard/ExploreCollections';
 import { YourProgressCard } from '@/components/dashboard/YourProgressCard';
+import { ActivityHeatmapCard } from '@/components/dashboard/ActivityHeatmapCard';
 import { useAuth } from '@/context/AuthContext';
 import { useLearningStore } from '@/lib/store';
 import { useTranslation } from '@/context/LanguageContext';
@@ -20,15 +21,15 @@ export default function HomePage() {
     (user ? 'Learner' : profile.display_name);
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto">
       {/* TOP SECTION: Welcome Banner + Today's Goal */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-center">
         {/* Welcome Text */}
         <div className="lg:col-span-6">
-          <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">
             {t('home.welcomeBack')}, {displayName}! 👋
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm md:text-base leading-relaxed">
+          <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-base leading-relaxed">
             {t('home.welcomeDesc')}
           </p>
         </div>
@@ -39,10 +40,11 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* MAIN CONTENT AREA: Continue Learning + Collections on left, Your Progress on right */}
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Continue Learning & Explore Collections */}
-        <div className="xl:col-span-9 space-y-8">
+      {/* MAIN CONTENT AREA: Activity Heatmap + Continue Learning + Collections on left, Your Progress on right */}
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 sm:gap-6 items-start">
+        {/* Left Column: Activity Heatmap & Continue Learning & Explore Collections */}
+        <div className="xl:col-span-9 space-y-6 sm:space-y-8">
+          <ActivityHeatmapCard />
           <ContinueLearningCard />
           <ExploreCollections />
         </div>
