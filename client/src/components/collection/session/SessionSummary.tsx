@@ -20,8 +20,10 @@ interface SessionSummaryProps {
   wordsMastered: number;
   totalDeckWords: number;
   hasMoreNewWords: boolean;
+  remainingDueCount?: number;
   onLearnMore: () => void;
   onRestart: () => void;
+  onReviewDue?: () => void;
 }
 
 export function SessionSummary({
@@ -32,8 +34,10 @@ export function SessionSummary({
   wordsMastered,
   totalDeckWords,
   hasMoreNewWords,
+  remainingDueCount,
   onLearnMore,
   onRestart,
+  onReviewDue,
 }: SessionSummaryProps) {
   const { t } = useTranslation();
 
@@ -122,6 +126,27 @@ export function SessionSummary({
           </p>
         </div>
       </div>
+
+      {/* Remaining Due Notice */}
+      {remainingDueCount !== undefined && remainingDueCount > 0 && (
+        <div className="p-3 sm:p-3.5 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-left">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Clock className="w-4 h-4 text-amber-500 shrink-0" />
+            <span className="text-xs font-semibold text-amber-800 dark:text-amber-300">
+              {t('collectionStudy.remainingDueNotice', { count: remainingDueCount })}
+            </span>
+          </div>
+          {onReviewDue && (
+            <button
+              type="button"
+              onClick={onReviewDue}
+              className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shrink-0 cursor-pointer transition-colors shadow-xs"
+            >
+              {t('collectionStudy.reviewDueBtn')}
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Action Buttons: Clean 2-tier layout */}
       <div className="space-y-3 pt-1">

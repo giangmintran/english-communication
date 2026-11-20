@@ -1,0 +1,409 @@
+{
+  "lesson": {
+    "id": "lesson-travel-02",
+    "deck_id": "deck-travel",
+    "title": "Hotel Check-in & Inquiring Amenities",
+    "description": "Nhận phòng khách sạn, yêu cầu đổi phòng, hỏi mật khẩu WiFi và bữa sáng buffet.",
+    "topic": "Hotel Communication",
+    "level": "A2",
+    "estimated_minutes": 30,
+    "order_index": 2,
+    "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80"
+  },
+  "warmup": {
+    "situation": "Bạn vừa đến khách sạn tại điểm đến du lịch sau một hành trình di chuyển. Bạn cần làm thủ tục nhận phòng (check in) tại quầy lễ tân, lấy thẻ từ khóa phòng, hỏi về giờ phục vụ bữa sáng buffet, mật khẩu WiFi và giờ trả phòng (check out).",
+    "objective": "Sau bài học, bạn có thể tự tin hoàn tất thủ tục check-in tại khách sạn, yêu cầu tiện ích phòng, hỏi giờ bữa sáng, mật khẩu WiFi và xử lý yêu cầu trả phòng trễ.",
+    "warm_up_question": "When arriving at a hotel, how do you inform the front desk that you already have a booking under your name?",
+    "key_phrases": [
+      "I have a reservation under the name...",
+      "What time is breakfast served?",
+      "Could I get the WiFi password?",
+      "Is it possible to request a late check-out?"
+    ],
+    "image_url": "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80"
+  },
+  "vocabulary": [
+    {
+      "id": "tv2-1",
+      "word": "front desk",
+      "phonetic_ipa": "/ˌfrʌnt ˈdesk/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "quầy lễ tân",
+      "collocations": ["check in at the front desk", "call the front desk", "front desk clerk"],
+      "example_sentence": "If you need extra towels, simply dial zero for the front desk.",
+      "example_meaning": "Nếu quý khách cần thêm khăn tắm, chỉ cần bấm số 0 để gọi quầy lễ tân."
+    },
+    {
+      "id": "tv2-2",
+      "word": "amenities",
+      "phonetic_ipa": "/əˈmen.ə.t̬iz/",
+      "part_of_speech": "noun (plural)",
+      "vietnamese_meaning": "tiện nghi, dịch vụ kèm theo (hồ bơi, gym, spa...)",
+      "collocations": ["hotel amenities", "complimentary amenities", "room amenities"],
+      "example_sentence": "The hotel amenities include a rooftop swimming pool and a 24-hour fitness center.",
+      "example_meaning": "Các tiện nghi của khách sạn bao gồm hồ bơi trên sân thượng và phòng tập gym 24/7."
+    },
+    {
+      "id": "tv2-3",
+      "word": "complimentary",
+      "phonetic_ipa": "/ˌkɑːm.pləˈmen.t̬ɚ.i/",
+      "part_of_speech": "adjective",
+      "vietnamese_meaning": "miễn phí (do khách sạn cung cấp đi kèm)",
+      "collocations": ["complimentary breakfast", "complimentary bottled water", "complimentary toiletries"],
+      "example_sentence": "Every morning, guests enjoy a complimentary buffet breakfast on the second floor.",
+      "example_meaning": "Mỗi sáng, khách lưu trú được thưởng thức bữa sáng tự chọn miễn phí tại tầng 2."
+    },
+    {
+      "id": "tv2-4",
+      "word": "key card",
+      "phonetic_ipa": "/ˈkiː ˌkɑːrd/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "thẻ từ mở khóa phòng",
+      "collocations": ["swipe the key card", "tap your key card", "lost key card"],
+      "example_sentence": "Here are two key cards for room 508. Tap them against the electronic lock.",
+      "example_meaning": "Đây là hai thẻ từ cho phòng 508. Hãy quẹt thẻ vào ổ khóa điện tử."
+    },
+    {
+      "id": "tv2-5",
+      "word": "late check-out",
+      "phonetic_ipa": "/ˌleɪt ˈtʃek.aʊt/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "trả phòng muộn (sau giờ quy định thông thường)",
+      "collocations": ["request a late check-out", "free late check-out", "late check-out until 2 PM"],
+      "example_sentence": "Could we please request a late check-out until 1:00 PM tomorrow?",
+      "example_meaning": "Chúng tôi có thể xin trả phòng muộn đến 1 giờ chiều mai được không?"
+    },
+    {
+      "id": "tv2-6",
+      "word": "wake-up call",
+      "phonetic_ipa": "/ˈweɪk.ʌp ˌkɔːl/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "cuộc gọi báo thức từ lễ tân",
+      "collocations": ["set a wake-up call", "request a wake-up call at 6 AM"],
+      "example_sentence": "Could I schedule a wake-up call for 6:30 AM tomorrow morning?",
+      "example_meaning": "Lễ tân có thể đặt chuông báo thức lúc 6:30 sáng mai giúp tôi được không?"
+    },
+    {
+      "id": "tv2-7",
+      "word": "deposit",
+      "phonetic_ipa": "/dɪˈpɑː.zɪt/",
+      "part_of_speech": "noun / verb",
+      "vietnamese_meaning": "tiền đặt cọc phòng",
+      "collocations": ["security deposit", "refundable deposit", "pay a deposit by credit card"],
+      "example_sentence": "We require a fifty-dollar refundable deposit for incidentals upon check-in.",
+      "example_meaning": "Chúng tôi cần một khoản tiền đặt cọc có thể hoàn lại là 50 đô la khi nhận phòng."
+    },
+    {
+      "id": "tv2-8",
+      "word": "buffet",
+      "phonetic_ipa": "/bəˈfeɪ/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "tiệc đứng, bữa ăn tự chọn",
+      "collocations": ["breakfast buffet", "all-you-can-eat buffet", "buffet spread"],
+      "example_sentence": "The breakfast buffet is served daily from 6:30 AM to 10:00 AM.",
+      "example_meaning": "Bữa sáng tự chọn được phục vụ hàng ngày từ 6:30 đến 10:00 sáng."
+    },
+    {
+      "id": "tv2-9",
+      "word": "housekeeping",
+      "phonetic_ipa": "/ˈhaʊsˌkiː.pɪŋ/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "dịch vụ buồng phòng, dọn dẹp phòng",
+      "collocations": ["call housekeeping", "daily housekeeping", "housekeeping staff"],
+      "example_sentence": "Housekeeping cleans and refreshes all guest rooms every morning.",
+      "example_meaning": "Bộ phận buồng phòng dọn dẹp và làm mới tất cả các phòng khách mỗi sáng."
+    },
+    {
+      "id": "tv2-10",
+      "word": "shuttle service",
+      "phonetic_ipa": "/ˈʃʌt̬.əl ˌsɜːr.vɪs/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "dịch vụ xe buýt đưa đón (sân bay - khách sạn)",
+      "collocations": ["free airport shuttle service", "hotel shuttle service"],
+      "example_sentence": "Does the hotel provide a complimentary shuttle service to the airport?",
+      "example_meaning": "Khách sạn có dịch vụ xe buýt đưa đón miễn phí ra sân bay không?"
+    }
+  ],
+  "grammar": {
+    "title": "Asking for Schedule & Inclusions (What time is... / Is... included?)",
+    "explanation": "Khi ở khách sạn, hai câu hỏi thông dụng nhất là hỏi về thời gian biểu của dịch vụ ('What time is...?') và kiểm tra xem tiện ích đó có tính thêm phí hay không ('Is... included in the room rate?').",
+    "formula": "What time is [service/facility] open / served? | Is [amenity] included in our booking?",
+    "examples": [
+      {
+        "english": "What time is breakfast served in the morning?",
+        "vietnamese": "Bữa sáng được phục vụ vào lúc mấy giờ sáng vậy ạ?",
+        "highlight": "What time is breakfast served"
+      },
+      {
+        "english": "Is high-speed WiFi included in our room rate?",
+        "vietnamese": "WiFi tốc độ cao có được tính kèm trong giá phòng chưa ạ?",
+        "highlight": "Is high-speed WiFi included"
+      },
+      {
+        "english": "Could we request a quiet room on a higher floor?",
+        "vietnamese": "Chúng tôi có thể xin một phòng yên tĩnh ở tầng cao được không?",
+        "highlight": "Could we request"
+      }
+    ],
+    "common_mistakes": [
+      {
+        "wrong": "What time breakfast? (Thiếu động từ to be và phân từ)",
+        "correct": "What time is breakfast served? / When is breakfast?",
+        "explanation": "Cần có cấu trúc hoàn chỉnh 'What time is [noun] served?' để lịch sự và đúng ngữ pháp."
+      },
+      {
+        "wrong": "Free wifi have?",
+        "correct": "Is the WiFi free of charge? / Is WiFi complimentary?",
+        "explanation": "Dùng 'Is WiFi complimentary?' hoặc 'Is WiFi included?' thay vì câu chắp vá từ vựng."
+      }
+    ]
+  },
+  "expressions": [
+    {
+      "id": "te2-1",
+      "expression": "Hello, I have a reservation for three nights under the name David Miller.",
+      "phonetic_ipa": "/həˈloʊ, aɪ hæv ə ˌrezərˈveɪʃən fɔːr θriː naɪts ˈʌndər ðə neɪm ˈdeɪvɪd ˈmɪlər/",
+      "meaning": "Xin chào, tôi có đặt phòng 3 đêm dưới tên David Miller.",
+      "context": "Câu chào chuẩn khi bước đến quầy check-in khách sạn.",
+      "formality": "polite",
+      "variations": [
+        "Hi, checking in under Miller.",
+        "Good afternoon, we have a booking confirmation here.",
+        "I booked a double room online under David."
+      ]
+    },
+    {
+      "id": "te2-2",
+      "expression": "What time is breakfast served, and where is the dining hall?",
+      "phonetic_ipa": "/wɒt taɪm ɪz ˈbrekfəst sɜːrvd, ænd weər ɪz ðə ˈdaɪnɪŋ hɔːl/",
+      "meaning": "Bữa sáng phục vụ lúc mấy giờ và phòng ăn ở đâu vậy ạ?",
+      "context": "Hỏi thông tin bữa sáng sau khi nhận thẻ khóa phòng.",
+      "formality": "polite",
+      "variations": [
+        "Where can we have breakfast tomorrow?",
+        "Is breakfast buffet served on the ground floor?",
+        "What are the restaurant hours for breakfast?"
+      ]
+    },
+    {
+      "id": "te2-3",
+      "expression": "Could we get the WiFi password and information about the pool?",
+      "phonetic_ipa": "/kʊd wiː ɡet ðə ˈwaɪfaɪ ˈpæswɜːrd ænd ˌɪnfərˈmeɪʃən əˈbaʊt ðə puːl/",
+      "meaning": "Cho chúng tôi xin mật khẩu WiFi và thông tin về hồ bơi được không?",
+      "context": "Hỏi các tiện ích cơ bản trong khách sạn.",
+      "formality": "polite",
+      "variations": [
+        "What is the WiFi network name?",
+        "Are the pool and gym open right now?",
+        "Does the room key work for the fitness center?"
+      ]
+    },
+    {
+      "id": "te2-4",
+      "expression": "Is it possible to request a late check-out tomorrow?",
+      "phonetic_ipa": "/ɪz ɪt ˈpɑːsəbl tuː rɪˈkwest ə leɪt ˈtʃekaʊt təˈmɔːroʊ/",
+      "meaning": "Liệu chúng tôi có thể xin trả phòng muộn vào ngày mai không?",
+      "context": "Hỏi lễ tân nếu chuyến bay hoặc kế hoạch về trễ hơn 12 giờ trưa.",
+      "formality": "polite",
+      "variations": [
+        "Can we stay until 1:00 PM without extra charge?",
+        "How much is the fee for checking out at 2:00 PM?",
+        "Could we leave our luggage here after checking out?"
+      ]
+    }
+  ],
+  "listening": [
+    {
+      "id": "tl2-1",
+      "title": "Checking In at The Grand Pearl Hotel",
+      "dialogue": [
+        {
+          "speaker": "Receptionist",
+          "text": "Good afternoon! Welcome to The Grand Pearl Hotel. How may I assist you today?",
+          "vietnamese": "Chào buổi chiều! Chào mừng quý khách đến với khách sạn Grand Pearl. Tôi có thể giúp gì cho quý khách ạ?"
+        },
+        {
+          "speaker": "Guest",
+          "text": "Hello! I would like to check in, please. I have a reservation for two nights under the name Sarah Jenkins.",
+          "vietnamese": "Xin chào! Tôi muốn làm thủ tục nhận phòng. Tôi có đặt phòng 2 đêm dưới tên Sarah Jenkins."
+        },
+        {
+          "speaker": "Receptionist",
+          "text": "Yes, Ms. Jenkins! A deluxe room with a king-size bed and city view. May I have your ID or passport, please?",
+          "vietnamese": "Vâng, cô Jenkins! Một phòng cao cấp với giường đôi cỡ lớn và hướng nhìn thành phố. Cho tôi xin căn cước hoặc hộ chiếu ạ?"
+        },
+        {
+          "speaker": "Guest",
+          "text": "Here is my passport. Also, is breakfast included in this reservation?",
+          "vietnamese": "Đây là hộ chiếu của tôi. Ngoài ra, bữa sáng đã bao gồm trong đặt phòng này chưa ạ?"
+        },
+        {
+          "speaker": "Receptionist",
+          "text": "Yes, absolutely! Complimentary buffet breakfast is served at the Pearl Cafe on the second floor from 6:30 to 10:30 AM.",
+          "vietnamese": "Dạ vâng, hoàn toàn miễn phí ạ! Bữa sáng tự chọn được phục vụ tại Pearl Cafe trên tầng 2 từ 6:30 đến 10:30 sáng."
+        },
+        {
+          "speaker": "Guest",
+          "text": "Wonderful! What is the password for the WiFi?",
+          "vietnamese": "Tuyệt quá! Mật khẩu WiFi là gì vậy ạ?"
+        },
+        {
+          "speaker": "Receptionist",
+          "text": "You can connect to 'Pearl_Guest' and log in with your room number, 604, and your last name. Here are your key cards. Enjoy your stay!",
+          "vietnamese": "Cô kết nối vào mạng 'Pearl_Guest' và đăng nhập bằng số phòng 604 cùng tên của mình ạ. Đây là thẻ khóa phòng. Chúc cô kỳ nghỉ tuyệt vời!"
+        }
+      ],
+      "questions": [
+        {
+          "id": "tlq2-1",
+          "question": "How many nights is Ms. Jenkins staying at the hotel?",
+          "options": ["One night", "Two nights", "Three nights", "One week"],
+          "correct_answer": 1,
+          "explanation": "Khách nói: 'I have a reservation for two nights under the name Sarah Jenkins'."
+        },
+        {
+          "id": "tlq2-2",
+          "question": "Where is the complimentary breakfast served?",
+          "options": ["In her room", "At the rooftop bar", "At the Pearl Cafe on the second floor", "In the lobby"],
+          "correct_answer": 2,
+          "explanation": "Lễ tân thông báo: 'served at the Pearl Cafe on the second floor'."
+        },
+        {
+          "id": "tlq2-3",
+          "question": "How does the guest log in to the hotel WiFi?",
+          "options": ["By paying 10 dollars", "Using room number 604 and her last name", "Asking the manager for a special code", "There is no WiFi"],
+          "correct_answer": 1,
+          "explanation": "Lễ tân hướng dẫn: 'log in with your room number, 604, and your last name'."
+        }
+      ]
+    }
+  ],
+  "speaking": {
+    "situation": "Bạn đang đứng tại quầy lễ tân khách sạn để nhận phòng. Hãy luyện tập phát âm tự nhiên và lịch sự với các câu hỏi về tiện nghi khách sạn.",
+    "sample_dialogue": [
+      {
+        "speaker": "Receptionist",
+        "text": "Here are your key cards for room 604.",
+        "vietnamese": "Đây là thẻ khóa phòng cho phòng 604 ạ."
+      },
+      {
+        "speaker": "You",
+        "text": "Thank you! What time is breakfast served in the morning?",
+        "vietnamese": "Cảm ơn bạn! Bữa sáng phục vụ lúc mấy giờ vào buổi sáng vậy?"
+      },
+      {
+        "speaker": "Receptionist",
+        "text": "It is served from 6:30 to 10:30 AM on the second floor.",
+        "vietnamese": "Bữa sáng phục vụ từ 6:30 đến 10:30 sáng trên tầng 2 ạ."
+      },
+      {
+        "speaker": "You",
+        "text": "Great! Could we request a late check-out tomorrow?",
+        "vietnamese": "Tuyệt! Chúng tôi có thể xin trả phòng muộn ngày mai không?"
+      }
+    ],
+    "practice_sentences": [
+      {
+        "id": "tsp2-1",
+        "text": "I have a reservation for two nights under the name David.",
+        "phonetic_ipa": "/aɪ hæv ə ˌrezərˈveɪʃən fɔːr tuː naɪts ˈʌndər ðə neɪm ˈdeɪvɪd/",
+        "vietnamese_hint": "Tôi có đặt phòng 2 đêm dưới tên David."
+      },
+      {
+        "id": "tsp2-2",
+        "text": "What time is breakfast served, and where is the restaurant?",
+        "phonetic_ipa": "/wɒt taɪm ɪz ˈbrekfəst sɜːrvd, ænd weər ɪz ðə ˈrestərɑːnt/",
+        "vietnamese_hint": "Bữa sáng phục vụ lúc mấy giờ và nhà hàng ở đâu?"
+      },
+      {
+        "id": "tsp2-3",
+        "text": "Is high-speed WiFi included in our room rate?",
+        "phonetic_ipa": "/ɪz haɪ spiːd ˈwaɪfaɪ ɪnˈkluːdɪd ɪn ˈaʊər ruːm reɪt/",
+        "vietnamese_hint": "WiFi tốc độ cao có kèm trong giá phòng không?"
+      },
+      {
+        "id": "tsp2-4",
+        "text": "Could we arrange a late check-out for tomorrow afternoon?",
+        "phonetic_ipa": "/kʊd wiː əˈreɪndʒ ə leɪt ˈtʃekaʊt fɔːr təˈmɔːroʊ ˌæftərˈnuːn/",
+        "vietnamese_hint": "Chúng tôi có thể sắp xếp trả phòng muộn vào chiều mai được không?"
+      }
+    ]
+  },
+  "practice": [
+    {
+      "id": "tpq2-1",
+      "type": "vocabulary_quiz",
+      "question": "Which word means 'useful features or services provided by a hotel, like a gym or pool'?",
+      "options": ["Amenities", "Luggage", "Passports", "Delays"],
+      "correct_answer": 0,
+      "explanation": "'Amenities' chỉ các tiện nghi, dịch vụ đi kèm của khách sạn."
+    },
+    {
+      "id": "tpq2-2",
+      "type": "vocabulary_quiz",
+      "question": "What does 'complimentary breakfast' mean?",
+      "options": ["Breakfast that costs double", "Breakfast included at no extra charge", "Only black coffee", "Breakfast served at midnight"],
+      "correct_answer": 1,
+      "explanation": "'Complimentary' nghĩa là miễn phí, đã bao gồm trong giá phòng."
+    },
+    {
+      "id": "tpq2-3",
+      "type": "grammar_quiz",
+      "question": "Choose the most natural way to ask about breakfast times:",
+      "options": [
+        "What time is breakfast served in the morning?",
+        "When you give food morning?",
+        "Breakfast time when is?",
+        "Tell me eat hour."
+      ],
+      "correct_answer": 0,
+      "explanation": "'What time is breakfast served in the morning?' là câu hỏi tự nhiên và chuẩn xác nhất."
+    },
+    {
+      "id": "tpq2-4",
+      "type": "grammar_quiz",
+      "question": "Complete the question: 'Is WiFi ______ in the room rate?'",
+      "options": ["included", "including", "includes", "include"],
+      "correct_answer": 0,
+      "explanation": "Cấu trúc bị động: 'Is [noun] included in...?' (Có được bao gồm trong... không)."
+    },
+    {
+      "id": "tpq2-5",
+      "type": "sentence_building",
+      "vietnamese": "Tôi có đặt phòng cho hai đêm dưới tên David.",
+      "scrambled_words": ["under the name", "a reservation", "I have", "David.", "for two nights"],
+      "correct_order": ["I have", "a reservation", "for two nights", "under the name", "David."],
+      "hint": "Cụm chuẩn: 'I have a reservation for... under the name...'"
+    },
+    {
+      "id": "tpq2-6",
+      "type": "sentence_building",
+      "vietnamese": "Bữa sáng được phục vụ vào lúc mấy giờ buổi sáng?",
+      "scrambled_words": ["served", "in the morning?", "breakfast", "What time", "is"],
+      "correct_order": ["What time", "is", "breakfast", "served", "in the morning?"],
+      "hint": "Bắt đầu với 'What time is...'"
+    },
+    {
+      "id": "tpq2-7",
+      "type": "translation",
+      "source_text": "Cho chúng tôi xin mật khẩu WiFi được không?",
+      "source_lang": "vi",
+      "correct_answer": "Could I get the WiFi password, please?",
+      "accept_answers": [
+        "Could I get the WiFi password please",
+        "Could we get the WiFi password, please?",
+        "Could we get the WiFi password please",
+        "What is the WiFi password, please?",
+        "Can I get the WiFi password, please?"
+      ],
+      "hint": "Dùng cấu trúc: 'Could I get the WiFi password, please?'"
+    },
+    {
+      "id": "tpq2-8",
+      "type": "speaking_challenge",
+      "prompt": "You arrive at the hotel desk. Tell the receptionist you have a room booking for two nights under the name Alex.",
+      "sample_answer": "Hello, I have a reservation for two nights under the name Alex.",
+      "vietnamese_hint": "Nói bằng tiếng Anh: 'Hello, I have a reservation for two nights under the name Alex.'"
+    }
+  ]
+}

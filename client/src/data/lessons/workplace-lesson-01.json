@@ -1,0 +1,408 @@
+{
+  "lesson": {
+    "id": "lesson-workplace-01",
+    "deck_id": "deck-workplace",
+    "title": "Daily Standup & Project Status Updates",
+    "description": "Báo cáo công việc đã hoàn thành hôm qua, dự định hôm nay và các vướng mắc (blockers).",
+    "topic": "Agile Standup & Updates",
+    "level": "B1",
+    "estimated_minutes": 40,
+    "order_index": 1,
+    "image_url": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80"
+  },
+  "warmup": {
+    "situation": "Bạn đang tham gia buổi họp Daily Standup 15 phút đầu ngày cùng nhóm dự án quốc tế. Mỗi thành viên cần cập nhật ngắn gọn: hôm qua đã làm gì, hôm nay sẽ làm gì và có đang gặp khó khăn hay vướng mắc gì (blockers) không.",
+    "objective": "Sau bài học, bạn có thể tự tin báo cáo tiến độ công việc trong các buổi họp Daily Standup bằng 3 cấu trúc cốt lõi: 'Yesterday I finished...', 'Today I will focus on...', và 'I am currently blocked by...'.",
+    "warm_up_question": "In your daily work meeting, how do you quickly summarize what you completed yesterday and what you plan to do today?",
+    "key_phrases": [
+      "Yesterday, I worked on...",
+      "Today, my main focus is...",
+      "No blockers on my end",
+      "I am waiting on input from..."
+    ],
+    "image_url": "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=800&q=80"
+  },
+  "vocabulary": [
+    {
+      "id": "wv1-1",
+      "word": "standup meeting",
+      "phonetic_ipa": "/ˈstænd.ʌp ˌmiː.t̬ɪŋ/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "cuộc họp nhanh đứng đầu ngày (mô hình Agile)",
+      "collocations": ["daily standup meeting", "run the standup", "attend morning standup"],
+      "example_sentence": "We hold a 15-minute daily standup meeting every morning at 9:30.",
+      "example_meaning": "Chúng tôi tổ chức cuộc họp nhanh 15 phút vào 9:30 mỗi sáng."
+    },
+    {
+      "id": "wv1-2",
+      "word": "blocker",
+      "phonetic_ipa": "/ˈblɑː.kɚ/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "trở ngại, vướng mắc làm tắc nghẽn công việc",
+      "collocations": ["have a blocker", "resolve a blocker", "any major blockers"],
+      "example_sentence": "I have one blocker: I am still waiting for the API credentials from the security team.",
+      "example_meaning": "Tôi có một vướng mắc: Tôi vẫn đang chờ thông tin tài khoản API từ đội bảo mật."
+    },
+    {
+      "id": "wv1-3",
+      "word": "wrap up",
+      "phonetic_ipa": "/ræp ʌp/",
+      "part_of_speech": "phrasal verb",
+      "vietnamese_meaning": "hoàn tất, gói ghém xong việc gì",
+      "collocations": ["wrap up a task", "wrap up the sprint", "wrap up the meeting"],
+      "example_sentence": "I managed to wrap up the database migration yesterday afternoon.",
+      "example_meaning": "Tôi đã kịp hoàn tất việc chuyển đổi cơ sở dữ liệu vào chiều hôm qua."
+    },
+    {
+      "id": "wv1-4",
+      "word": "on track",
+      "phonetic_ipa": "/ɑːn træk/",
+      "part_of_speech": "idiom",
+      "vietnamese_meaning": "đúng tiến độ, đúng kế hoạch",
+      "collocations": ["everything is on track", "stay on track", "back on track"],
+      "example_sentence": "The mobile app release is on track for this Friday.",
+      "example_meaning": "Kế hoạch phát hành ứng dụng di động đang đúng tiến độ vào thứ Sáu tuần này."
+    },
+    {
+      "id": "wv1-5",
+      "word": "behind schedule",
+      "phonetic_ipa": "/bɪˈhaɪnd ˈskedʒ.uːl/",
+      "part_of_speech": "idiom",
+      "vietnamese_meaning": "chậm tiến độ so với kế hoạch",
+      "collocations": ["run behind schedule", "fall behind schedule"],
+      "example_sentence": "Due to unexpected bug fixes, we are slightly behind schedule on module 3.",
+      "example_meaning": "Do phải sửa lỗi phát sinh, chúng tôi đang hơi chậm tiến độ ở phần module 3."
+    },
+    {
+      "id": "wv1-6",
+      "word": "pull request / PR",
+      "phonetic_ipa": "/ˈpʊl rɪˌkwest/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "yêu cầu duyệt code / duyệt tài liệu",
+      "collocations": ["submit a pull request", "review a PR", "merge the pull request"],
+      "example_sentence": "My pull request is ready for review. Could someone take a look?",
+      "example_meaning": "PR của tôi đã sẵn sàng. Có bạn nào xem qua giúp tôi được không?"
+    },
+    {
+      "id": "wv1-7",
+      "word": "follow up",
+      "phonetic_ipa": "/ˈfɑː.loʊ ʌp/",
+      "part_of_speech": "phrasal verb / noun",
+      "vietnamese_meaning": "liên hệ lại, theo dõi tiếp",
+      "collocations": ["follow up with the client", "follow up on an email"],
+      "example_sentence": "I will follow up with design team right after this call.",
+      "example_meaning": "Tôi sẽ liên hệ lại với nhóm thiết kế ngay sau cuộc gọi này."
+    },
+    {
+      "id": "wv1-8",
+      "word": "deadline",
+      "phonetic_ipa": "/ˈded.laɪn/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "hạn chót bàn giao",
+      "collocations": ["meet the deadline", "tight deadline", "miss the deadline"],
+      "example_sentence": "We have a tight deadline for the client presentation on Wednesday.",
+      "example_meaning": "Chúng ta có hạn chót rất gấp cho buổi thuyết trình khách hàng vào thứ Tư."
+    },
+    {
+      "id": "wv1-9",
+      "word": "bandwidth",
+      "phonetic_ipa": "/ˈbænd.wɪdθ/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "thời gian, năng lực xử lý công việc",
+      "collocations": ["have the bandwidth", "limited bandwidth", "lack of bandwidth"],
+      "example_sentence": "I don't have the bandwidth to take on another project this week.",
+      "example_meaning": "Tuần này tôi không còn đủ thời gian để nhận thêm dự án khác."
+    },
+    {
+      "id": "wv1-10",
+      "word": "sync up",
+      "phonetic_ipa": "/sɪŋk ʌp/",
+      "part_of_speech": "phrasal verb",
+      "vietnamese_meaning": "trao đổi, đồng bộ tiến độ cùng nhau",
+      "collocations": ["sync up quickly", "sync up after the meeting", "regular sync up"],
+      "example_sentence": "Let's sync up for five minutes after the standup to align our tasks.",
+      "example_meaning": "Hãy trao đổi nhanh 5 phút sau buổi họp để thống nhất đầu việc nhé."
+    }
+  ],
+  "grammar": {
+    "title": "Tenses for Standup Updates: Past Simple vs. Present Continuous vs. Future Intentions",
+    "explanation": "Trong cuộc họp Standup, để báo cáo gãy gọn và mạch lạc, hãy sử dụng 3 thì tương ứng với 3 câu hỏi: 1) Quá khứ đơn (Past Simple) cho việc đã làm hôm qua, 2) Hiện tại tiếp diễn (Present Continuous) cho việc đang làm, và 3) 'Plan to / will' cho mục tiêu hôm nay.",
+    "formula": "Yesterday: I [completed / wrapped up] + [task] | Today: I plan to / will focus on + [task] | Blockers: I am blocked by + [noun/V-ing]",
+    "examples": [
+      {
+        "english": "Yesterday, I completed the unit tests for the checkout service.",
+        "vietnamese": "Hôm qua, tôi đã hoàn thành các bài kiểm thử unit cho dịch vụ thanh toán.",
+        "highlight": "Yesterday, I completed"
+      },
+      {
+        "english": "Today, I will focus on integrating the payment gateway.",
+        "vietnamese": "Hôm nay, tôi sẽ tập trung vào việc tích hợp cổng thanh toán.",
+        "highlight": "Today, I will focus on"
+      },
+      {
+        "english": "I am currently blocked by waiting for the API keys.",
+        "vietnamese": "Hiện tôi đang bị kẹt do chờ mã khóa API.",
+        "highlight": "I am currently blocked by"
+      }
+    ],
+    "common_mistakes": [
+      {
+        "wrong": "Yesterday I do task... (Dùng thì hiện tại cho hôm qua)",
+        "correct": "Yesterday I worked on / finished the task.",
+        "explanation": "Phải dùng thì quá khứ đơn (Past Simple) khi nói về công việc của ngày hôm qua."
+      },
+      {
+        "wrong": "I have no block. (Từ vựng chưa chuẩn)",
+        "correct": "I have no blockers on my end. / No blockers on my side.",
+        "explanation": "Trong Agile, thuật ngữ chuẩn cho khó khăn cản trở tiến độ là 'blocker'."
+      }
+    ]
+  },
+  "expressions": [
+    {
+      "id": "we1-1",
+      "expression": "Yesterday, I wrapped up the user profile redesign.",
+      "phonetic_ipa": "/ˈjestərdeɪ, aɪ ræpt ʌp ðə ˈjuːzər ˈproʊfaɪl ˌriːdɪˈzaɪn/",
+      "meaning": "Hôm qua, tôi đã hoàn thành xong bản thiết kế lại hồ sơ người dùng.",
+      "context": "Mở đầu phần báo cáo của mình trong cuộc họp.",
+      "formality": "professional",
+      "variations": [
+        "Yesterday, I worked on bug fixes for module 2.",
+        "I managed to finish the report yesterday.",
+        "Most of yesterday was spent on code reviews."
+      ]
+    },
+    {
+      "id": "we1-2",
+      "expression": "Today, my main priority is fixing the responsive layout bugs.",
+      "phonetic_ipa": "/təˈdeɪ, maɪ meɪn praɪˈɔːrəti ɪz ˈfɪksɪŋ ðə rɪˈspɑːnsɪv ˈleɪaʊt bʌɡz/",
+      "meaning": "Hôm nay, ưu tiên chính của tôi là sửa các lỗi giao diện responsive.",
+      "context": "Nêu mục tiêu chính trong ngày làm việc hôm nay.",
+      "formality": "professional",
+      "variations": [
+        "Today, I will be focusing on the API integration.",
+        "I plan to finish the documentation today.",
+        "My goal for today is to deploy the staging release."
+      ]
+    },
+    {
+      "id": "we1-3",
+      "expression": "I have no blockers on my end; everything is moving on schedule.",
+      "phonetic_ipa": "/aɪ hæv noʊ ˈblɑːkərz ɑːn maɪ end; ˈevriθɪŋ ɪz ˈmuːvɪŋ ɑːn ˈskedʒuːl/",
+      "meaning": "Phía tôi không có trở ngại gì; mọi thứ đang chạy đúng kế hoạch.",
+      "context": "Báo cáo tình trạng khi mọi việc diễn ra thuận lợi.",
+      "formality": "professional",
+      "variations": [
+        "No blockers from my side.",
+        "All good on my end.",
+        "Everything is on track."
+      ]
+    },
+    {
+      "id": "we1-4",
+      "expression": "I am currently blocked by waiting for design assets from Lisa.",
+      "phonetic_ipa": "/aɪ æm ˈkɜːrəntli blɑːkt baɪ ˈweɪtɪŋ fɔːr dɪˈzaɪn ˈæsets frəm ˈliːsə/",
+      "meaning": "Hiện tại tôi đang bị tắc do chờ tài nguyên thiết kế từ Lisa.",
+      "context": "Báo cáo vướng mắc để Scrum Master hoặc đồng nghiệp hỗ trợ tháo gỡ.",
+      "formality": "professional",
+      "variations": [
+        "I need some guidance on the database schema.",
+        "Could someone help me unblock this testing issue?",
+        "I'm waiting on approval before proceeding."
+      ]
+    }
+  ],
+  "listening": [
+    {
+      "id": "wl1-1",
+      "title": "Morning Standup at TechCorp",
+      "dialogue": [
+        {
+          "speaker": "Scrum Master",
+          "text": "Alright team, good morning! Let's kick off our daily standup. Ethan, would you like to go first?",
+          "vietnamese": "Chào buổi sáng cả đội! Chúng ta bắt đầu buổi họp standup nhé. Ethan, bạn cập nhật trước nhé?"
+        },
+        {
+          "speaker": "Ethan",
+          "text": "Sure! Yesterday, I wrapped up the payment gateway integration and submitted my pull request for review.",
+          "vietnamese": "Vâng! Hôm qua tôi đã hoàn thành tích hợp cổng thanh toán và tạo PR để nhờ mọi người duyệt."
+        },
+        {
+          "speaker": "Scrum Master",
+          "text": "Awesome progress! And what's on your radar for today?",
+          "vietnamese": "Tiến độ tuyệt vời! Thế hôm nay kế hoạch của bạn là gì?"
+        },
+        {
+          "speaker": "Ethan",
+          "text": "Today, I plan to write end-to-end tests for the checkout flow and address any PR feedback.",
+          "vietnamese": "Hôm nay tôi dự định viết kiểm thử end-to-end cho luồng thanh toán và xử lý góp ý trên PR."
+        },
+        {
+          "speaker": "Scrum Master",
+          "text": "Sounds good. Any blockers preventing you from moving forward?",
+          "vietnamese": "Nghe tốt lắm. Có vướng mắc nào cản trở bạn không?"
+        },
+        {
+          "speaker": "Ethan",
+          "text": "No blockers on my end! Everything is on track for the sprint release.",
+          "vietnamese": "Phía tôi không có vướng mắc nào cả! Mọi thứ đều đúng tiến độ phát hành sprint."
+        }
+      ],
+      "questions": [
+        {
+          "id": "wlq1-1",
+          "question": "What did Ethan complete yesterday?",
+          "options": ["Wrote user documentation", "Wrapped up payment gateway integration", "Created marketing slides", "Fixed network servers"],
+          "correct_answer": 1,
+          "explanation": "Ethan báo cáo: 'Yesterday, I wrapped up the payment gateway integration'."
+        },
+        {
+          "id": "wlq1-2",
+          "question": "What is Ethan's main goal for today?",
+          "options": ["Take a day off", "Write end-to-end tests and address PR comments", "Redesign the company logo", "Switch project teams"],
+          "correct_answer": 1,
+          "explanation": "Ethan nói: 'write end-to-end tests for the checkout flow and address any PR feedback'."
+        },
+        {
+          "id": "wlq1-3",
+          "question": "Does Ethan have any blockers?",
+          "options": ["Yes, waiting on the database", "Yes, laptop is broken", "No blockers on his end", "Yes, budget issues"],
+          "correct_answer": 2,
+          "explanation": "Ethan khẳng định: 'No blockers on my end! Everything is on track'."
+        }
+      ]
+    }
+  ],
+  "speaking": {
+    "situation": "Bạn đang trong buổi họp Daily Standup cùng đồng nghiệp. Hãy nói to phần báo cáo của mình với phong thái tự tin và chuyên nghiệp.",
+    "sample_dialogue": [
+      {
+        "speaker": "Scrum Master",
+        "text": "Your turn! What did you accomplish yesterday?",
+        "vietnamese": "Đến lượt bạn rồi! Hôm qua bạn đã làm được những gì?"
+      },
+      {
+        "speaker": "You",
+        "text": "Yesterday, I finished the responsive layout for mobile screens.",
+        "vietnamese": "Hôm qua, tôi đã hoàn thiện giao diện responsive cho màn hình điện thoại."
+      },
+      {
+        "speaker": "Scrum Master",
+        "text": "Great! What is your plan for today?",
+        "vietnamese": "Tuyệt! Kế hoạch hôm nay của bạn là gì?"
+      },
+      {
+        "speaker": "You",
+        "text": "Today, I will focus on user testing. No blockers on my end.",
+        "vietnamese": "Hôm nay tôi sẽ tập trung vào kiểm thử người dùng. Không có vướng mắc nào cả."
+      }
+    ],
+    "practice_sentences": [
+      {
+        "id": "wsp1-1",
+        "text": "Yesterday, I wrapped up the user profile redesign.",
+        "phonetic_ipa": "/ˈjestərdeɪ, aɪ ræpt ʌp ðə ˈjuːzər ˈproʊfaɪl ˌriːdɪˈzaɪn/",
+        "vietnamese_hint": "Hôm qua, tôi đã hoàn tất bản thiết kế lại hồ sơ người dùng."
+      },
+      {
+        "id": "wsp1-2",
+        "text": "Today, my main priority is fixing the responsive layout bugs.",
+        "phonetic_ipa": "/təˈdeɪ, maɪ meɪn praɪˈɔːrəti ɪz ˈfɪksɪŋ ðə rɪˈspɑːnsɪv ˈleɪaʊt bʌɡz/",
+        "vietnamese_hint": "Hôm nay, ưu tiên chính của tôi là sửa các lỗi giao diện."
+      },
+      {
+        "id": "wsp1-3",
+        "text": "I have no blockers on my end; everything is on track.",
+        "phonetic_ipa": "/aɪ hæv noʊ ˈblɑːkərz ɑːn maɪ end; ˈevriθɪŋ ɪz ɑːn træk/",
+        "vietnamese_hint": "Tôi không có trở ngại nào; mọi việc đều đúng tiến độ."
+      },
+      {
+        "id": "wsp1-4",
+        "text": "Could someone take a few minutes to review my pull request?",
+        "phonetic_ipa": "/kʊd ˈsʌmwʌn teɪk ə fjuː ˈmɪnɪts tuː rɪˈvjuː maɪ ˈpʊl rɪˌkwest/",
+        "vietnamese_hint": "Có bạn nào bớt chút thời gian duyệt PR giúp tôi được không?"
+      }
+    ]
+  },
+  "practice": [
+    {
+      "id": "wpq1-1",
+      "type": "vocabulary_quiz",
+      "question": "In an Agile project, what is a problem that prevents a team member from progressing called?",
+      "options": ["A milestone", "A blocker", "A promotion", "A compliment"],
+      "correct_answer": 1,
+      "explanation": "'Blocker' là thuật ngữ chỉ vướng mắc cản trở công việc tiếp tục."
+    },
+    {
+      "id": "wpq1-2",
+      "type": "vocabulary_quiz",
+      "question": "What does 'on track' mean in a project update?",
+      "options": ["Running behind schedule", "Progressing according to schedule", "Cancelled", "Postponed"],
+      "correct_answer": 1,
+      "explanation": "'On track' nghĩa là tiến độ diễn ra đúng theo kế hoạch ban đầu."
+    },
+    {
+      "id": "wpq1-3",
+      "type": "grammar_quiz",
+      "question": "Which sentence correctly reports work completed yesterday?",
+      "options": [
+        "Yesterday, I finish the code.",
+        "Yesterday, I finished the code and merged my PR.",
+        "Yesterday I am finishing code.",
+        "Yesterday will finish."
+      ],
+      "correct_answer": 1,
+      "explanation": "Hành động đã hoàn tất trong quá khứ cần dùng thì Past Simple ('finished', 'merged')."
+    },
+    {
+      "id": "wpq1-4",
+      "type": "grammar_quiz",
+      "question": "Choose the natural way to report that you have no difficulties:",
+      "options": [
+        "I have no blockers on my end.",
+        "I not blocked any.",
+        "Zero block today.",
+        "Blocked is none."
+      ],
+      "correct_answer": 0,
+      "explanation": "Thành ngữ chuẩn trong Standup: 'No blockers on my end / side'."
+    },
+    {
+      "id": "wpq1-5",
+      "type": "sentence_building",
+      "vietnamese": "Hôm qua tôi đã hoàn tất việc thiết kế lại hồ sơ người dùng.",
+      "scrambled_words": ["the user profile", "wrapped up", "I", "Yesterday,", "redesign."],
+      "correct_order": ["Yesterday,", "I", "wrapped up", "the user profile", "redesign."],
+      "hint": "Bắt đầu với 'Yesterday, I wrapped up...'"
+    },
+    {
+      "id": "wpq1-6",
+      "type": "sentence_building",
+      "vietnamese": "Phía tôi không có trở ngại gì; mọi thứ đang đúng tiến độ.",
+      "scrambled_words": ["everything is", "on my end;", "No blockers", "on track."],
+      "correct_order": ["No blockers", "on my end;", "everything is", "on track."],
+      "hint": "Cụm 'No blockers on my end; everything is on track.'"
+    },
+    {
+      "id": "wpq1-7",
+      "type": "translation",
+      "source_text": "Hôm nay, ưu tiên chính của tôi là sửa lỗi giao diện.",
+      "source_lang": "vi",
+      "correct_answer": "Today, my main priority is fixing layout bugs.",
+      "accept_answers": [
+        "Today, my main priority is fixing layout bugs",
+        "Today, my main priority is fixing the layout bugs.",
+        "Today, my priority is fixing layout bugs.",
+        "Today my main priority is fixing the UI bugs."
+      ],
+      "hint": "Dùng cấu trúc: 'Today, my main priority is fixing layout bugs.'"
+    },
+    {
+      "id": "wpq1-8",
+      "type": "speaking_challenge",
+      "prompt": "During standup, tell your team that you have no blockers and everything is on track.",
+      "sample_answer": "I have no blockers on my end; everything is on track.",
+      "vietnamese_hint": "Nói bằng tiếng Anh: 'I have no blockers on my end; everything is on track.'"
+    }
+  ]
+}

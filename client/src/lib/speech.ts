@@ -1,6 +1,14 @@
 /**
  * Text-to-Speech (TTS) using Web Speech API
  */
+export function stopSpeaking(): void {
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    try {
+      window.speechSynthesis.cancel();
+    } catch (_) {}
+  }
+}
+
 export function speakText(text: string, lang = 'en-US'): Promise<void> {
   return new Promise((resolve, reject) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {

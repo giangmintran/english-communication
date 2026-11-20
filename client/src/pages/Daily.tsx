@@ -33,29 +33,35 @@ export default function DailyLearningPage() {
   const { user, signInWithGoogle } = useAuth();
   const [decks, setDecks] = useState<Deck[]>([]);
   const [lessons, setLessons] = useState<DailyLesson[]>([]);
+  const [dynamicTodayLesson, setDynamicTodayLesson] = useState<DailyLesson | null>(null);
   const [selectedDeckId, setSelectedDeckId] = useState<string>('all');
   const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const [selectedStatus, setSelectedStatus] = useState<'all' | 'completed' | 'in_progress'>('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [showMoreLessons, setShowMoreLessons] = useState(false);
+  const [showMoreLessons, setShowMoreLessons] = useState(true);
   const [loading, setLoading] = useState(true);
   const { lessonProgress } = useLearningStore();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   useEffect(() => {
     let mounted = true;
 
     async function loadData() {
       try {
-        const [decksData, lessonsData] = await Promise.all([
+        const masteredIds = Object.keys(lessonProgress).filter((k) => lessonProgress[k]?.completed);
+        const [decksData, lessonsData, todayContent] = await Promise.all([
           api.decks.getAll(),
           lessonApi.getAll(),
+          lessonApi.getTodayLesson({ userMasteredIds: masteredIds }),
         ]);
 
         if (mounted) {
           if (decksData && decksData.length > 0) setDecks(decksData);
           if (lessonsData && lessonsData.length > 0) setLessons(lessonsData);
+          if (todayContent?.lesson) {
+            setDynamicTodayLesson(todayContent.lesson);
+          }
         }
       } catch (err) {
         console.warn('Lỗi khi tải dữ liệu trong DailyLearningPage:', err);
@@ -88,53 +94,26 @@ export default function DailyLearningPage() {
 
   const todayFormatted = useMemo(() => {
     const now = new Date();
+    if (language === 'en') {
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${dayNames[now.getDay()]}, ${monthNames[now.getMonth()]} ${now.getDate()}`;
+    }
     const dayNames = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
     const dayOfWeek = dayNames[now.getDay()];
     const date = now.getDate().toString().padStart(2, '0');
     const month = (now.getMonth() + 1).toString().padStart(2, '0');
     return `${dayOfWeek}, ${date}/${month}`;
-  }, []);
+  }, [language]);
 
-  // Chọn 1 chủ đề bất kỳ cho ngày hôm nay theo tiến độ bài chưa học
+  // Chủ đề hôm nay: Ưu tiên bài học được sinh động (Hybrid Generator) theo từ chưa học
   const todayLesson = useMemo(() => {
+    if (dynamicTodayLesson) {
+      return dynamicTodayLesson;
+    }
     if (lessons.length === 0) return null;
-
-    // Đối với khách chưa đăng nhập: Mặc định chọn bài mẫu đầu tiên (Free Trial)
-    if (!user) {
-      return lessons[0];
-    }
-
-    const storageKey = `speakup_daily_topic_${todayDateStr}`;
-    const savedLessonId = localStorage.getItem(storageKey);
-
-    // 1. Nếu đã lưu bài học cho ngày hôm nay và bài đó tồn tại trong danh sách
-    if (savedLessonId) {
-      const found = lessons.find((l) => l.id === savedLessonId);
-      if (found) {
-        return found;
-      }
-    }
-
-    // 2. Nếu chưa lưu: Ưu tiên chọn 1 chủ đề bất kỳ từ các bài chưa hoàn thành
-    const uncompleted = lessons.filter((l) => !lessonProgress[l.id]?.completed);
-
-    let selected: DailyLesson;
-    if (uncompleted.length > 0) {
-      const randomIndex = Math.floor(Math.random() * uncompleted.length);
-      selected = uncompleted[randomIndex];
-    } else {
-      // Nếu đã hoàn thành tất cả: Chọn ngẫu nhiên 1 bài để ôn tập lại hôm nay
-      const randomIndex = Math.floor(Math.random() * lessons.length);
-      selected = lessons[randomIndex];
-    }
-
-    // Lưu lại cho cả ngày hôm nay để không bị nhảy bài khi F5 hoặc chuyển trang
-    try {
-      localStorage.setItem(storageKey, selected.id);
-    } catch (_) {}
-
-    return selected;
-  }, [lessons, lessonProgress, todayDateStr, user]);
+    return lessons[0];
+  }, [dynamicTodayLesson, lessons]);
 
   const selectedDeckTitle =
     selectedDeckId === 'all'
@@ -174,6 +153,10 @@ export default function DailyLearningPage() {
 
   const todayLessonProgress = todayLesson ? lessonProgress[todayLesson.id] : undefined;
 
+  const isAllTopicsDoneToday =
+    filteredLessons.length > 0 &&
+    filteredLessons.every((l) => Boolean(lessonProgress[l.id]?.completed));
+
   return (
     <div className="max-w-4xl mx-auto py-4 space-y-6">
       {/* Header */}
@@ -199,13 +182,13 @@ export default function DailyLearningPage() {
             </div>
             <div className="min-w-0">
               <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <span>Chế độ học thử (Khách)</span>
+                <span>{t('daily.guestModeTitle')}</span>
                 <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-[10px] font-bold">
-                  1 bài học mẫu miễn phí
+                  {t('daily.guestModeBadge')}
                 </span>
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
-                Bạn có thể trải nghiệm trọn vẹn chủ đề hôm nay. Đăng nhập Google để mở khóa toàn bộ các chủ đề và lưu streak học tập!
+                {t('daily.guestModeDesc')}
               </p>
             </div>
           </div>
@@ -215,7 +198,7 @@ export default function DailyLearningPage() {
             className="w-full sm:w-auto px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm shadow-blue-500/20 shrink-0 cursor-pointer transition-all"
           >
             <GoogleIcon className="w-3.5 h-3.5" />
-            <span>Mở khóa toàn bộ</span>
+            <span>{t('daily.unlockAll')}</span>
           </button>
         </div>
       )}
@@ -253,121 +236,107 @@ export default function DailyLearningPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-                  {isListExpanded ? 'Tất cả chủ đề bài học' : 'Học thêm chủ đề khác'}
+                  {t('daily.moreTopics')}
                 </h2>
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500">
-                  {filteredLessons.length} bài
+                  {t('daily.lessonsCount', { count: filteredLessons.length })}
                 </span>
               </div>
               <p className="text-xs text-slate-400 dark:text-slate-500 hidden sm:block">
-                {isListExpanded
-                  ? 'Chọn bất kỳ chủ đề nào bạn muốn khám phá hoặc luyện tập thêm hôm nay'
-                  : 'Hoàn thành 1 bài mỗi ngày để đạt hiệu quả tốt nhất. Muốn học thêm? Hãy bấm để mở rộng.'}
+                {t('daily.exploreMoreSubExpanded')}
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-2 self-end sm:self-auto">
-            {/* Filter Button (chỉ hiện khi đã mở rộng hoặc đang có bộ lọc) */}
-            {isListExpanded && (
-              <>
-                {activeFilterCount > 0 && (
-                  <button
-                    type="button"
-                    onClick={handleResetFilters}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
-                    title="Đặt lại bộ lọc"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    <span>Đặt lại</span>
-                  </button>
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => setIsFilterOpen(true)}
-                  className={cn(
-                    'inline-flex items-center gap-2 px-3 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95',
-                    activeFilterCount > 0
-                      ? 'bg-blue-600 text-white shadow-blue-500/25 ring-2 ring-blue-500/20'
-                      : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
-                  )}
-                  aria-label="Mở bộ lọc bài học"
-                >
-                  <SlidersHorizontal className="w-3.5 h-3.5" />
-                  <span>Bộ lọc</span>
-                  {activeFilterCount > 0 && (
-                    <span className="w-4 h-4 rounded-full bg-white text-blue-600 font-extrabold text-[10px] flex items-center justify-center">
-                      {activeFilterCount}
-                    </span>
-                  )}
-                </button>
-              </>
+            {activeFilterCount > 0 && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+                title={t('daily.resetFilter')}
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>{t('daily.resetFilter')}</span>
+              </button>
             )}
 
-            {/* Toggle Expand / Collapse Button */}
             <button
               type="button"
-              onClick={() => {
-                if (isListExpanded && activeFilterCount > 0) {
-                  handleResetFilters();
-                }
-                setShowMoreLessons(!isListExpanded);
-              }}
+              onClick={() => setIsFilterOpen(true)}
               className={cn(
-                'inline-flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95 border',
-                isListExpanded
-                  ? 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white border-blue-600 shadow-blue-500/20'
+                'inline-flex items-center gap-2 px-3 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer shadow-xs active:scale-95',
+                activeFilterCount > 0
+                  ? 'bg-blue-600 text-white shadow-blue-500/25 ring-2 ring-blue-500/20'
+                  : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'
               )}
+              aria-label={t('daily.filterDrawerTitle')}
             >
-              {isListExpanded ? (
-                <>
-                  <span>Thu gọn</span>
-                  <ChevronUp className="w-3.5 h-3.5" />
-                </>
-              ) : (
-                <>
-                  <span>Hiển thị thêm ({Math.max(0, lessons.length - 1)} bài)</span>
-                  <ChevronDown className="w-3.5 h-3.5" />
-                </>
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>{t('daily.filterBtn')}</span>
+              {activeFilterCount > 0 && (
+                <span className="w-4 h-4 rounded-full bg-white text-blue-600 font-extrabold text-[10px] flex items-center justify-center">
+                  {activeFilterCount}
+                </span>
               )}
             </button>
           </div>
         </div>
 
-        {/* Collapsed Preview Card */}
-        {!isListExpanded && (
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 text-center space-y-3 shadow-xs">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto">
-              <BookOpen className="w-6 h-6" />
-            </div>
-            <div className="max-w-md mx-auto">
-              <h3 className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base">
-                Bạn muốn học thêm chủ đề khác?
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                Chúng tôi gợi ý 1 chủ đề mỗi ngày để bạn học sâu và không bị ngợp. Nếu bạn có thêm thời gian, bấm nút bên dưới để mở toàn bộ {lessons.length} chủ đề giao tiếp.
-              </p>
+        {/* Guest Limitation Notice in Explore More Topics */}
+        {!user && (
+          <div className="bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-900/40 rounded-2xl p-3 sm:p-3.5 flex items-center justify-between gap-3 text-xs text-amber-800 dark:text-amber-200">
+            <div className="flex items-center gap-2">
+              <Lock className="w-4 h-4 text-amber-600 shrink-0" />
+              <span>{t('daily.guestExploreTrialNotice')}</span>
             </div>
             <button
               type="button"
-              onClick={() => setShowMoreLessons(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-2xl text-xs font-bold border border-blue-200/60 dark:border-blue-800 transition-all cursor-pointer active:scale-95"
+              onClick={() => setIsAuthModalOpen(true)}
+              className="text-blue-600 dark:text-blue-400 font-bold hover:underline shrink-0 cursor-pointer text-xs"
             >
-              <span>Xem tất cả các chủ đề</span>
-              <ChevronDown className="w-4 h-4" />
+              {t('daily.unlockAll')}
             </button>
           </div>
         )}
 
-        {/* Expanded View with Full Lessons List */}
-        {isListExpanded && (
-          <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+        {/* THÔNG BÁO KHI ĐÃ HỌC HẾT CHỦ ĐỀ TRONG NGÀY: NHẮC QUAY LẠI VÀO NGÀY MAI */}
+        {isAllTopicsDoneToday && (
+          <div className="rounded-3xl p-5 sm:p-7 border-2 border-emerald-200/90 dark:border-emerald-800/80 bg-gradient-to-br from-emerald-50 via-teal-50/50 to-white dark:from-slate-900 dark:via-emerald-950/20 dark:to-slate-900 shadow-sm text-center space-y-3.5 animate-in fade-in zoom-in-95 duration-200">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto ring-8 ring-emerald-50/80 dark:ring-emerald-900/20 shadow-xs">
+              <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 text-emerald-600 fill-emerald-500" />
+            </div>
+            <div className="max-w-lg mx-auto space-y-1">
+              <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold uppercase tracking-wider">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>{t('daily.completedTodayNoticeBadge')}</span>
+              </span>
+              <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                {selectedDeckId !== 'all'
+                  ? t('daily.completedSelectedTopicToday', { topic: selectedDeckTitle })
+                  : t('daily.allTopicsDoneToday')}
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                {selectedDeckId !== 'all'
+                  ? t('daily.comeBackTomorrowTopicDesc')
+                  : t('daily.comeBackTomorrowNotice')}
+              </p>
+            </div>
+            <div className="pt-1 flex items-center justify-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-white dark:bg-slate-800 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-bold shadow-2xs">
+                <Calendar className="w-4 h-4 text-emerald-600" />
+                <span>{t('daily.seeYouTomorrow')}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Full Lessons List */}
+        <div className="space-y-4 animate-in fade-in duration-200">
             {/* Active Filter Chips Bar */}
             {activeFilterCount > 0 && (
               <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                <span className="text-xs text-slate-400 font-medium mr-1">Đang lọc:</span>
+                <span className="text-xs text-slate-400 font-medium mr-1">{t('daily.filteringLabel')}</span>
                 {selectedDeckId !== 'all' && (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-300 text-xs font-semibold border border-blue-200/60 dark:border-blue-800">
                     <span>{selectedDeckTitle}</span>
@@ -375,7 +344,7 @@ export default function DailyLearningPage() {
                       type="button"
                       onClick={() => setSelectedDeckId('all')}
                       className="hover:text-blue-800 dark:hover:text-white cursor-pointer"
-                      aria-label="Xóa lọc chủ đề"
+                      aria-label={t('daily.clearTopicFilter')}
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -388,7 +357,7 @@ export default function DailyLearningPage() {
                       type="button"
                       onClick={() => setSelectedLevel('all')}
                       className="hover:text-purple-800 dark:hover:text-white cursor-pointer"
-                      aria-label="Xóa lọc trình độ"
+                      aria-label={t('daily.clearLevelFilter')}
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -396,12 +365,12 @@ export default function DailyLearningPage() {
                 )}
                 {selectedStatus !== 'all' && (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-300 text-xs font-semibold border border-emerald-200/60 dark:border-emerald-800">
-                    <span>{selectedStatus === 'completed' ? 'Đã hoàn thành' : 'Chưa hoàn thành'}</span>
+                    <span>{selectedStatus === 'completed' ? t('daily.statusCompleted') : t('daily.statusInProgress')}</span>
                     <button
                       type="button"
                       onClick={() => setSelectedStatus('all')}
                       className="hover:text-emerald-800 dark:hover:text-white cursor-pointer"
-                      aria-label="Xóa lọc trạng thái"
+                      aria-label={t('daily.clearStatusFilter')}
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
@@ -412,7 +381,7 @@ export default function DailyLearningPage() {
                   onClick={handleResetFilters}
                   className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 underline ml-1 cursor-pointer"
                 >
-                  Xóa tất cả
+                  {t('daily.clearAllFilters')}
                 </button>
               </div>
             )}
@@ -435,8 +404,9 @@ export default function DailyLearningPage() {
                   const isCompleted = progress?.completed;
                   const isTodayItem = todayLesson && lesson.id === todayLesson.id;
 
-                  // Quy tắc giới hạn cho khách (Guest): chỉ được học bài đầu tiên
-                  const isFreeTrial = !user && (idx === 0 || lesson.id === 'lesson-restaurant-01' || lesson.id === 'lesson-daily-1');
+                  // Quy tắc giới hạn cho khách (Guest): chỉ cho phép học thử ĐÚNG 1 bài mẫu trong phần Explore more topics
+                  const GUEST_EXPLORE_TRIAL_ID = 'lesson-restaurant-01';
+                  const isFreeTrial = !user && lesson.id === GUEST_EXPLORE_TRIAL_ID;
                   const isLocked = !user && !isFreeTrial;
 
                   return (
@@ -478,7 +448,7 @@ export default function DailyLearningPage() {
                             {isTodayItem && (
                               <span className="px-2.5 py-0.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[10px] font-extrabold flex items-center gap-1 shadow-2xs">
                                 <Sparkles className="w-3 h-3 text-amber-300 fill-amber-300" />
-                                <span>Hôm nay</span>
+                                <span>{t('daily.todayTag')}</span>
                               </span>
                             )}
 
@@ -503,13 +473,13 @@ export default function DailyLearningPage() {
                             {isFreeTrial && (
                               <span className="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 text-[11px] font-bold flex items-center gap-1 border border-blue-200/50 dark:border-blue-900/40">
                                 <Sparkles className="w-3 h-3" />
-                                <span>Học thử miễn phí</span>
+                                <span>{t('daily.freeTrialTag')}</span>
                               </span>
                             )}
                             {isLocked && (
                               <span className="px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 text-[11px] font-bold flex items-center gap-1 border border-amber-200/50 dark:border-amber-800/40">
                                 <Lock className="w-3 h-3" />
-                                <span>Khóa</span>
+                                <span>{t('daily.lockedTag')}</span>
                               </span>
                             )}
                           </div>
@@ -531,7 +501,7 @@ export default function DailyLearningPage() {
                           className="w-full sm:w-auto px-5 py-3 active:scale-95 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs rounded-2xl flex items-center justify-center gap-2 transition-all shrink-0 cursor-pointer border border-slate-200/80 dark:border-slate-700"
                         >
                           <Lock className="w-3.5 h-3.5 text-amber-500" />
-                          <span>Mở khóa bài học</span>
+                          <span>{t('daily.unlockLesson')}</span>
                         </button>
                       ) : (
                         <Link
@@ -549,10 +519,10 @@ export default function DailyLearningPage() {
                             {isCompleted
                               ? t('dailyLesson.reviewAgain')
                               : isTodayItem
-                              ? 'Học bài hôm nay'
+                              ? t('daily.studyTodayLesson')
                               : isFreeTrial
-                              ? 'Học thử ngay'
-                              : 'Học chủ đề này'}
+                              ? t('daily.tryNow')
+                              : t('daily.studyThisTopic')}
                           </span>
                           <ArrowRight className="w-3.5 h-3.5" />
                         </Link>
@@ -562,24 +532,8 @@ export default function DailyLearningPage() {
                 })}
               </div>
             )}
-
-            {/* Bottom button to collapse back */}
-            <div className="pt-2 text-center">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowMoreLessons(false);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors cursor-pointer"
-              >
-                <ChevronUp className="w-3.5 h-3.5" />
-                <span>Thu gọn danh sách bài học</span>
-              </button>
-            </div>
           </div>
-        )}
-      </div>
+        </div>
 
       {/* Slide-over Filter Drawer (Opens from right) */}
       <DailyFilterDrawer

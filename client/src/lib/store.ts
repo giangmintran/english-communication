@@ -19,6 +19,7 @@ export interface LessonProgressState {
 export interface LearningState {
   profile: Profile;
   todayLearned: number;
+  lastLearnedDate: string;
   todayGoal: number;
   overallProgressPercent: number;
   totalWordsLearned: number;
@@ -31,6 +32,7 @@ export interface LearningState {
   dailyReviewProgress: Record<string, DailyReviewProgress>;
 
   // Actions
+  checkAndResetNewDay: () => void;
   recordReview: (itemId: string, grade: ReviewGrade, userId?: string, isDaily?: boolean) => Promise<void>;
   recordReviewLocal: (itemId: string, grade: ReviewGrade, isDaily?: boolean) => void;
   recordCollectionReview: (deckId: string, itemId: string, grade: ReviewGrade, userId?: string) => Promise<void>;
@@ -44,7 +46,11 @@ export interface LearningState {
   getCollectionProgress: (collectionId: string) => CollectionProgress | null;
   setCollectionReviews: (reviews: Record<string, SRSItemState>) => void;
   setTodayLearned: (count: number) => void;
-  recordLessonProgress: (lessonId: string, updates: Partial<LessonProgressState>) => void;
+  recordLessonProgress: (
+    lessonId: string,
+    updates: Partial<LessonProgressState>,
+    meta?: { collectionId?: string; sprintDay?: number; wordIds?: string[]; dateStr?: string }
+  ) => void;
   saveDailyReviewProgress: (progress: DailyReviewProgress, userId?: string) => Promise<void>;
   saveDailyReviewProgressLocal: (progress: DailyReviewProgress) => void;
   resetDailyReviewProgress: (dateStr?: string, userId?: string) => Promise<void>;
@@ -72,6 +78,7 @@ export const useLearningStore = create<LearningState>()(
     (set, get) => ({
       profile: mockProfile,
       todayLearned: 0, // Guest starts with 0 learned words
+      lastLearnedDate: new Date().toISOString().split('T')[0],
       todayGoal: 20,
       overallProgressPercent: 72,
       totalWordsLearned: 520,
@@ -285,7 +292,11 @@ export const useLearningStore = create<LearningState>()(
         return get().dailyReviewProgress[targetDate] || null;
       },
 
-      recordLessonProgress: (lessonId: string, updates: Partial<LessonProgressState>) => {
+      recordLessonProgress: (
+        lessonId: string,
+        updates: Partial<LessonProgressState>,
+        meta?: { collectionId?: string; sprintDay?: number; wordIds?: string[]; dateStr?: string }
+      ) => {
         set((state) => {
           const current = state.lessonProgress[lessonId] || {
             currentStep: 0,
@@ -296,22 +307,85 @@ export const useLearningStore = create<LearningState>()(
             lastStudiedAt: new Date().toISOString(),
           };
 
+          const isNowCompleted = updates.completed ?? current.completed;
+          let todayLearnedCount = state.todayLearned;
+          let totalWordsCount = state.totalWordsLearned;
+
+          // Nếu vừa mới hoàn thành bài học, tăng số từ đã học hôm nay và tổng từ
+          if (updates.completed && !current.completed) {
+            const addedWords = meta?.wordIds?.length || 10;
+            todayLearnedCount += addedWords;
+            totalWordsCount += addedWords;
+          }
+
           return {
+            todayLearned: todayLearnedCount,
+            totalWordsLearned: totalWordsCount,
             lessonProgress: {
               ...state.lessonProgress,
               [lessonId]: {
                 ...current,
                 ...updates,
+                completed: isNowCompleted,
                 lastStudiedAt: new Date().toISOString(),
               },
             },
           };
         });
+
+        // Nếu bài học hoàn thành, lưu receipt lên server
+        if (updates.completed) {
+          const todayStr = meta?.dateStr || new Date().toISOString().split('T')[0];
+          api.progress.saveDailyLesson({
+            date: todayStr,
+            lessonId,
+            collectionId: meta?.collectionId || 'col-restaurant',
+            sprintDay: meta?.sprintDay || 1,
+            wordIds: meta?.wordIds || [],
+            score: updates.quizScore || 0,
+            totalQuestions: updates.totalQuestions || 8,
+            completed: true,
+          }).catch((err) => {
+            console.warn('Lỗi khi lưu kết quả bài học daily lên server:', err);
+          });
+        }
+      },
+
+      // Tự động kiểm tra sang ngày mới để reset todayLearned về 0 nếu chưa học hôm nay
+      checkAndResetNewDay: () => {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const state = get();
+        if (state.lastLearnedDate !== todayStr) {
+          const todayReview = state.dailyReviewProgress[todayStr];
+          let countToday = 0;
+          if (todayReview) {
+            if (todayReview.results && Object.keys(todayReview.results).length > 0) {
+              const uniqueWords = new Set(
+                Object.values(todayReview.results)
+                  .map((r: any) => r.question?.wordId || r.questionId)
+                  .filter(Boolean)
+              );
+              countToday = uniqueWords.size;
+            } else if (todayReview.wordIds && todayReview.wordIds.length > 0) {
+              countToday = todayReview.wordIds.length;
+            } else {
+              countToday = Math.min(state.todayGoal || 20, Math.ceil((todayReview.answeredCount || 0) / 3));
+            }
+          }
+          set({
+            todayLearned: countToday,
+            lastLearnedDate: todayStr,
+          });
+        }
       },
 
       setTodayLearned: (count: number) => {
         const goal = get().todayGoal || 20;
-        set({ todayLearned: Math.min(goal, Math.max(0, count)) });
+        const todayStr = new Date().toISOString().split('T')[0];
+        set({
+          todayLearned: Math.min(goal, Math.max(0, count)),
+          lastLearnedDate: todayStr,
+        });
       },
 
       recordReviewLocal: (itemId: string, grade: ReviewGrade, isDaily?: boolean) => {
@@ -326,9 +400,11 @@ export const useLearningStore = create<LearningState>()(
 
         const updatedSRS = calculateSM2(grade, currentSRS);
         const isFirstReview = !state.reviews[itemId];
+        const todayStr = new Date().toISOString().split('T')[0];
+        const baseToday = state.lastLearnedDate === todayStr ? state.todayLearned : 0;
         const newTodayLearned = isDaily
-          ? Math.min(state.todayGoal, state.todayLearned + 1)
-          : state.todayLearned;
+          ? Math.min(state.todayGoal, baseToday + 1)
+          : baseToday;
         const newTotal = isFirstReview ? state.totalWordsLearned + 1 : state.totalWordsLearned;
         const newOverallPercent = Math.min(100, Math.round((newTotal / 700) * 100));
 
@@ -338,6 +414,7 @@ export const useLearningStore = create<LearningState>()(
             [itemId]: updatedSRS,
           },
           todayLearned: newTodayLearned,
+          lastLearnedDate: todayStr,
           totalWordsLearned: newTotal,
           overallProgressPercent: newOverallPercent,
         });
@@ -355,9 +432,11 @@ export const useLearningStore = create<LearningState>()(
 
         const updatedSRS = calculateSM2(grade, currentSRS);
         const isFirstReview = !state.reviews[itemId];
+        const todayStr = new Date().toISOString().split('T')[0];
+        const baseToday = state.lastLearnedDate === todayStr ? state.todayLearned : 0;
         const newTodayLearned = isDaily
-          ? Math.min(state.todayGoal, state.todayLearned + 1)
-          : state.todayLearned;
+          ? Math.min(state.todayGoal, baseToday + 1)
+          : baseToday;
         const newTotal = isFirstReview ? state.totalWordsLearned + 1 : state.totalWordsLearned;
         const newOverallPercent = Math.min(100, Math.round((newTotal / 700) * 100));
 
@@ -367,6 +446,7 @@ export const useLearningStore = create<LearningState>()(
             [itemId]: updatedSRS,
           },
           todayLearned: newTodayLearned,
+          lastLearnedDate: todayStr,
           totalWordsLearned: newTotal,
           overallProgressPercent: newOverallPercent,
         });
@@ -548,6 +628,7 @@ export const useLearningStore = create<LearningState>()(
         set({
           profile: mockProfile,
           todayLearned: 0,
+          lastLearnedDate: new Date().toISOString().split('T')[0],
           todayGoal: 20,
           overallProgressPercent: 72,
           totalWordsLearned: 520,
@@ -563,6 +644,11 @@ export const useLearningStore = create<LearningState>()(
     }),
     {
       name: 'speakup-learning-storage',
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.checkAndResetNewDay?.();
+        }
+      },
     }
   )
 );

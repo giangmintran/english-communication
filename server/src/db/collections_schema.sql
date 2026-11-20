@@ -26,6 +26,7 @@ CREATE POLICY "Public can view collections"
 
 
 -- 2. BẢNG CHI TIẾT TỪ VỰNG / CÂU TRONG BỘ SƯU TẬP (Collection Items)
+-- Hỗ trợ phân đoạn Thematic Sprint (Ngày 1, 2, 3 trong chu kỳ chuyên đề)
 CREATE TABLE IF NOT EXISTS public.collection_items (
     id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
     collection_id TEXT NOT NULL REFERENCES public.collections(id) ON DELETE CASCADE,
@@ -37,6 +38,7 @@ CREATE TABLE IF NOT EXISTS public.collection_items (
     example_meaning TEXT,
     difficulty_level TEXT DEFAULT 'A2', -- 'A1', 'A2', 'B1', 'B2', 'C1'
     audio_url TEXT,
+    sprint_day INTEGER DEFAULT 1 CHECK (sprint_day BETWEEN 1 AND 3), -- Ngày 1 (Nền tảng), Ngày 2 (Tương tác), Ngày 3 (Xử lý tình huống)
     order_index INTEGER DEFAULT 0,
     created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
 );
@@ -48,7 +50,8 @@ CREATE POLICY "Public can view collection_items"
     ON public.collection_items FOR SELECT
     USING (true);
 
--- Index tối ưu tìm kiếm theo collection_id và từ tiếng Anh
+-- Index tối ưu tìm kiếm theo collection_id và sprint_day
 CREATE INDEX IF NOT EXISTS idx_collection_items_collection_id ON public.collection_items(collection_id);
+CREATE INDEX IF NOT EXISTS idx_collection_items_sprint ON public.collection_items(collection_id, sprint_day);
 CREATE INDEX IF NOT EXISTS idx_collection_items_order ON public.collection_items(collection_id, order_index);
 CREATE INDEX IF NOT EXISTS idx_collection_items_english ON public.collection_items(english_text);

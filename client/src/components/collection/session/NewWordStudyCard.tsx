@@ -9,12 +9,18 @@ interface NewWordStudyCardProps {
   item: LearningItem;
   onProceedToCheck: () => void;
   autoPlayAudio?: boolean;
+  batchIndex?: number;
+  batchTotal?: number;
+  isLastInBatch?: boolean;
 }
 
 export function NewWordStudyCard({
   item,
   onProceedToCheck,
   autoPlayAudio = true,
+  batchIndex,
+  batchTotal,
+  isLastInBatch,
 }: NewWordStudyCardProps) {
   const { t } = useTranslation();
   const [isPlayingWord, setIsPlayingWord] = useState(false);
@@ -96,7 +102,14 @@ export function NewWordStudyCard({
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 text-xs font-bold uppercase tracking-wider">
           <BookOpen className="w-3.5 h-3.5" />
-          <span>{t('collectionStudy.stageLearnNew')}</span>
+          <span>
+            {batchTotal && batchTotal > 1
+              ? t('collectionStudy.batchStudyStage', {
+                  current: batchIndex || 1,
+                  total: batchTotal,
+                })
+              : t('collectionStudy.stageLearnNew')}
+          </span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -216,14 +229,20 @@ export function NewWordStudyCard({
         </div>
       )}
 
-      {/* Primary CTA: Ready for Immediate Check */}
+      {/* Primary CTA: Ready for Immediate Check / Next Word in Batch */}
       <div className="pt-2">
         <button
           type="button"
           onClick={onProceedToCheck}
           className="w-full flex items-center justify-center gap-2.5 py-4 px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-bold text-sm sm:text-base shadow-md shadow-blue-500/25 transition-all cursor-pointer"
         >
-          <span>{t('collectionStudy.readyForCheck')}</span>
+          <span>
+            {isLastInBatch
+              ? t('collectionStudy.startBatchQuiz')
+              : batchTotal && batchTotal > 1
+              ? t('collectionStudy.nextBatchWord')
+              : t('collectionStudy.readyForCheck')}
+          </span>
           <ArrowRight className="w-5 h-5" />
         </button>
       </div>

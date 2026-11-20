@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, Trophy, Clock, BookOpen, RotateCcw, ArrowRight, Sparkles } from 'lucide-react';
-import confetti from 'canvas-confetti';
+import { CheckCircle2, Trophy, Clock, BookOpen, RotateCcw, ArrowRight, Sparkles, Volume2 } from 'lucide-react';
 import { DailyLessonContent } from '@/types/database';
+import { speakText } from '@/lib/speech';
 import { useTranslation } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 import { GoogleIcon } from '@/components/auth/GoogleIcon';
@@ -22,15 +22,6 @@ export function LessonComplete({
 }: LessonCompleteProps) {
   const { user, signInWithGoogle } = useAuth();
   const { t } = useTranslation();
-
-  useEffect(() => {
-    // Launch festive confetti!
-    confetti({
-      particleCount: 140,
-      spread: 80,
-      origin: { y: 0.55 },
-    });
-  }, []);
 
   const percentage = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 100;
 
@@ -82,22 +73,78 @@ export function LessonComplete({
         </div>
       </div>
 
+      {/* Vocabulary List Learned in Lesson */}
+      {lessonContent.vocabulary && lessonContent.vocabulary.length > 0 && (
+        <div className="text-left bg-slate-50/70 dark:bg-slate-800/40 rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-slate-100 dark:border-slate-800 space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-200/70 dark:border-slate-700/70">
+            <div className="flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <h3 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">
+                {t('flashcards.learnedWordsToday')}
+              </h3>
+            </div>
+            <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-[11px] font-bold">
+              {lessonContent.vocabulary.length} {t('common.words')}
+            </span>
+          </div>
+
+          <div className="divide-y divide-slate-200/60 dark:divide-slate-700/60 max-h-56 overflow-y-auto pr-1">
+            {lessonContent.vocabulary.map((vocab, idx) => (
+              <div key={vocab.id || idx} className="py-2.5 first:pt-0 flex items-start justify-between gap-3 text-xs">
+                <div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="font-bold text-slate-900 dark:text-white text-sm">
+                      {vocab.word}
+                    </span>
+                    {vocab.phonetic_ipa && (
+                      <span className="text-slate-400 font-mono">/{vocab.phonetic_ipa}/</span>
+                    )}
+                    {vocab.part_of_speech && (
+                      <span className="px-1.5 py-0.5 rounded bg-slate-200/60 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-[10px] uppercase font-semibold">
+                        {vocab.part_of_speech}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-blue-600 dark:text-blue-400 font-medium mt-0.5">
+                    {vocab.vietnamese_meaning}
+                  </p>
+                  {vocab.example_sentence && (
+                    <p className="text-slate-500 dark:text-slate-400 italic mt-0.5">
+                      "{vocab.example_sentence}"
+                    </p>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => speakText(vocab.word)}
+                  className="p-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 hover:text-blue-600 transition-colors shrink-0 shadow-xs cursor-pointer"
+                  title="Audio"
+                >
+                  <Volume2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Guest Mode Unlock Banner */}
       {!user && (
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/30 border border-blue-200/80 dark:border-blue-900/60 rounded-2xl p-4 sm:p-5 text-center space-y-3">
           <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
             <Sparkles className="w-4 h-4" />
-            <span>Mở khóa toàn bộ bài học</span>
+            <span>{t('dailyLesson.unlockAllLessons')}</span>
           </div>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
-            Bạn đã hoàn thành bài học trải nghiệm! Đăng nhập Google để mở khóa hơn 30+ bài học giao tiếp tiếp theo và lưu kết quả học tập vĩnh viễn.
+            {t('dailyLesson.guestCompleteNotice')}
           </p>
           <button
             onClick={() => signInWithGoogle()}
             className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-md shadow-blue-500/20 cursor-pointer transition-all"
           >
             <GoogleIcon className="w-4 h-4" />
-            <span>Đăng nhập với Google</span>
+            <span>{t('dailyLesson.signInWithGoogle')}</span>
           </button>
         </div>
       )}

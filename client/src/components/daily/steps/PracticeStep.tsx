@@ -10,7 +10,7 @@ import { useTranslation } from '@/context/LanguageContext';
 
 interface PracticeStepProps {
   practice: PracticeQuizItem[];
-  onScoreUpdate?: (score: number, total: number) => void;
+  onScoreUpdate?: (score: number, total: number, answeredCount: number) => void;
 }
 
 export function PracticeStep({ practice, onScoreUpdate }: PracticeStepProps) {
@@ -21,7 +21,8 @@ export function PracticeStep({ practice, onScoreUpdate }: PracticeStepProps) {
     setAnsweredMap((prev) => {
       const next = { ...prev, [idx]: isCorrect };
       const correctCount = Object.values(next).filter(Boolean).length;
-      onScoreUpdate?.(correctCount, practice.length);
+      const answeredCount = Object.keys(next).length;
+      onScoreUpdate?.(correctCount, practice.length, answeredCount);
       return next;
     });
   };

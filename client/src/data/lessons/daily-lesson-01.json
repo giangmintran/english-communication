@@ -1,0 +1,403 @@
+{
+  "lesson": {
+    "id": "lesson-daily-01",
+    "deck_id": "deck-daily-conversations",
+    "title": "Catching Up with Old Friends",
+    "description": "Chào hỏi tự nhiên, hỏi thăm cuộc sống, rủ bạn đi uống cà phê và hẹn gặp lại.",
+    "topic": "Casual Social Catch-up",
+    "level": "A2",
+    "estimated_minutes": 30,
+    "order_index": 1,
+    "image_url": "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80"
+  },
+  "warmup": {
+    "situation": "Bạn tình cờ gặp lại một người bạn cũ ở quán cà phê sau nhiều tháng (hoặc nhiều năm) không gặp. Cả hai đều hào hứng, hỏi thăm về công việc, gia đình, kế hoạch gần đây và hẹn một buổi gặp gỡ để trò chuyện nhiều hơn.",
+    "objective": "Sau bài học, bạn có thể tự tin chào hỏi bạn cũ tự nhiên bằng các thành ngữ đời thường ('Long time no see!', 'What have you been up to?'), chia sẻ về cuộc sống gần đây và rủ bạn đi cà phê hàn huyên.",
+    "warm_up_question": "When you bump into a good friend you haven't seen in a very long time, what is the very first sentence you say to them?",
+    "key_phrases": [
+      "Long time no see!",
+      "What have you been up to lately?",
+      "How is work and family going?",
+      "We should definitely grab a coffee soon!"
+    ],
+    "image_url": "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=800&q=80"
+  },
+  "vocabulary": [
+    {
+      "id": "dv1-1",
+      "word": "catch up",
+      "phonetic_ipa": "/kætʃ ʌp/",
+      "part_of_speech": "phrasal verb",
+      "vietnamese_meaning": "tâm sự, hàn huyên, cập nhật tin tức cho nhau",
+      "collocations": ["catch up on life", "catch up over coffee", "need to catch up"],
+      "example_sentence": "We haven't spoken in years; we really need to sit down and catch up.",
+      "example_meaning": "Chúng mình đã không nói chuyện nhiều năm rồi; chúng mình thực sự phải ngồi lại hàn huyên thôi."
+    },
+    {
+      "id": "dv1-2",
+      "word": "long time no see",
+      "phonetic_ipa": "/ˌlɑːŋ ˈtaɪm noʊ ˈsiː/",
+      "part_of_speech": "idiom",
+      "vietnamese_meaning": "lâu quá không gặp!",
+      "collocations": ["hey, long time no see!", "long time no see, stranger!"],
+      "example_sentence": "Emily! Long time no see! What a pleasant surprise to see you here.",
+      "example_meaning": "Emily! Lâu quá không gặp! Thật là một bất ngờ thú vị khi gặp cậu ở đây."
+    },
+    {
+      "id": "dv1-3",
+      "word": "bump into / run into",
+      "phonetic_ipa": "/bʌmp ˈɪn.tuː/",
+      "part_of_speech": "phrasal verb",
+      "vietnamese_meaning": "tình cờ gặp gỡ ai",
+      "collocations": ["bump into an old friend", "run into a colleague"],
+      "example_sentence": "I bumped into our high school teacher at the supermarket yesterday.",
+      "example_meaning": "Hôm qua tôi tình cờ gặp lại thầy giáo cấp 3 ở siêu thị."
+    },
+    {
+      "id": "dv1-4",
+      "word": "grab a coffee",
+      "phonetic_ipa": "/ɡræb ə ˈkɑː.fi/",
+      "part_of_speech": "idiom",
+      "vietnamese_meaning": "đi uống cà phê, rủ đi cà phê trò chuyện",
+      "collocations": ["grab a coffee together", "grab a quick coffee", "let's grab coffee"],
+      "example_sentence": "Are you free this Saturday afternoon? Let's grab a coffee and talk.",
+      "example_meaning": "Chiều thứ Bảy này cậu có rảnh không? Tụi mình đi cà phê nói chuyện đi."
+    },
+    {
+      "id": "dv1-5",
+      "word": "keep in touch",
+      "phonetic_ipa": "/kiːp ɪn tʌtʃ/",
+      "part_of_speech": "idiom",
+      "vietnamese_meaning": "giữ liên lạc",
+      "collocations": ["stay in touch", "keep in touch with friends", "let's keep in touch"],
+      "example_sentence": "Don't be a stranger, let's keep in touch on social media!",
+      "example_meaning": "Đừng ngại ngùng nhé, tụi mình giữ liên lạc qua mạng xã hội nhé!"
+    },
+    {
+      "id": "dv1-6",
+      "word": "promotion",
+      "phonetic_ipa": "/prəˈmoʊ.ʃən/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "thăng chức, thăng tiến công việc",
+      "collocations": ["get a promotion", "congratulations on your promotion", "earn a promotion"],
+      "example_sentence": "I heard you got a big promotion at work last month, congratulations!",
+      "example_meaning": "Mình nghe nói tháng trước cậu được thăng chức lớn ở công ty, chúc mừng nhé!"
+    },
+    {
+      "id": "dv1-7",
+      "word": "coincidence",
+      "phonetic_ipa": "/koʊˈɪn.sə.dəns/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "sự trùng hợp ngẫu nhiên thú vị",
+      "collocations": ["what a coincidence!", "pure coincidence", "by coincidence"],
+      "example_sentence": "What a coincidence that we both moved to the same neighborhood!",
+      "example_meaning": "Thật là một sự trùng hợp khi cả hai chúng mình đều chuyển đến cùng một khu phố!"
+    },
+    {
+      "id": "dv1-8",
+      "word": "give my regards",
+      "phonetic_ipa": "/ɡɪv maɪ rɪˈɡɑːrdz/",
+      "part_of_speech": "phrase",
+      "vietnamese_meaning": "gửi lời chào / lời hỏi thăm của tôi tới...",
+      "collocations": ["give my regards to your parents", "give my regards to your family"],
+      "example_sentence": "Please give my warmest regards to your parents when you see them.",
+      "example_meaning": "Làm ơn gửi lời hỏi thăm ấm áp nhất của mình tới bố mẹ cậu khi gặp họ nhé."
+    },
+    {
+      "id": "dv1-9",
+      "word": "reunion",
+      "phonetic_ipa": "/ˌriːˈjuː.njən/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "buổi sum họp, cuộc gặp lại nhau",
+      "collocations": ["school reunion", "family reunion", "happy reunion"],
+      "example_sentence": "Our mini reunion today brought back so many wonderful memories.",
+      "example_meaning": "Cuộc hội ngộ nhỏ hôm nay đã gợi lại biết bao kỷ niệm đẹp."
+    },
+    {
+      "id": "dv1-10",
+      "word": "stay in touch",
+      "phonetic_ipa": "/steɪ ɪn tʌtʃ/",
+      "part_of_speech": "idiom",
+      "vietnamese_meaning": "giữ liên lạc, duy trì kết nối",
+      "collocations": ["definitely stay in touch", "promise to stay in touch"],
+      "example_sentence": "Let's promise to stay in touch and not wait another three years to meet.",
+      "example_meaning": "Tụi mình hứa sẽ giữ liên lạc và không để phải chờ thêm 3 năm nữa mới gặp nhé."
+    }
+  ],
+  "grammar": {
+    "title": "Present Perfect for Recent Life Updates (What have you been up to? / I haven't seen you in...)",
+    "explanation": "Khi gặp lại một người sau khoảng thời gian xa cách, người bản ngữ luôn dùng thì Hiện tại hoàn thành (Present Perfect) hoặc Hiện tại hoàn thành tiếp diễn để hỏi về những việc người kia đã làm trong suốt thời gian qua.",
+    "formula": "What have you been up to lately? | I have recently [moved / started a new job] | I haven't seen you since [time]",
+    "examples": [
+      {
+        "english": "What have you been up to since graduation?",
+        "vietnamese": "Cậu đã làm những gì kể từ khi tốt nghiệp đến giờ vậy?",
+        "highlight": "What have you been up to"
+      },
+      {
+        "english": "I haven't seen you in such a long time!",
+        "vietnamese": "Mình đã không gặp cậu suốt một thời gian dài rồi!",
+        "highlight": "I haven't seen you"
+      },
+      {
+        "english": "I have recently switched jobs and moved to a new apartment.",
+        "vietnamese": "Dạo gần đây mình đã đổi việc và chuyển sang một căn hộ mới.",
+        "highlight": "I have recently switched"
+      }
+    ],
+    "common_mistakes": [
+      {
+        "wrong": "What you do now? (Dùng thì hiện tại đơn khi hỏi về cả quá trình vừa qua)",
+        "correct": "What have you been up to lately? / How have you been?",
+        "explanation": "Cụm 'What have you been up to lately?' hỏi về các biến chuyển trong cuộc sống gần đây một cách tự nhiên."
+      },
+      {
+        "wrong": "Long time no see you.",
+        "correct": "Long time no see! / It's been so long!",
+        "explanation": "Thành ngữ chuẩn là 'Long time no see!' (không có 'you' ở cuối)."
+      }
+    ]
+  },
+  "expressions": [
+    {
+      "id": "de1-1",
+      "expression": "Long time no see! What a pleasant surprise to bump into you here!",
+      "phonetic_ipa": "/ˌlɑːŋ ˈtaɪm noʊ ˈsiː! wɒt ə ˈpleznt sərˈpraɪz tuː bʌmp ˈɪntuː juː hɪər/",
+      "meaning": "Lâu quá không gặp! Thật là một bất ngờ dễ chịu khi tình cờ gặp cậu ở đây!",
+      "context": "Nói ngay khi bạn nhận ra người bạn cũ của mình.",
+      "formality": "friendly",
+      "variations": [
+        "Hey, it's so great to see you again!",
+        "I can't believe it's you! What are the odds?",
+        "Fancy running into you here!"
+      ]
+    },
+    {
+      "id": "de1-2",
+      "expression": "What have you been up to lately? How is everything going?",
+      "phonetic_ipa": "/wɒt hæv juː biːn ʌp tuː ˈleɪtli? haʊ ɪz ˈevriθɪŋ ˈɡoʊɪŋ/",
+      "meaning": "Dạo này cậu thế nào rồi? Mọi việc vẫn ổn cả chứ?",
+      "context": "Mở đầu cuộc trò chuyện hỏi thăm về cuộc sống và công việc.",
+      "formality": "friendly",
+      "variations": [
+        "How have you been doing?",
+        "How is work and family treating you?",
+        "Catch me up on what you've been doing!"
+      ]
+    },
+    {
+      "id": "de1-3",
+      "expression": "We should definitely grab a coffee this weekend and catch up properly.",
+      "phonetic_ipa": "/wiː ʃʊd ˈdefɪnətli ɡræb ə ˈkɑːfi ðɪs ˈwiːkend ænd kætʃ ʌp ˈprɑːpərli/",
+      "meaning": "Tụi mình nhất định phải đi uống cà phê cuối tuần này để hàn huyên cho đã.",
+      "context": "Gợi ý một buổi gặp gỡ riêng khi cả hai đang vội.",
+      "formality": "friendly",
+      "variations": [
+        "Are you free for lunch sometime next week?",
+        "Let's exchange phone numbers and make plans.",
+        "We have so much to talk about, let's get together soon!"
+      ]
+    },
+    {
+      "id": "de1-4",
+      "expression": "It was so wonderful seeing you! Give my warm regards to your family.",
+      "phonetic_ipa": "/ɪt wɒz soʊ ˈwʌndərfəl ˈsiːɪŋ juː! ɡɪv maɪ wɔːrm rɪˈɡɑːrdz tuː jɔːr ˈfæməli/",
+      "meaning": "Gặp lại cậu tuyệt quá! Cho mình gửi lời hỏi thăm ấm áp tới gia đình cậu nhé.",
+      "context": "Tạm biệt bạn cũ ở cuối cuộc gặp ngắn.",
+      "formality": "friendly",
+      "variations": [
+        "Take care, let's keep in touch!",
+        "Say hi to everyone for me!",
+        "Text me when you get home!"
+      ]
+    }
+  ],
+  "listening": [
+    {
+      "id": "dl1-1",
+      "title": "Bumping into Anna at the Coffee Shop",
+      "dialogue": [
+        {
+          "speaker": "Mark",
+          "text": "Anna? Is that really you? Oh my goodness, long time no see!",
+          "vietnamese": "Anna? Đúng là cậu không đấy? Ôi trời ơi, lâu lắm rồi không gặp!"
+        },
+        {
+          "speaker": "Anna",
+          "text": "Mark! Wow, what a wonderful surprise! It must have been at least three years since we graduated!",
+          "vietnamese": "Mark! Ôi, thật là một bất ngờ tuyệt vời! Chắc cũng phải ít nhất 3 năm kể từ khi tụi mình tốt nghiệp rồi nhỉ!"
+        },
+        {
+          "speaker": "Mark",
+          "text": "I know, time flies! How have you been? What have you been up to lately?",
+          "vietnamese": "Mình biết mà, thời gian trôi nhanh quá! Cậu dạo này thế nào? Dạo này đang làm gì rồi?"
+        },
+        {
+          "speaker": "Anna",
+          "text": "I've been working as a UI designer at a tech firm downtown. I actually just moved into a new apartment nearby last month.",
+          "vietnamese": "Mình đang làm thiết kế UI cho một công ty công nghệ ở trung tâm. Thực ra tháng trước mình vừa mới chuyển vào căn hộ mới gần đây."
+        },
+        {
+          "speaker": "Mark",
+          "text": "That's fantastic! I am on my way to a client meeting right now, but we definitely need to grab a coffee this Sunday and catch up properly.",
+          "vietnamese": "Tuyệt quá! Bây giờ mình đang trên đường đi gặp khách hàng, nhưng Chủ nhật này tụi mình nhất định phải đi cà phê hàn huyên đàng hoàng nhé."
+        },
+        {
+          "speaker": "Anna",
+          "text": "I would love that! Let me give you my new number so we can text. See you on Sunday!",
+          "vietnamese": "Mình thích lắm! Để mình cho cậu số điện thoại mới để nhắn tin nhé. Hẹn gặp lại Chủ nhật này!"
+        }
+      ],
+      "questions": [
+        {
+          "id": "dlq1-1",
+          "question": "How long has it been since Mark and Anna last saw each other?",
+          "options": ["Three months", "At least three years", "Ten years", "Just yesterday"],
+          "correct_answer": 1,
+          "explanation": "Anna nói: 'It must have been at least three years since we graduated!'"
+        },
+        {
+          "id": "dlq1-2",
+          "question": "What is Anna's current job?",
+          "options": ["English teacher", "UI designer at a tech firm", "Barista at the cafe", "Flight attendant"],
+          "correct_answer": 1,
+          "explanation": "Anna chia sẻ: 'I've been working as a UI designer at a tech firm downtown'."
+        },
+        {
+          "id": "dlq1-3",
+          "question": "What did they agree to do on Sunday?",
+          "options": ["Go on a business trip", "Meet for coffee and catch up properly", "Move furniture", "Attend a graduation"],
+          "correct_answer": 1,
+          "explanation": "Mark đề nghị: 'grab a coffee this Sunday and catch up properly', và Anna hào hứng đồng ý."
+        }
+      ]
+    }
+  ],
+  "speaking": {
+    "situation": "Bạn tình cờ gặp lại một người bạn thân cũ tại quán cà phê. Hãy nói to các câu chào hỏi và hẹn hò với ngữ điệu hào hứng, thân mật.",
+    "sample_dialogue": [
+      {
+        "speaker": "Friend",
+        "text": "Hey! Long time no see! How have you been?",
+        "vietnamese": "Ê! Lâu quá không gặp! Dạo này cậu thế nào?"
+      },
+      {
+        "speaker": "You",
+        "text": "I've been great! What a pleasant surprise to run into you!",
+        "vietnamese": "Mình rất tuyệt! Thật là bất ngờ thú vị khi tình cờ gặp cậu!"
+      },
+      {
+        "speaker": "Friend",
+        "text": "Are you in a rush right now?",
+        "vietnamese": "Cậu có đang vội không đấy?"
+      },
+      {
+        "speaker": "You",
+        "text": "A little bit, but let's grab a coffee this weekend and catch up!",
+        "vietnamese": "Có một chút, nhưng cuối tuần này tụi mình đi cà phê hàn huyên nhé!"
+      }
+    ],
+    "practice_sentences": [
+      {
+        "id": "dsp1-1",
+        "text": "Long time no see! What a pleasant surprise to bump into you here!",
+        "phonetic_ipa": "/ˌlɑːŋ ˈtaɪm noʊ ˈsiː! wɒt ə ˈpleznt sərˈpraɪz tuː bʌmp ˈɪntuː juː hɪər/",
+        "vietnamese_hint": "Lâu quá không gặp! Bất ngờ thú vị khi tình cờ gặp cậu ở đây!"
+      },
+      {
+        "id": "dsp1-2",
+        "text": "What have you been up to lately? How is everything going?",
+        "phonetic_ipa": "/wɒt hæv juː biːn ʌp tuː ˈleɪtli? haʊ ɪz ˈevriθɪŋ ˈɡoʊɪŋ/",
+        "vietnamese_hint": "Dạo này cậu thế nào rồi? Mọi việc vẫn ổn cả chứ?"
+      },
+      {
+        "id": "dsp1-3",
+        "text": "We should definitely grab a coffee this weekend and catch up.",
+        "phonetic_ipa": "/wiː ʃʊd ˈdefɪnətli ɡræb ə ˈkɑːfi ðɪs ˈwiːkend ænd kætʃ ʌp/",
+        "vietnamese_hint": "Tụi mình nhất định phải đi uống cà phê cuối tuần này để hàn huyên."
+      },
+      {
+        "id": "dsp1-4",
+        "text": "It was so wonderful seeing you! Give my regards to your family.",
+        "phonetic_ipa": "/ɪt wɒz soʊ ˈwʌndərfəl ˈsiːɪŋ juː! ɡɪv maɪ rɪˈɡɑːrdz tuː jɔːr ˈfæməli/",
+        "vietnamese_hint": "Gặp lại cậu tuyệt quá! Gửi lời hỏi thăm của mình tới gia đình nhé."
+      }
+    ]
+  },
+  "practice": [
+    {
+      "id": "dpq1-1",
+      "type": "vocabulary_quiz",
+      "question": "Which phrasal verb means 'to talk to someone you haven't seen for a while and share recent news'?",
+      "options": ["Break up", "Catch up", "Give up", "Look up"],
+      "correct_answer": 1,
+      "explanation": "'Catch up' là cụm động từ chỉ việc hàn huyên, cập nhật thông tin về cuộc sống của nhau sau thời gian dài."
+    },
+    {
+      "id": "dpq1-2",
+      "type": "vocabulary_quiz",
+      "question": "What does the informal phrase 'grab a coffee' mean?",
+      "options": ["Steal coffee from a shop", "Go drink coffee and socialize together", "Spill hot coffee", "Buy coffee beans"],
+      "correct_answer": 1,
+      "explanation": "'Grab a coffee' là lời rủ thân mật đi uống cà phê và trò chuyện cùng nhau."
+    },
+    {
+      "id": "dpq1-3",
+      "type": "grammar_quiz",
+      "question": "Which question naturally asks a friend about their recent life updates?",
+      "options": [
+        "What have you been up to lately?",
+        "What you do now yesterday?",
+        "Why are you standing?",
+        "How do you do yesterday?"
+      ],
+      "correct_answer": 0,
+      "explanation": "'What have you been up to lately?' là câu hỏi chuẩn xác và phổ biến nhất trong tiếng Anh giao tiếp."
+    },
+    {
+      "id": "dpq1-4",
+      "type": "grammar_quiz",
+      "question": "Complete the greeting: '______ time no see!'",
+      "options": ["Long", "Big", "High", "Far"],
+      "correct_answer": 0,
+      "explanation": "Thành ngữ chuẩn: 'Long time no see!' (Lâu quá không gặp!)."
+    },
+    {
+      "id": "dpq1-5",
+      "type": "sentence_building",
+      "vietnamese": "Lâu quá không gặp! Thật là một bất ngờ thú vị khi gặp cậu ở đây.",
+      "scrambled_words": ["to bump into you", "Long time no see!", "What a pleasant surprise", "here!"],
+      "correct_order": ["Long time no see!", "What a pleasant surprise", "to bump into you", "here!"],
+      "hint": "Bắt đầu với 'Long time no see! What a pleasant surprise...'"
+    },
+    {
+      "id": "dpq1-6",
+      "type": "sentence_building",
+      "vietnamese": "Tụi mình nhất định phải đi uống cà phê cuối tuần này để hàn huyên nhé.",
+      "scrambled_words": ["grab a coffee", "We should definitely", "and catch up.", "this weekend"],
+      "correct_order": ["We should definitely", "grab a coffee", "this weekend", "and catch up."],
+      "hint": "Cụm 'We should definitely grab a coffee this weekend and catch up.'"
+    },
+    {
+      "id": "dpq1-7",
+      "type": "translation",
+      "source_text": "Dạo này cậu thế nào rồi? Mọi việc vẫn ổn cả chứ?",
+      "source_lang": "vi",
+      "correct_answer": "What have you been up to lately? How is everything going?",
+      "accept_answers": [
+        "What have you been up to lately? How is everything going",
+        "How have you been lately? Is everything going well?",
+        "What have you been doing lately? How are things going?",
+        "How have you been? How is everything going?"
+      ],
+      "hint": "Dùng cấu trúc: 'What have you been up to lately? How is everything going?'"
+    },
+    {
+      "id": "dpq1-8",
+      "type": "speaking_challenge",
+      "prompt": "You run into an old classmate. Suggest grabbing a coffee this weekend to catch up.",
+      "sample_answer": "We should definitely grab a coffee this weekend and catch up!",
+      "vietnamese_hint": "Nói bằng tiếng Anh: 'We should definitely grab a coffee this weekend and catch up!'"
+    }
+  ]
+}

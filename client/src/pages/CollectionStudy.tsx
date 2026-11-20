@@ -1,43 +1,33 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { AlertCircle, ArrowLeft, BookOpen, Layers, Clock, Sparkles } from 'lucide-react';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
+import { AlertCircle, ArrowLeft, Lock, ArrowRight } from 'lucide-react';
 import { api } from '@/lib/api';
-import { DeckWithItems, LearningItem } from '@/types/database';
+import { LearningItem } from '@/types/database';
 import { useLearningStore } from '@/lib/store';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/LanguageContext';
-import { categorizeDeckItems, isItemDue, isItemMastered } from '@/lib/srs';
-import { generateDailyReviewQuestions } from '@/lib/quizGenerator';
-import { ReviewQuestion } from '@/types/quiz';
-import { SessionHeader } from '@/components/collection/session/SessionHeader';
-import { NewWordStudyCard } from '@/components/collection/session/NewWordStudyCard';
-import { ImmediateCheckCard } from '@/components/collection/session/ImmediateCheckCard';
-import { SRSReviewCard } from '@/components/collection/session/SRSReviewCard';
-import { SessionSummary } from '@/components/collection/session/SessionSummary';
-import { cn } from '@/lib/utils';
-
-type StudyMode = 'adaptive' | 'new_only' | 'due_only';
-
-interface LearningQueueItem {
-  type: 'due_review' | 'new_word_study' | 'new_word_check';
-  word: LearningItem;
-  reviewQuestion?: ReviewQuestion;
-}
+import {
+  StudyModeSelector,
+  CollectionStudyMode,
+} from '@/components/collection/study/StudyModeSelector';
+import { FlashcardsMode } from '@/components/collection/study/modes/FlashcardsMode';
+import { LearnMode } from '@/components/collection/study/modes/LearnMode';
+import { TestMode } from '@/components/collection/study/modes/TestMode';
 
 export default function CollectionStudyPage() {
   const { deckId } = useParams<{ deckId: string }>();
-  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { collectionReviews, collectionProgress, recordCollectionPhraseProgress } = useLearningStore();
+  const { collectionReviews, collectionProgress, recordCollectionPhraseProgress } =
+    useLearningStore();
 
   const colId = deckId || 'collection';
   const currentColProgress = collectionProgress[colId];
   const phraseStates = currentColProgress?.phrase_states || collectionReviews;
 
-  // Sử dụng riêng tiến độ của Collection (hoàn toàn không liên quan đến decks/items/reviews)
   const effectiveReviews = useMemo(() => {
-    return phraseStates;
+    return phraseStates || {};
   }, [phraseStates]);
 
   const [deck, setDeck] = useState<any>(null);
@@ -45,22 +35,82 @@ export default function CollectionStudyPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Settings
+  // Guest limit configuration
+  const isGuest = !user;
+  const GUEST_WORD_LIMIT = 10;
+  const isLimited = isGuest && items.length > GUEST_WORD_LIMIT;
+
+  const studyItems = useMemo(() => {
+    if (isLimited) {
+      return items.slice(0, GUEST_WORD_LIMIT);
+    }
+    return items;
+  }, [items, isLimited]);
+
+  // Track if guest has already taken a test for this collection
+  const guestTestKey = `guest_test_taken_${deckId || 'default'}`;
+  const [hasGuestTakenTest, setHasGuestTakenTest] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(guestTestKey) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const handleMarkGuestTestTaken = useCallback(() => {
+    try {
+      localStorage.setItem(guestTestKey, 'true');
+    } catch {}
+    setHasGuestTakenTest(true);
+  }, [guestTestKey]);
+
+  // Settings & Mode
+  const urlMode = searchParams.get('mode') as CollectionStudyMode | null;
+  const initialMode: CollectionStudyMode =
+    urlMode === 'flashcards' || urlMode === 'learn' || urlMode === 'test'
+      ? urlMode
+      : 'learn';
+
+  const [studyMode, setStudyMode] = useState<CollectionStudyMode>(initialMode);
   const [autoPlayAudio, setAutoPlayAudio] = useState(true);
-  const [studyMode, setStudyMode] = useState<StudyMode>('adaptive');
+  const [isShuffled, setIsShuffled] = useState(false);
+  const [learnSessionKey, setLearnSessionKey] = useState(0);
 
-  // Session state
-  const [sessionQueue, setSessionQueue] = useState<LearningQueueItem[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [correctCount, setCorrectCount] = useState(0);
-  const [isCompleted, setIsCompleted] = useState(false);
+  // Starred phrases state from localStorage
+  const [starredIds, setStarredIds] = useState<Set<string>>(() => {
+    try {
+      const saved = localStorage.getItem('starred_phrases');
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
 
-  // Stats for this session
-  const [sessionNewWordsLearned, setSessionNewWordsLearned] = useState<Set<string>>(new Set());
-  const [sessionWordsReviewed, setSessionWordsReviewed] = useState<Set<string>>(new Set());
-  const [sessionWordsMastered, setSessionWordsMastered] = useState<Set<string>>(new Set());
+  const handleToggleStar = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setStarredIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      try {
+        localStorage.setItem('starred_phrases', JSON.stringify(Array.from(next)));
+      } catch (err) {
+        console.warn('Lỗi lưu starred:', err);
+      }
+      return next;
+    });
+  };
 
-  // 1. Tải thông tin deck và danh sách items
+  // Đồng bộ chế độ với URL searchParams
+  const handleSelectMode = (newMode: CollectionStudyMode) => {
+    setStudyMode(newMode);
+    setSearchParams({ mode: newMode });
+  };
+
+  // 1. Tải thông tin deck và danh sách từ vựng
   useEffect(() => {
     let mounted = true;
 
@@ -89,174 +139,13 @@ export default function CollectionStudyPage() {
     };
   }, [deckId]);
 
-  // Phân loại từ vựng trong deck
-  const categorized = useMemo(() => {
-    return categorizeDeckItems(items, effectiveReviews);
-  }, [items, effectiveReviews]);
-
-  // Khởi tạo hàng đợi phiên học (Session Queue)
-  const initializeSession = useCallback(
-    (mode: StudyMode = 'adaptive') => {
-      if (items.length === 0) return;
-
-      const queue: LearningQueueItem[] = [];
-
-      // A. Lấy từ đến hạn ôn tập (Due items)
-      const dueToReview = mode === 'new_only' ? [] : categorized.dueItems;
-
-      // Sinh câu hỏi ôn tập cho các từ đến hạn (1 câu hỏi chất lượng/từ để giữ nhịp học)
-      if (dueToReview.length > 0) {
-        const generatedQuestions = generateDailyReviewQuestions(
-          dueToReview,
-          dueToReview.length,
-          'shuffled'
-        );
-        // Lấy 1 câu hỏi ngẫu nhiên cho mỗi từ đến hạn
-        const seenWords = new Set<string>();
-        for (const q of generatedQuestions) {
-          if (!seenWords.has(q.wordId)) {
-            const wordItem = dueToReview.find((w) => w.id === q.wordId);
-            if (wordItem) {
-              queue.push({
-                type: 'due_review',
-                word: wordItem,
-                reviewQuestion: q,
-              });
-              seenWords.add(q.wordId);
-            }
-          }
-        }
-      }
-
-      // B. Lấy tối đa 5 từ mới chưa từng học
-      const newToLearn =
-        mode === 'due_only'
-          ? []
-          : categorized.newItems.slice(0, 5);
-
-      newToLearn.forEach((word) => {
-        // Mỗi từ mới sẽ có 1 bước Học -> 1 bước Kiểm tra ngay
-        queue.push({
-          type: 'new_word_study',
-          word,
-        });
-        queue.push({
-          type: 'new_word_check',
-          word,
-        });
-      });
-
-      // Nếu không có cả từ due và từ new (ví dụ đã học hết và chưa đến hạn)
-      if (queue.length === 0 && items.length > 0) {
-        // Cho phép ôn tập 5 từ bất kỳ trong deck để củng cố
-        const sampleWords = items.slice(0, 5);
-        const fallbackQs = generateDailyReviewQuestions(sampleWords, sampleWords.length, 'shuffled');
-        const seenWords = new Set<string>();
-        for (const q of fallbackQs) {
-          if (!seenWords.has(q.wordId)) {
-            const wordItem = sampleWords.find((w) => w.id === q.wordId);
-            if (wordItem) {
-              queue.push({
-                type: 'due_review',
-                word: wordItem,
-                reviewQuestion: q,
-              });
-              seenWords.add(q.wordId);
-            }
-          }
-        }
-      }
-
-      setSessionQueue(queue);
-      setCurrentIndex(0);
-      setCorrectCount(0);
-      setIsCompleted(false);
-      setSessionNewWordsLearned(new Set());
-      setSessionWordsReviewed(new Set());
-      setSessionWordsMastered(new Set());
+  // Ghi nhận tiến độ học vào Store và Supabase
+  const handleRecordWordProgress = useCallback(
+    (wordId: string, grade: 0 | 1 | 2 | 3) => {
+      recordCollectionPhraseProgress(colId, wordId, grade, items.length, user?.id);
     },
-    [items, categorized]
+    [colId, items.length, user?.id, recordCollectionPhraseProgress]
   );
-
-  // Khởi tạo phiên khi nạp xong dữ liệu items
-  useEffect(() => {
-    if (items.length > 0 && sessionQueue.length === 0 && !isCompleted) {
-      initializeSession(studyMode);
-    }
-  }, [items, studyMode, initializeSession, sessionQueue.length, isCompleted]);
-
-  // Mục hiện tại trong hàng đợi
-  const currentQueueItem = sessionQueue[currentIndex];
-
-  // 2. Chuyển từ "Học từ mới" sang "Kiểm tra ngay"
-  const handleProceedToCheck = () => {
-    // Mục tiếp theo trong hàng đợi chính là 'new_word_check' của từ này
-    if (currentIndex + 1 < sessionQueue.length) {
-      setCurrentIndex((prev) => prev + 1);
-    }
-  };
-
-  // 3. Kết quả "Kiểm tra ngay" cho từ mới
-  const handleImmediateCheckResult = (isCorrect: boolean) => {
-    if (!currentQueueItem) return;
-    const word = currentQueueItem.word;
-
-    if (isCorrect) {
-      setCorrectCount((prev) => prev + 1);
-      setSessionNewWordsLearned((prev) => new Set(prev).add(word.id));
-
-      // Ghi nhận tiến độ riêng cho Collection (lưu bảng riêng collection_reviews)
-      recordCollectionPhraseProgress(colId, word.id, 2, items.length, user?.id);
-    } else {
-      // Nếu trả lời sai: Đẩy cặp (học lại + kiểm tra lại) vào cuối hàng đợi phiên này
-      setSessionQueue((prev) => [
-        ...prev,
-        { type: 'new_word_study', word },
-        { type: 'new_word_check', word },
-      ]);
-    }
-  };
-
-  // 4. Kết quả ôn tập từ đến hạn (SRS Review)
-  const handleSRSReviewAnswer = (isCorrect: boolean, userAnswer: string) => {
-    if (!currentQueueItem) return;
-    const word = currentQueueItem.word;
-
-    const currentSRS = effectiveReviews[word.id];
-    const prevRepetitions = currentSRS?.repetitions || 0;
-
-    // Ghi nhận tiến độ SM-2 riêng cho Collection
-    recordCollectionPhraseProgress(colId, word.id, isCorrect ? 2 : 0, items.length, user?.id);
-
-    setSessionWordsReviewed((prev) => new Set(prev).add(word.id));
-
-    if (isCorrect) {
-      setCorrectCount((prev) => prev + 1);
-      // Nếu đúng liên tiếp lần 3 trở lên thì thăng hạng "Đã thuộc"
-      if (prevRepetitions + 1 >= 3) {
-        setSessionWordsMastered((prev) => new Set(prev).add(word.id));
-      }
-    }
-  };
-
-  // 5. Chuyển sang bước tiếp theo
-  const handleNextStep = () => {
-    if (currentIndex + 1 < sessionQueue.length) {
-      setCurrentIndex((prev) => prev + 1);
-    } else {
-      setIsCompleted(true);
-    }
-  };
-
-  // Học tiếp 5 từ mới
-  const handleLearnMore = () => {
-    initializeSession('new_only');
-  };
-
-  // Ôn lại phiên này
-  const handleRestartSession = () => {
-    initializeSession(studyMode);
-  };
 
   // Giao diện khi đang tải
   if (loading) {
@@ -264,28 +153,28 @@ export default function CollectionStudyPage() {
       <div className="flex flex-col items-center justify-center min-h-[500px] space-y-4">
         <div className="w-10 h-10 border-4 border-blue-600 dark:border-blue-400 border-t-transparent rounded-full animate-spin" />
         <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-          {t('common.loading')}
+          {t('common.loading') || 'Đang tải...'}
         </p>
       </div>
     );
   }
 
-  // Giao diện khi lỗi
+  // Giao diện khi lỗi hoặc không có từ vựng
   if (error || !deck || items.length === 0) {
     return (
-      <div className="max-w-md mx-auto my-12 p-8 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 space-y-4">
+      <div className="max-w-md mx-auto my-8 sm:my-12 p-6 sm:p-8 text-center bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-100 dark:border-slate-800 space-y-4 shadow-card">
         <div className="w-12 h-12 bg-rose-50 dark:bg-rose-950/40 text-rose-500 rounded-2xl flex items-center justify-center mx-auto">
           <AlertCircle className="w-6 h-6" />
         </div>
-        <h3 className="font-bold text-slate-900 dark:text-white text-base">
-          {error || t('flashcards.noData')}
+        <h3 className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
+          {error || t('flashcards.noData') || 'Chưa có từ vựng nào trong bộ sưu tập'}
         </h3>
         <Link
           to="/collections"
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold transition-colors"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>{t('collectionDetail.back')}</span>
+          <span>{t('collectionDetail.back') || 'Quay lại'}</span>
         </Link>
       </div>
     );
@@ -293,80 +182,91 @@ export default function CollectionStudyPage() {
 
   const targetDeckSlug = deck.slug || deck.id;
 
-  // Giao diện khi hoàn thành phiên học
-  if (isCompleted) {
-    return (
-      <div className="max-w-2xl mx-auto py-4 sm:py-8 px-3 sm:px-4">
-        <SessionSummary
-          deckTitle={deck.title}
-          deckSlugOrId={targetDeckSlug}
-          newWordsLearned={sessionNewWordsLearned.size}
-          wordsReviewed={sessionWordsReviewed.size}
-          wordsMastered={sessionWordsMastered.size}
-          totalDeckWords={items.length}
-          hasMoreNewWords={categorized.newItems.length > sessionNewWordsLearned.size}
-          onLearnMore={handleLearnMore}
-          onRestart={handleRestartSession}
-        />
-      </div>
-    );
-  }
-
-  // Nhãn giai đoạn hiện tại
-  let stageLabel = t('collectionStudy.modeAdaptive');
-  if (currentQueueItem) {
-    if (currentQueueItem.type === 'due_review') {
-      stageLabel = t('collectionStudy.stageDueReview');
-    } else if (currentQueueItem.type === 'new_word_study') {
-      stageLabel = t('collectionStudy.stageLearnNew');
-    } else if (currentQueueItem.type === 'new_word_check') {
-      stageLabel = t('collectionStudy.stageImmediateCheck');
-    }
-  }
-
   return (
-    <div className="max-w-2xl mx-auto py-3 sm:py-6 px-3 sm:px-4 space-y-5 sm:space-y-6">
-      {/* 1. Header Navigation & Progress Bar */}
-      <SessionHeader
+    <div className="max-w-4xl mx-auto py-2.5 sm:py-6 px-2.5 sm:px-6 space-y-4 sm:space-y-6 pb-safe">
+      {/* Guest Trial Banner */}
+      {isLimited && (
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200/80 dark:border-amber-900/40 rounded-2xl sm:rounded-3xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+              <Lock className="w-4 h-4" />
+            </div>
+            <div className="space-y-0.5">
+              <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                {t('collectionStudy.guestTrialNoticeTitle', { current: studyItems.length, total: items.length })}
+              </h4>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                {t('collectionStudy.guestTrialNoticeDesc', { total: items.length })}
+              </p>
+            </div>
+          </div>
+
+          <Link
+            to="/login"
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-colors shrink-0"
+          >
+            <span>{t('collectionStudy.guestLoginBtn')}</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      )}
+
+      {/* 1. Header Navigation & Study Mode Selector */}
+      <StudyModeSelector
+        currentMode={studyMode}
+        onSelectMode={handleSelectMode}
         deckTitle={deck.title}
         deckSlugOrId={targetDeckSlug}
-        currentStep={currentIndex + 1}
-        totalSteps={sessionQueue.length || 1}
         autoPlayAudio={autoPlayAudio}
         onToggleAudio={() => setAutoPlayAudio(!autoPlayAudio)}
-        stageLabel={stageLabel}
-        correctCount={correctCount}
+        isShuffled={isShuffled}
+        onToggleShuffle={() => setIsShuffled(!isShuffled)}
+        isGuest={isGuest}
+        totalWordsCount={items.length}
+        activeWordsCount={studyItems.length}
       />
 
-      {/* 2. Main Interactive Learning Card */}
-      {currentQueueItem && currentQueueItem.type === 'new_word_study' && (
-        <NewWordStudyCard
-          key={`study-${currentQueueItem.word.id}-${currentIndex}`}
-          item={currentQueueItem.word}
-          onProceedToCheck={handleProceedToCheck}
+      {/* 2. Interactive Study Mode Content */}
+      {studyMode === 'flashcards' && (
+        <FlashcardsMode
+          items={studyItems}
+          reviews={effectiveReviews}
+          starredIds={starredIds}
+          onToggleStar={handleToggleStar}
           autoPlayAudio={autoPlayAudio}
+          isShuffled={isShuffled}
+          onToggleShuffle={() => setIsShuffled(!isShuffled)}
+          onSwitchToLearn={() => handleSelectMode('learn')}
+          isGuest={isGuest}
+          totalCollectionWords={items.length}
         />
       )}
 
-      {currentQueueItem && currentQueueItem.type === 'new_word_check' && (
-        <ImmediateCheckCard
-          key={`check-${currentQueueItem.word.id}-${currentIndex}`}
-          item={currentQueueItem.word}
-          deckItems={items}
-          onResult={handleImmediateCheckResult}
-          onNext={handleNextStep}
+      {studyMode === 'learn' && (
+        <LearnMode
+          key={`learn-${studyItems.length}-${learnSessionKey}`}
+          allItems={studyItems}
+          reviews={effectiveReviews}
+          onRecordProgress={handleRecordWordProgress}
           autoPlayAudio={autoPlayAudio}
+          onLearnNextBatch={() => setLearnSessionKey((k) => k + 1)}
+          onRestartBatch={() => setLearnSessionKey((k) => k + 1)}
+          isGuest={isGuest}
+          totalCollectionWords={items.length}
         />
       )}
 
-      {currentQueueItem && currentQueueItem.type === 'due_review' && currentQueueItem.reviewQuestion && (
-        <SRSReviewCard
-          key={`review-${currentQueueItem.reviewQuestion.id}-${currentIndex}`}
-          question={currentQueueItem.reviewQuestion}
-          reviewState={effectiveReviews[currentQueueItem.word.id]}
-          onAnswer={handleSRSReviewAnswer}
-          onNext={handleNextStep}
+      {studyMode === 'test' && (
+        <TestMode
+          key={`test-${studyItems.length}-${hasGuestTakenTest ? 'locked' : 'open'}`}
+          items={studyItems}
+          deckTitle={deck.title}
           autoPlayAudio={autoPlayAudio}
+          onRecordProgress={handleRecordWordProgress}
+          onSwitchToLearn={() => handleSelectMode('learn')}
+          isGuest={isGuest}
+          hasGuestTakenTest={hasGuestTakenTest}
+          onMarkGuestTestTaken={handleMarkGuestTestTaken}
         />
       )}
     </div>

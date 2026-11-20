@@ -55,7 +55,7 @@ export function SessionHeader({
               {deckTitle}
             </h1>
             <div className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 font-semibold truncate">
-              <Sparkles className="w-3.5 h-3.5 shrink-0" />
+              {/* <Sparkles className="w-3.5 h-3.5 shrink-0" /> */}
               <span>{stageLabel}</span>
             </div>
           </div>

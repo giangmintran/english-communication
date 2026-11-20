@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ArrowLeft,
+  ArrowRight,
   Volume2,
   Mic,
   Play,
@@ -15,6 +16,8 @@ import {
   Layers,
   LayoutList,
   HelpCircle,
+  Brain,
+  FileCheck2,
   Share2,
   Utensils,
   Plane,
@@ -62,6 +65,7 @@ export default function CollectionDetailPage() {
   const { deckId } = useParams<{ deckId: string }>();
   const navigate = useNavigate();
   const { user, signInWithGoogle } = useAuth();
+  const isGuest = !user;
   const { t } = useTranslation();
   const { collectionReviews, collectionProgress } = useLearningStore();
 
@@ -474,67 +478,100 @@ export default function CollectionDetailPage() {
             </h3>
 
             <div className="space-y-2.5">
-              {/* Mode 1: Flashcards & SRS */}
+              {/* Mode 1: Learn Mode (Quizlet-style Adaptive) */}
               <Link
-                to={`/collections/${targetDeckSlug}/learn`}
-                className="group flex items-center justify-between p-3 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 bg-slate-50/60 dark:bg-slate-800/40 hover:bg-blue-50/50 dark:hover:bg-blue-950/30 transition-all"
+                to={`/collections/${targetDeckSlug}/learn?mode=learn`}
+                className="group flex items-center justify-between p-3 rounded-2xl border border-blue-100 dark:border-blue-900/40 hover:border-blue-300 dark:hover:border-blue-700 bg-blue-50/40 dark:bg-blue-950/20 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-                    <Layers className="w-5 h-5" />
+                  <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/20">
+                    <Brain className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-900 dark:text-white text-xs group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      {t('collectionDetail.modeFlashcards')}
-                    </h4>
+                    <div className="flex items-center gap-1.5">
+                      <h4 className="font-bold text-slate-900 dark:text-white text-xs group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {t('collectionStudy.modeLearn')}
+                      </h4>
+                      <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-400">
+                        Quizlet
+                      </span>
+                    </div>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      {t('collectionDetail.modeFlashcardsDesc')}
+                      {t('collectionStudy.modeLearnDesc')}
                     </p>
                   </div>
                 </div>
-                <Play className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-600 transition-colors" />
+                <Play className="w-3.5 h-3.5 text-blue-600 transition-colors" />
               </Link>
 
-              {/* Mode 2: AI Speaking Practice */}
+              {/* Mode 2: Flashcards */}
               <Link
-                to="/speaking"
+                to={`/collections/${targetDeckSlug}/learn?mode=flashcards`}
                 className="group flex items-center justify-between p-3 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-700 bg-slate-50/60 dark:bg-slate-800/40 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/30 transition-all"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
-                    <Mic className="w-5 h-5" />
+                    <Layers className="w-5 h-5" />
                   </div>
                   <div>
                     <h4 className="font-bold text-slate-900 dark:text-white text-xs group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                      {t('collectionDetail.modeSpeaking')}
+                      {t('collectionStudy.modeFlashcards')}
                     </h4>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      {t('collectionDetail.modeSpeakingDesc')}
+                      {t('collectionStudy.modeFlashcardsDesc')}
                     </p>
                   </div>
                 </div>
-                <Sparkles className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 transition-colors" />
+                <Play className="w-3.5 h-3.5 text-slate-400 group-hover:text-indigo-600 transition-colors" />
               </Link>
 
-              {/* Mode 3: Interactive Quiz */}
+              {/* Mode 3: Test Quiz */}
               <Link
-                to="/daily/review"
+                to={`/collections/${targetDeckSlug}/learn?mode=test`}
                 className="group flex items-center justify-between p-3 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-emerald-300 dark:hover:border-emerald-700 bg-slate-50/60 dark:bg-slate-800/40 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/30 transition-all"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-                    <HelpCircle className="w-5 h-5" />
+                    <FileCheck2 className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-900 dark:text-white text-xs group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                      {t('collectionDetail.modeQuiz')}
-                    </h4>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <h4 className="font-bold text-slate-900 dark:text-white text-xs group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                        {t('collectionStudy.modeTest')}
+                      </h4>
+                      {isGuest && (
+                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/40">
+                          {t('collectionStudy.guestTestNotice')}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      {t('collectionDetail.modeQuizDesc')}
+                      {t('collectionStudy.modeTestDesc')}
                     </p>
                   </div>
                 </div>
                 <Play className="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-600 transition-colors" />
+              </Link>
+
+              {/* Mode 4: AI Speaking Practice */}
+              <Link
+                to="/speaking"
+                className="group flex items-center justify-between p-3 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-amber-300 dark:hover:border-amber-700 bg-slate-50/60 dark:bg-slate-800/40 hover:bg-amber-50/50 dark:hover:bg-amber-950/30 transition-all"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                    <Mic className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-900 dark:text-white text-xs group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                      {t('collectionStudy.modeSpeaking')}
+                    </h4>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      {t('collectionStudy.modeSpeakingDesc')}
+                    </p>
+                  </div>
+                </div>
+                <Sparkles className="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-600 transition-colors" />
               </Link>
             </div>
           </div>
@@ -688,6 +725,33 @@ export default function CollectionDetailPage() {
             </div>
           </div>
 
+          {/* Guest Limit Notice Banner */}
+          {isGuest && items.length > 10 && (
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border border-amber-200/80 dark:border-amber-900/40 rounded-3xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-start gap-3">
+                <div className="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                  <Lock className="w-5 h-5" />
+                </div>
+                <div className="space-y-0.5">
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                    {t('collectionStudy.guestTrialNoticeTitle', { current: 10, total: items.length })}
+                  </h4>
+                  <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
+                    {t('collectionStudy.guestTrialNoticeDesc', { total: items.length })}
+                  </p>
+                </div>
+              </div>
+
+              <Link
+                to="/login"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs transition-colors shrink-0"
+              >
+                <span>{t('collectionStudy.guestLoginBtn')}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            </div>
+          )}
+
           {/* Vocabulary Card List */}
           {filteredItems.length === 0 ? (
             <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-100 dark:border-slate-800 text-center space-y-3">
@@ -712,7 +776,7 @@ export default function CollectionDetailPage() {
           ) : viewMode === 'card' ? (
             /* ================= MODE 1: THẺ LẬT & LƯỚT (1 CARD 1 TỪ) ================= */
             <CollectionFlashcardViewer
-              items={filteredItems}
+              items={isGuest && filteredItems.length > 10 ? filteredItems.slice(0, 10) : filteredItems}
               reviews={phraseStates}
               starredIds={starredIds}
               onToggleStar={toggleStar}
@@ -743,7 +807,7 @@ export default function CollectionDetailPage() {
 
               {/* Items List */}
               <div className="space-y-3">
-                {paginatedItems.map((item, index) => {
+                {(isGuest && items.length > 10 ? filteredItems.slice(0, 10) : paginatedItems).map((item, index) => {
                   const review = phraseStates[item.id] || collectionReviews[item.id];
                   const isMastered = review && ((review as any).is_mastered || review.repetitions >= 3 || review.interval_days >= 7);
                   const isLearning = review && !isMastered;
@@ -854,8 +918,32 @@ export default function CollectionDetailPage() {
                 })}
               </div>
 
+              {/* Guest Remaining Words Lock Card */}
+              {isGuest && items.length > 10 && (
+                <div className="bg-slate-50 dark:bg-slate-800/40 border border-dashed border-slate-300 dark:border-slate-700 rounded-3xl p-6 text-center space-y-3">
+                  <div className="w-10 h-10 rounded-2xl bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto">
+                    <Lock className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">
+                      {t('collectionStudy.guestRemainingWordsLocked', { count: items.length - 10 })}
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+                      {t('collectionStudy.guestTrialNoticeDesc', { total: items.length })}
+                    </p>
+                  </div>
+                  <Link
+                    to="/login"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all"
+                  >
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>{t('collectionStudy.guestUnlockAllBtn', { total: items.length })}</span>
+                  </Link>
+                </div>
+              )}
+
               {/* Pagination Controls Bottom */}
-              {totalPages > 1 && (
+              {!isGuest && totalPages > 1 && (
                 <div className="bg-white dark:bg-slate-900 rounded-3xl p-3 sm:p-4 border border-slate-100 dark:border-slate-800 shadow-card flex flex-wrap items-center justify-between gap-3 pt-3">
                   {/* Previous Button */}
                   <button

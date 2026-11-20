@@ -29,24 +29,53 @@ interface LessonStepperProps {
   lessonContent: DailyLessonContent;
 }
 
+const steps = [
+  { key: 'warmup', label: 'Warm-up', icon: Flame },
+  { key: 'vocabulary', label: 'Vocabulary', icon: BookOpen },
+  { key: 'grammar', label: 'Grammar', icon: Puzzle },
+  { key: 'expressions', label: 'Expressions', icon: MessageCircle },
+  { key: 'listening', label: 'Listening', icon: Headphones },
+  { key: 'speaking', label: 'Speaking', icon: Mic },
+  { key: 'practice', label: 'Practice', icon: Trophy },
+];
+
 export function LessonStepper({ lessonContent }: LessonStepperProps) {
-  const [currentStep, setCurrentStep] = useState(0);
+  const { lessonProgress, recordLessonProgress } = useLearningStore();
+  const savedProgress = lessonProgress[lessonContent.lesson.id];
+
+  // Khôi phục lại đúng bước học đang dang dở của bài học nếu trước đó đã học (vd: đang học Grammar bước 2)
+  const [currentStep, setCurrentStep] = useState<number>(() => {
+    if (savedProgress && !savedProgress.completed && typeof savedProgress.currentStep === 'number') {
+      return Math.min(Math.max(0, savedProgress.currentStep), steps.length - 1);
+    }
+    return 0;
+  });
+
   const [completed, setCompleted] = useState(false);
   const [practiceScore, setPracticeScore] = useState(0);
   const [totalQuestions, setTotalQuestions] = useState(lessonContent.practice.length);
+  const [answeredQuestions, setAnsweredQuestions] = useState(0);
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { recordLessonProgress } = useLearningStore();
 
-  const steps = [
-    { key: 'warmup', label: 'Warm-up', icon: Flame },
-    { key: 'vocabulary', label: 'Vocabulary', icon: BookOpen },
-    { key: 'grammar', label: 'Grammar', icon: Puzzle },
-    { key: 'expressions', label: 'Expressions', icon: MessageCircle },
-    { key: 'listening', label: 'Listening', icon: Headphones },
-    { key: 'speaking', label: 'Speaking', icon: Mic },
-    { key: 'practice', label: 'Practice', icon: Trophy },
-  ];
+  const isPracticeFinished = totalQuestions > 0 ? answeredQuestions >= totalQuestions : true;
+
+  // Đồng bộ lại khi lessonId thay đổi
+  React.useEffect(() => {
+    const saved = lessonProgress[lessonContent.lesson.id];
+    if (saved && !saved.completed && typeof saved.currentStep === 'number') {
+      setCurrentStep(Math.min(Math.max(0, saved.currentStep), steps.length - 1));
+    }
+  }, [lessonContent.lesson.id]);
+
+  const goToStep = (stepIdx: number) => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setCurrentStep(stepIdx);
+    recordLessonProgress(lessonContent.lesson.id, {
+      currentStep: stepIdx,
+      completed: false,
+    });
+  };
 
   const handleNext = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -56,23 +85,37 @@ export function LessonStepper({ lessonContent }: LessonStepperProps) {
       setCurrentStep(next);
       recordLessonProgress(lessonContent.lesson.id, {
         currentStep: next,
+        completed: false,
       });
     } else {
-      // Completed the 7th step (Practice)
       setCompleted(true);
-      recordLessonProgress(lessonContent.lesson.id, {
-        currentStep: 6,
-        completed: true,
-        quizScore: practiceScore,
-        totalQuestions,
-      });
+      recordLessonProgress(
+        lessonContent.lesson.id,
+        {
+          currentStep: 6,
+          completed: true,
+          quizScore: practiceScore,
+          totalQuestions,
+        },
+        {
+          collectionId: lessonContent.lesson.collection_id || lessonContent.lesson.deck_id,
+          sprintDay: lessonContent.lesson.sprint_day || 1,
+          wordIds: lessonContent.vocabulary.map((v) => v.id),
+          dateStr: new Date().toISOString().split('T')[0],
+        }
+      );
     }
   };
 
   const handlePrev = () => {
     if (currentStep > 0) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      setCurrentStep((prev) => prev - 1);
+      const prev = currentStep - 1;
+      setCurrentStep(prev);
+      recordLessonProgress(lessonContent.lesson.id, {
+        currentStep: prev,
+        completed: false,
+      });
     }
   };
 
@@ -80,6 +123,10 @@ export function LessonStepper({ lessonContent }: LessonStepperProps) {
     setCurrentStep(0);
     setCompleted(false);
     setPracticeScore(0);
+    recordLessonProgress(lessonContent.lesson.id, {
+      currentStep: 0,
+      completed: false,
+    });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -137,10 +184,7 @@ export function LessonStepper({ lessonContent }: LessonStepperProps) {
             return (
               <button
                 key={st.key}
-                onClick={() => {
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                  setCurrentStep(idx);
-                }}
+                onClick={() => goToStep(idx)}
                 className={cn(
                   'flex items-center justify-center gap-1 sm:gap-1.5 px-2.5 py-2 sm:px-3 sm:py-1.5 rounded-xl text-xs font-semibold transition-all shrink-0 cursor-pointer min-w-[36px] sm:min-w-0',
                   isCurrent
@@ -186,9 +230,10 @@ export function LessonStepper({ lessonContent }: LessonStepperProps) {
         {currentStep === 6 && (
           <PracticeStep
             practice={lessonContent.practice}
-            onScoreUpdate={(score, total) => {
+            onScoreUpdate={(score, total, answeredCount) => {
               setPracticeScore(score);
               setTotalQuestions(total);
+              setAnsweredQuestions(answeredCount);
             }}
           />
         )}
@@ -205,17 +250,28 @@ export function LessonStepper({ lessonContent }: LessonStepperProps) {
           <span>{t('dailyLesson.previous')}</span>
         </button>
 
-        <button
-          onClick={handleNext}
-          className="flex-1 sm:flex-none justify-center px-5 py-2.5 sm:px-7 sm:py-3 rounded-xl sm:rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs flex items-center gap-1.5 sm:gap-2 transition-all shadow-md shadow-blue-500/25 cursor-pointer"
-        >
-          <span>
-            {currentStep === steps.length - 1
-              ? t('dailyLesson.practiceStep') + ' →'
-              : t('dailyLesson.continue')}
-          </span>
-          <ArrowRight className="w-4 h-4" />
-        </button>
+        {currentStep === steps.length - 1 ? (
+          <button
+            onClick={handleNext}
+            className="flex-1 sm:flex-none justify-center px-5 py-2.5 sm:px-7 sm:py-3 rounded-xl sm:rounded-2xl font-bold text-xs flex items-center gap-1.5 sm:gap-2 transition-all shadow-md bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white shadow-emerald-500/25 cursor-pointer"
+          >
+            <Check className="w-4 h-4 stroke-[3]" />
+            <span>{t('dailyLesson.finishLesson')}</span>
+            {answeredQuestions > 0 && (
+              <span className="text-[11px] opacity-85 font-normal">
+                ({answeredQuestions}/{totalQuestions})
+              </span>
+            )}
+          </button>
+        ) : (
+          <button
+            onClick={handleNext}
+            className="flex-1 sm:flex-none justify-center px-5 py-2.5 sm:px-7 sm:py-3 rounded-xl sm:rounded-2xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-bold text-xs flex items-center gap-1.5 sm:gap-2 transition-all shadow-md shadow-blue-500/25 cursor-pointer"
+          >
+            <span>{t('dailyLesson.continue')}</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        )}
       </div>
     </div>
   );

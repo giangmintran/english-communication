@@ -3,6 +3,7 @@ import { supabase } from '../config/supabase';
 import { authenticateUser, AuthRequest } from '../middlewares/auth';
 import { sendSuccess, sendError } from '../utils/response';
 import { noCache } from '../middlewares/cache';
+import { sanitizePostgrestParam } from '../utils/sanitize';
 
 const router = Router();
 
@@ -15,20 +16,33 @@ router.get('/', authenticateUser, async (req: Request, res: Response) => {
   const userId = authReq.user.id;
   const db = authReq.supabase || supabase;
   try {
+    // Ưu tiên lấy từ collection_reviews (mô hình chuẩn mới)
+    const { data: colReviews, error: colErr } = await db
+      .from('collection_reviews')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (!colErr && colReviews) {
+      return sendSuccess(res, colReviews, 'Lấy tiến độ học thành công', 200, {
+        total: colReviews.length,
+      });
+    }
+
+    // Dự phòng bảng reviews cũ nếu chưa chạy migration
     const { data, error } = await db
       .from('reviews')
       .select('*')
       .eq('user_id', userId);
 
     if (error) {
-      return sendError(res, error.message, 500, 'PROGRESS_FETCH_ERROR');
+      return sendSuccess(res, [], 'Chưa có tiến độ học', 200, { total: 0 });
     }
 
     return sendSuccess(res, data || [], 'Lấy tiến độ học thành công', 200, {
       total: data?.length || 0,
     });
   } catch (err: any) {
-    return sendError(res, err.message, 500, 'PROGRESS_FETCH_ERROR');
+    return sendSuccess(res, [], 'Chưa có tiến độ học (fallback)', 200, { total: 0 });
   }
 });
 
@@ -37,7 +51,7 @@ router.post('/record', authenticateUser, async (req: Request, res: Response) => 
   const authReq = req as AuthRequest;
   const userId = authReq.user.id;
   const db = authReq.supabase || supabase;
-  const { itemId, repetitions, intervalDays, easeFactor, nextReviewAt, lastQuality } = req.body;
+  const { itemId, collectionId, repetitions, intervalDays, easeFactor, nextReviewAt, lastQuality } = req.body;
 
   if (!itemId) {
     return sendError(res, 'itemId is required', 400, 'BAD_REQUEST');
@@ -45,17 +59,20 @@ router.post('/record', authenticateUser, async (req: Request, res: Response) => 
 
   try {
     const now = new Date().toISOString();
-    const { data: existing } = await db
-      .from('reviews')
+    const colId = collectionId || 'col-default';
+    const cleanItemId = sanitizePostgrestParam(itemId);
+
+    // 1. Thử lưu vào collection_reviews
+    const { data: existingCol } = await db
+      .from('collection_reviews')
       .select('id')
       .eq('user_id', userId)
-      .eq('item_id', itemId)
+      .or(`item_id.eq.${cleanItemId},phrase_id.eq.${cleanItemId}`)
       .maybeSingle();
 
-    let result;
-    if (existing?.id) {
-      result = await db
-        .from('reviews')
+    if (existingCol?.id) {
+      await db
+        .from('collection_reviews')
         .update({
           repetitions,
           interval_days: intervalDays,
@@ -63,39 +80,36 @@ router.post('/record', authenticateUser, async (req: Request, res: Response) => 
           next_review_at: nextReviewAt,
           last_reviewed_at: now,
           last_quality: lastQuality,
+          updated_at: now,
         })
-        .eq('id', existing.id)
-        .select();
+        .eq('id', existingCol.id);
     } else {
-      result = await db
-        .from('reviews')
-        .insert({
-          user_id: userId,
-          item_id: itemId,
-          repetitions,
-          interval_days: intervalDays,
-          ease_factor: easeFactor,
-          next_review_at: nextReviewAt,
-          last_reviewed_at: now,
-          last_quality: lastQuality,
-        })
-        .select();
-    }
-
-    if (result.error) {
-      return sendError(res, result.error.message, 500, 'PROGRESS_UPDATE_ERROR');
+      await db.from('collection_reviews').insert({
+        user_id: userId,
+        collection_id: colId,
+        item_id: itemId,
+        phrase_id: itemId,
+        repetitions,
+        interval_days: intervalDays,
+        ease_factor: easeFactor,
+        next_review_at: nextReviewAt,
+        last_reviewed_at: now,
+        last_quality: lastQuality,
+      });
     }
 
     // Update last_active_date in profiles
-    await db
-      .from('profiles')
-      .update({
-        last_active_date: now,
-        updated_at: now,
-      })
-      .eq('id', userId);
+    try {
+      await db
+        .from('profiles')
+        .update({
+          last_active_date: now,
+          updated_at: now,
+        })
+        .eq('id', userId);
+    } catch (_) {}
 
-    return sendSuccess(res, result.data, 'Lưu kết quả ôn tập thành công');
+    return sendSuccess(res, { itemId, repetitions, intervalDays }, 'Lưu kết quả ôn tập thành công');
   } catch (err: any) {
     return sendError(res, err.message, 500, 'PROGRESS_UPDATE_ERROR');
   }
@@ -209,11 +223,12 @@ async function batchUpdateWordReviews(db: any, userId: string, results: Record<s
   for (const [wordId, stat] of Object.entries(wordStats)) {
     const grade = stat.correct === stat.total ? 3 : stat.correct > 0 ? 2 : 0;
     try {
+      const cleanWordId = sanitizePostgrestParam(wordId);
       const { data: existing } = await db
-        .from('reviews')
+        .from('collection_reviews')
         .select('id, repetitions, interval_days, ease_factor')
         .eq('user_id', userId)
-        .eq('item_id', wordId)
+        .or(`item_id.eq.${cleanWordId},phrase_id.eq.${cleanWordId}`)
         .maybeSingle();
 
       const currentReps = existing?.repetitions || 0;
@@ -226,19 +241,22 @@ async function batchUpdateWordReviews(db: any, userId: string, results: Record<s
 
       const payload = {
         user_id: userId,
+        collection_id: 'col-daily',
         item_id: wordId,
+        phrase_id: wordId,
         repetitions: newReps,
         interval_days: newInterval,
         ease_factor: newEase,
         next_review_at: new Date(Date.now() + newInterval * 86400000).toISOString(),
         last_reviewed_at: now,
         last_quality: grade,
+        updated_at: now,
       };
 
       if (existing?.id) {
-        await db.from('reviews').update(payload).eq('id', existing.id);
+        await db.from('collection_reviews').update(payload).eq('id', existing.id);
       } else {
-        await db.from('reviews').insert(payload);
+        await db.from('collection_reviews').insert(payload);
       }
     } catch (_) {}
   }
@@ -366,6 +384,105 @@ router.delete('/daily-review', authenticateUser, async (req: Request, res: Respo
     return sendSuccess(res, null, 'Đặt lại tiến trình ôn tập thành công');
   } catch (err: any) {
     return sendError(res, err.message, 500, 'RESET_DAILY_REVIEW_ERROR');
+  }
+});
+
+// POST /api/progress/daily-lesson - Lưu kết quả hoàn thành bài học Daily Lesson 7 bước
+router.post('/daily-lesson', authenticateUser, async (req: Request, res: Response) => {
+  const authReq = req as AuthRequest;
+  const db = authReq.supabase || supabase;
+  const userId = authReq.user.id;
+  const { date, lessonId, collectionId, sprintDay, wordIds, score, totalQuestions, completed } = req.body;
+
+  const reviewDate = date || new Date().toISOString().split('T')[0];
+  const now = new Date().toISOString();
+
+  try {
+    const { data: existing } = await db
+      .from('daily_reviews')
+      .select('id, results')
+      .eq('user_id', userId)
+      .eq('review_date', reviewDate)
+      .maybeSingle();
+
+    const lessonResults = {
+      ...(existing?.results || {}),
+      daily_lesson: {
+        lessonId,
+        collectionId: collectionId || 'col-restaurant',
+        sprintDay: sprintDay || 1,
+        wordIds: wordIds || [],
+        score: score || 0,
+        totalQuestions: totalQuestions || 8,
+        completed: completed !== false,
+        completedAt: now,
+      },
+    };
+
+    const payload = {
+      user_id: userId,
+      review_date: reviewDate,
+      deck_id: collectionId || 'daily',
+      word_ids: wordIds || [],
+      is_completed: true,
+      correct_count: score || 0,
+      total_questions: totalQuestions || 8,
+      results: lessonResults,
+      updated_at: now,
+    };
+
+    if (existing?.id) {
+      await db.from('daily_reviews').update(payload).eq('id', existing.id);
+    } else {
+      await db.from('daily_reviews').insert(payload);
+    }
+
+    // Cập nhật streak & last_active_date trong profiles
+    try {
+      await db.from('profiles').update({
+        last_active_date: now,
+        updated_at: now,
+      }).eq('id', userId);
+    } catch (_) {}
+
+    return sendSuccess(res, { reviewDate, lessonId, completed: true }, 'Lưu kết quả bài học thành công');
+  } catch (err: any) {
+    return sendError(res, err.message, 500, 'SAVE_DAILY_LESSON_ERROR');
+  }
+});
+
+// GET /api/progress/history - Lấy danh sách lịch sử các ngày đã học
+router.get('/history', authenticateUser, async (req: Request, res: Response) => {
+  const authReq = req as AuthRequest;
+  const db = authReq.supabase || supabase;
+  const userId = authReq.user.id;
+
+  try {
+    const { data, error } = await db
+      .from('daily_reviews')
+      .select('*')
+      .eq('user_id', userId)
+      .order('review_date', { ascending: false })
+      .limit(60);
+
+    if (error) {
+      return sendSuccess(res, [], 'Chưa có lịch sử học');
+    }
+
+    const formatted = (data || []).map((row: any) => ({
+      date: row.review_date,
+      isCompleted: Boolean(row.is_completed),
+      score: row.correct_count,
+      totalQuestions: row.total_questions,
+      collectionId: row.deck_id,
+      wordIds: row.word_ids || [],
+      lessonInfo: row.results?.daily_lesson || null,
+      completedAt: row.updated_at,
+    }));
+
+    return sendSuccess(res, formatted, 'Lấy lịch sử học thành công');
+  } catch (err: any) {
+    return sendSuccess(res, [], 'Chưa có lịch sử học');
   }
 });
 
