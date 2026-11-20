@@ -1,6 +1,12 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import WebSocket from 'ws';
 import dotenv from 'dotenv';
 import path from 'path';
+
+// Polyfill native WebSocket cho môi trường Node.js < 22 (trên Render hoặc container)
+if (typeof (globalThis as any).WebSocket === 'undefined') {
+  (globalThis as any).WebSocket = WebSocket;
+}
 
 // Nạp file .env từ cả thư mục hiện tại lẫn thư mục server
 dotenv.config();
@@ -14,7 +20,11 @@ if (!supabaseUrl || !supabaseKey) {
   console.warn('⚠️ Cảnh báo: SUPABASE_URL hoặc SUPABASE_KEY chưa được cấu hình đầy đủ trong server/.env');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+export const supabase = createClient(supabaseUrl, supabaseKey, {
+  realtime: {
+    transport: WebSocket as any,
+  },
+});
 
 /**
  * Trả về Supabase client có quyền truy cập phù hợp.
@@ -32,6 +42,9 @@ export function getScopedSupabaseClient(token?: string): SupabaseClient {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
+      },
+      realtime: {
+        transport: WebSocket as any,
       },
       global: {
         headers: {
