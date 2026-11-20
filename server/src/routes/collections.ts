@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { supabase } from '../config/supabase';
 import { sendSuccess, sendError } from '../utils/response';
 import { edgeCache } from '../middlewares/cache';
+import { sanitizePostgrestParam } from '../utils/sanitize';
 
 const router = Router();
 
@@ -130,7 +131,9 @@ router.get('/:id', edgeCache(300), async (req: Request, res: Response) => {
     if (isUuid) {
       query = query.eq('id', id);
     } else {
-      query = query.or(`id.eq.${id},slug.eq.${id},slug.eq.${targetSlug}`);
+      const cleanId = sanitizePostgrestParam(id);
+      const cleanSlug = sanitizePostgrestParam(targetSlug);
+      query = query.or(`id.eq.${cleanId},slug.eq.${cleanId},slug.eq.${cleanSlug}`);
     }
 
     const { data, error } = await query.maybeSingle();

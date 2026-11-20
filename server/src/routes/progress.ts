@@ -3,6 +3,7 @@ import { supabase } from '../config/supabase';
 import { authenticateUser, AuthRequest } from '../middlewares/auth';
 import { sendSuccess, sendError } from '../utils/response';
 import { noCache } from '../middlewares/cache';
+import { sanitizePostgrestParam } from '../utils/sanitize';
 
 const router = Router();
 
@@ -59,13 +60,14 @@ router.post('/record', authenticateUser, async (req: Request, res: Response) => 
   try {
     const now = new Date().toISOString();
     const colId = collectionId || 'col-default';
+    const cleanItemId = sanitizePostgrestParam(itemId);
 
     // 1. Thử lưu vào collection_reviews
     const { data: existingCol } = await db
       .from('collection_reviews')
       .select('id')
       .eq('user_id', userId)
-      .or(`item_id.eq.${itemId},phrase_id.eq.${itemId}`)
+      .or(`item_id.eq.${cleanItemId},phrase_id.eq.${cleanItemId}`)
       .maybeSingle();
 
     if (existingCol?.id) {
@@ -221,11 +223,12 @@ async function batchUpdateWordReviews(db: any, userId: string, results: Record<s
   for (const [wordId, stat] of Object.entries(wordStats)) {
     const grade = stat.correct === stat.total ? 3 : stat.correct > 0 ? 2 : 0;
     try {
+      const cleanWordId = sanitizePostgrestParam(wordId);
       const { data: existing } = await db
         .from('collection_reviews')
         .select('id, repetitions, interval_days, ease_factor')
         .eq('user_id', userId)
-        .or(`item_id.eq.${wordId},phrase_id.eq.${wordId}`)
+        .or(`item_id.eq.${cleanWordId},phrase_id.eq.${cleanWordId}`)
         .maybeSingle();
 
       const currentReps = existing?.repetitions || 0;

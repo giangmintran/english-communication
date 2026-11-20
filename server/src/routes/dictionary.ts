@@ -3,6 +3,7 @@ import { supabase } from '../config/supabase';
 import { sampleLearningItems } from '../data/mockData';
 import { sendSuccess, sendError } from '../utils/response';
 import { edgeCache } from '../middlewares/cache';
+import { sanitizePostgrestParam } from '../utils/sanitize';
 import { DictionaryItem } from '../types/database';
 
 const router = Router();
@@ -26,9 +27,10 @@ router.get('/', edgeCache(180), async (req: Request, res: Response) => {
       .select('id, english_text, phonetic_ipa, vietnamese_meaning, example_sentence, type')
       .not('english_text', 'is', null);
 
-    if (q) {
-      // Tìm kiếm theo từ tiếng Anh hoặc nghĩa tiếng Việt
-      query = query.or(`english_text.ilike.%${q}%,vietnamese_meaning.ilike.%${q}%`);
+    const cleanQ = sanitizePostgrestParam(q);
+    if (cleanQ) {
+      // Tìm kiếm theo từ tiếng Anh hoặc nghĩa tiếng Việt (đã làm sạch tham số)
+      query = query.or(`english_text.ilike.%${cleanQ}%,vietnamese_meaning.ilike.%${cleanQ}%`);
     }
 
     const { data, error } = await query.limit(limit);

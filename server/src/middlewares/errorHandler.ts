@@ -10,8 +10,11 @@ export function errorHandler(
   console.error('Unhandled Server Error:', err);
 
   const statusCode = err.statusCode || err.status || 500;
-  const message = err.message || 'Internal Server Error';
+  const isProd = process.env.NODE_ENV === 'production';
+  const message = isProd && statusCode === 500
+    ? 'Đã xảy ra lỗi máy chủ nội bộ'
+    : (err.message || 'Internal Server Error');
   const code = err.code || 'INTERNAL_SERVER_ERROR';
 
-  return sendError(res, message, statusCode, code, err.details);
+  return sendError(res, message, statusCode, code, isProd ? undefined : err.details);
 }
