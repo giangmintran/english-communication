@@ -8,9 +8,21 @@ import { AuthPromptModal } from '@/components/auth/AuthPromptModal';
 
 export function TodaysGoalCard() {
   const { user } = useAuth();
-  const { todayLearned, todayGoal, getTodayReviewProgress, setTodayLearned } = useLearningStore();
+  const {
+    todayLearned,
+    lastLearnedDate,
+    todayGoal,
+    getTodayReviewProgress,
+    setTodayLearned,
+    checkAndResetNewDay,
+  } = useLearningStore();
   const { t } = useTranslation();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Tự động kiểm tra sang ngày mới
+  React.useEffect(() => {
+    checkAndResetNewDay();
+  }, [checkAndResetNewDay]);
 
   // Đối với khách chưa đăng nhập: giới hạn mục tiêu dùng thử là 5 từ
   const effectiveGoal = !user ? 5 : todayGoal;
@@ -33,8 +45,11 @@ export function TodaysGoalCard() {
         return Math.min(effectiveGoal, reviewProgress.wordIds.length);
       }
     }
-    return Math.min(effectiveGoal, Math.max(0, todayLearned));
-  }, [reviewProgress, todayLearned, effectiveGoal]);
+    if (lastLearnedDate === todayStr) {
+      return Math.min(effectiveGoal, Math.max(0, todayLearned));
+    }
+    return 0;
+  }, [reviewProgress, lastLearnedDate, todayStr, todayLearned, effectiveGoal]);
 
   // Tự động đồng bộ lại todayLearned trong store nếu giá trị cache bị lệch
   React.useEffect(() => {
@@ -60,7 +75,7 @@ export function TodaysGoalCard() {
   } else if (isReviewActive && reviewProgress) {
     buttonLabel = `${t('home.continueReview')} (${reviewProgress.answeredCount}/${reviewProgress.totalQuestions})`;
   } else if (isGoalReached) {
-    buttonLabel = !user ? 'Đăng nhập mở khóa thêm' : t('home.reviewToday');
+    buttonLabel = !user ? t('home.loginToUnlockMore') : t('home.reviewToday');
   } else {
     buttonLabel = `${t('home.continueLearning')} (${currentLearned}/${effectiveGoal})`;
   }
@@ -84,7 +99,7 @@ export function TodaysGoalCard() {
             {!user && (
               <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-[10px] font-bold flex items-center gap-1">
                 <Lock className="w-3 h-3" />
-                <span>Dùng thử (5 từ)</span>
+                <span>{t('home.guestTrialBadge')}</span>
               </span>
             )}
           </div>

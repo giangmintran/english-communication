@@ -1,0 +1,403 @@
+{
+  "lesson": {
+    "id": "lesson-shopping-01",
+    "deck_id": "deck-shopping",
+    "title": "Finding Sizes, Trying On & Asking for Discounts",
+    "description": "Hỏi kích cỡ quần áo, tìm phòng thử đồ, hỏi chương trình khuyến mãi và đổi trả hàng.",
+    "topic": "Retail Shopping & Fitting",
+    "level": "A2",
+    "estimated_minutes": 30,
+    "order_index": 1,
+    "image_url": "https://images.unsplash.com/photo-1472851294608-062f824d29cc?auto=format&fit=crop&w=800&q=80"
+  },
+  "warmup": {
+    "situation": "Bạn đang đi mua sắm tại một cửa hàng thời trang khi du lịch nước ngoài. Bạn tìm thấy một chiếc áo khoác rất đẹp nhưng cần size nhỏ hơn hoặc màu khác. Bạn muốn thử đồ trong phòng thay đồ và hỏi nhân viên về chương trình giảm giá.",
+    "objective": "Sau bài học, bạn có thể tự tin hỏi nhân viên bán hàng về kích cỡ (size), yêu cầu thử đồ tại phòng thử đồ (fitting room), hỏi về giảm giá và chính sách hoàn tiền / đổi trả.",
+    "warm_up_question": "When shopping abroad, how do you ask the sales assistant if they have a piece of clothing in your size?",
+    "key_phrases": [
+      "Do you have this in medium?",
+      "Where are the fitting rooms?",
+      "Could I try this on?",
+      "Is there any discount on this item?"
+    ],
+    "image_url": "https://images.unsplash.com/photo-1472851294608-062f824d29cc?auto=format&fit=crop&w=800&q=80"
+  },
+  "vocabulary": [
+    {
+      "id": "sv1-1",
+      "word": "fitting room",
+      "phonetic_ipa": "/ˈfɪt̬.ɪŋ ˌruːm/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "phòng thử đồ, phòng thay đồ",
+      "collocations": ["head to the fitting room", "in the fitting room", "fitting room assistant"],
+      "example_sentence": "Excuse me, where are the fitting rooms located?",
+      "example_meaning": "Xin lỗi cho tôi hỏi phòng thử đồ nằm ở đâu ạ?"
+    },
+    {
+      "id": "sv1-2",
+      "word": "try on",
+      "phonetic_ipa": "/traɪ ɑːn/",
+      "part_of_speech": "phrasal verb",
+      "vietnamese_meaning": "mặc thử (quần áo, giày dép)",
+      "collocations": ["try on a jacket", "try on shoes", "try this on"],
+      "example_sentence": "Can I try this denim jacket on before deciding?",
+      "example_meaning": "Tôi có thể mặc thử chiếc áo khoác bò này trước khi quyết định không?"
+    },
+    {
+      "id": "sv1-3",
+      "word": "in stock",
+      "phonetic_ipa": "/ɪn stɑːk/",
+      "part_of_speech": "idiom",
+      "vietnamese_meaning": "còn hàng trong kho/cửa hàng",
+      "collocations": ["have in stock", "currently in stock", "keep in stock"],
+      "example_sentence": "Let me check our storage room to see if we have size 38 in stock.",
+      "example_meaning": "Để tôi kiểm tra kho xem chúng tôi còn size 38 trong kho không nhé."
+    },
+    {
+      "id": "sv1-4",
+      "word": "out of stock",
+      "phonetic_ipa": "/ˌaʊt əv ˈstɑːk/",
+      "part_of_speech": "idiom",
+      "vietnamese_meaning": "hết hàng, tạm thời không còn",
+      "collocations": ["completely out of stock", "run out of stock"],
+      "example_sentence": "I'm sorry, that white shirt is completely out of stock in large.",
+      "example_meaning": "Rất tiếc, chiếc áo sơ mi trắng đó đã hoàn toàn hết hàng size L rồi ạ."
+    },
+    {
+      "id": "sv1-5",
+      "word": "tight / loose",
+      "phonetic_ipa": "/taɪt/ - /luːs/",
+      "part_of_speech": "adjectives",
+      "vietnamese_meaning": "chật / rộng",
+      "collocations": ["a bit too tight", "comfortably loose", "loose fitting"],
+      "example_sentence": "These jeans are a bit too tight around the waist; do you have one size up?",
+      "example_meaning": "Chiếc quần bò này hơi chật ở phần eo; bạn có size lớn hơn một cỡ không?"
+    },
+    {
+      "id": "sv1-6",
+      "word": "discount",
+      "phonetic_ipa": "/ˈdɪs.kaʊnt/",
+      "part_of_speech": "noun / verb",
+      "vietnamese_meaning": "khoản giảm giá, chiết khấu",
+      "collocations": ["offer a discount", "twenty percent discount", "ask for a discount"],
+      "example_sentence": "Is there any special discount if I purchase two pairs of trousers?",
+      "example_meaning": "Có được giảm giá đặc biệt gì không nếu tôi mua 2 chiếc quần tây?"
+    },
+    {
+      "id": "sv1-7",
+      "word": "receipt",
+      "phonetic_ipa": "/rɪˈsiːt/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "biên lai, hóa đơn mua hàng",
+      "collocations": ["keep the receipt", "show your receipt", "printed receipt"],
+      "example_sentence": "Please keep your receipt in case you want to exchange the product within 14 days.",
+      "example_meaning": "Xin vui lòng giữ lại biên lai phòng trường hợp bạn muốn đổi hàng trong vòng 14 ngày."
+    },
+    {
+      "id": "sv1-8",
+      "word": "refund",
+      "phonetic_ipa": "/ˈriː.fʌnd/",
+      "part_of_speech": "noun / verb",
+      "vietnamese_meaning": "tiền hoàn lại / hoàn tiền",
+      "collocations": ["full refund", "issue a refund", "ask for a refund"],
+      "example_sentence": "If the size doesn't fit, can I bring it back for a full refund?",
+      "example_meaning": "Nếu size không vừa, tôi có thể mang lại để được hoàn tiền 100% không?"
+    },
+    {
+      "id": "sv1-9",
+      "word": "cashier",
+      "phonetic_ipa": "/kæˈʃɪr/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "nhân viên thu ngân, quầy tính tiền",
+      "collocations": ["pay at the cashier", "cashier counter", "friendly cashier"],
+      "example_sentence": "You can pay for your items at the central cashier near the exit.",
+      "example_meaning": "Bạn có thể thanh toán các món đồ tại quầy thu ngân trung tâm gần lối ra."
+    },
+    {
+      "id": "sv1-10",
+      "word": "exchange",
+      "phonetic_ipa": "/ɪksˈtʃeɪndʒ/",
+      "part_of_speech": "verb / noun",
+      "vietnamese_meaning": "đổi hàng sang mẫu hoặc kích cỡ khác",
+      "collocations": ["exchange for a different size", "exchange policy", "make an exchange"],
+      "example_sentence": "Can I exchange this sweater for a larger size if it does not fit?",
+      "example_meaning": "Tôi có thể đổi chiếc áo len này lấy size lớn hơn nếu không vừa không?"
+    }
+  ],
+  "grammar": {
+    "title": "Comparatives for Sizing (A bit too + Adj / One size up or down)",
+    "explanation": "Khi thử đồ, chúng ta thường cần so sánh kích cỡ: 'a bit too tight' (hơi chật), 'a bit too loose' (hơi rộng) và yêu cầu kích cỡ khác bằng cấu trúc 'one size up' (lớn hơn 1 size) hoặc 'one size down' (nhỏ hơn 1 size).",
+    "formula": "It is a bit too [tight / loose / small / large] | Do you have this in [a smaller size / one size up]?",
+    "examples": [
+      {
+        "english": "This jacket is a bit too tight around the shoulders.",
+        "vietnamese": "Chiếc áo khoác này hơi chật ở phần vai.",
+        "highlight": "a bit too tight"
+      },
+      {
+        "english": "Do you have this exact design in one size up?",
+        "vietnamese": "Bạn có mẫu y hệt này nhưng lớn hơn một cỡ không?",
+        "highlight": "in one size up"
+      },
+      {
+        "english": "Could I try this in a darker color?",
+        "vietnamese": "Tôi có thể thử mẫu này với màu sẫm hơn không?",
+        "highlight": "in a darker color"
+      }
+    ],
+    "common_mistakes": [
+      {
+        "wrong": "Have bigger size? (Câu cụt thiếu chủ vị)",
+        "correct": "Do you have this in a larger size? / Do you have one size up?",
+        "explanation": "Dùng 'Do you have this in a larger size?' để câu hỏi tự nhiên và lịch sự."
+      },
+      {
+        "wrong": "Where is room to wear clothes?",
+        "correct": "Where are the fitting rooms? / Could you show me the changing room?",
+        "explanation": "Thuật ngữ chuẩn trong tiếng Anh cho phòng thử đồ là 'fitting room' hoặc 'changing room'."
+      }
+    ]
+  },
+  "expressions": [
+    {
+      "id": "se1-1",
+      "expression": "Excuse me, do you have this shirt in a size medium?",
+      "phonetic_ipa": "/ɪkˈskjuːz miː, duː juː hæv ðɪs ʃɜːrt ɪn ə saɪz ˈmiːdiəm/",
+      "meaning": "Xin lỗi, bạn có chiếc áo sơ mi này size M không?",
+      "context": "Hỏi nhân viên khi bạn tìm thấy mẫu ưng ý trên giá treo.",
+      "formality": "polite",
+      "variations": [
+        "Do you have this in small?",
+        "Does this sweater come in size large?",
+        "Could you check if you have size 8 in the back?"
+      ]
+    },
+    {
+      "id": "se1-2",
+      "expression": "Could I try this on? Where are the fitting rooms located?",
+      "phonetic_ipa": "/kʊd aɪ traɪ ðɪs ɑːn, weər ɑːr ðə ˈfɪtɪŋ ruːmz loʊˈkeɪtɪd/",
+      "meaning": "Tôi có thể mặc thử món này không? Phòng thử đồ nằm ở đâu vậy ạ?",
+      "context": "Hỏi đường đến phòng thử đồ sau khi chọn được đồ.",
+      "formality": "polite",
+      "variations": [
+        "Where can I try this on?",
+        "Are the fitting rooms open right now?",
+        "Is there a mirror over here?"
+      ]
+    },
+    {
+      "id": "se1-3",
+      "expression": "It is a bit too tight for me. Do you have one size up?",
+      "phonetic_ipa": "/ɪt ɪz ə bɪt tuː taɪt fɔːr miː. duː juː hæv wʌn saɪz ʌp/",
+      "meaning": "Nó hơi chật đối với tôi. Bạn có cỡ lớn hơn một size không?",
+      "context": "Nói với nhân viên sau khi bước ra từ phòng thử đồ.",
+      "formality": "polite",
+      "variations": [
+        "This is too loose, could I try one size down?",
+        "Do you have a smaller size in stock?",
+        "The fit is a bit awkward around the waist."
+      ]
+    },
+    {
+      "id": "se1-4",
+      "expression": "Is this item on sale, or does it qualify for any discount?",
+      "phonetic_ipa": "/ɪz ðɪs ˈaɪtəm ɑːn seɪl, ɔːr dʌz ɪt ˈkwɑːlɪfaɪ fɔːr ˈeni ˈdɪskaʊnt/",
+      "meaning": "Món này có đang giảm giá hoặc áp dụng khuyến mãi gì không?",
+      "context": "Hỏi nhân viên thu ngân hoặc bán hàng trước khi trả tiền.",
+      "formality": "polite",
+      "variations": [
+        "Are there any promotions running right now?",
+        "What is the final price after discount?",
+        "Can I get a tax refund receipt as a tourist?"
+      ]
+    }
+  ],
+  "listening": [
+    {
+      "id": "sl1-1",
+      "title": "Shopping for a Winter Coat",
+      "dialogue": [
+        {
+          "speaker": "Sales Associate",
+          "text": "Hello there! Looking for anything in particular today?",
+          "vietnamese": "Xin chào quý khách! Hôm nay bạn đang tìm món đồ đặc biệt nào không?"
+        },
+        {
+          "speaker": "Customer",
+          "text": "Hi! Yes, I really like this navy blue winter coat, but this one is a size small. Do you have it in a medium?",
+          "vietnamese": "Chào bạn! Vâng, tôi rất thích chiếc áo khoác đông màu xanh đen này, nhưng chiếc này là size S. Bạn có size M không?"
+        },
+        {
+          "speaker": "Sales Associate",
+          "text": "Let me scan the barcode on my tablet... Yes! We have one medium left in our stock room. I'll grab it for you right now.",
+          "vietnamese": "Để tôi quét mã vạch trên máy tính bảng nhé... Có đấy ạ! Chúng tôi còn đúng một chiếc size M trong kho. Tôi sẽ lấy ra ngay cho bạn."
+        },
+        {
+          "speaker": "Customer",
+          "text": "Awesome, thank you so much! Where are the fitting rooms so I can try it on?",
+          "vietnamese": "Tuyệt quá, cảm ơn bạn nhiều! Phòng thử đồ ở đâu để tôi mặc thử với?"
+        },
+        {
+          "speaker": "Sales Associate",
+          "text": "The fitting rooms are straight ahead, right next to the mirrors. Also, that coat is currently twenty percent off this week!",
+          "vietnamese": "Phòng thử đồ ở ngay phía trước, cạnh dãy gương lớn ạ. Ngoài ra, chiếc áo khoác đó đang được giảm giá 20% trong tuần này đấy!"
+        },
+        {
+          "speaker": "Customer",
+          "text": "That's fantastic news! I'll go try it on right away.",
+          "vietnamese": "Tin tuyệt vời quá! Tôi sẽ đi thử ngay đây."
+        }
+      ],
+      "questions": [
+        {
+          "id": "slq1-1",
+          "question": "What size was the customer looking for?",
+          "options": ["Size Small", "Size Medium", "Size Extra Large", "Size 42"],
+          "correct_answer": 1,
+          "explanation": "Khách hàng hỏi: 'Do you have it in a medium?'"
+        },
+        {
+          "id": "slq1-2",
+          "question": "Did the store have the medium size in stock?",
+          "options": ["No, totally out of stock", "Yes, one last piece in the stock room", "Only in yellow color", "Available next week"],
+          "correct_answer": 1,
+          "explanation": "Nhân viên trả lời: 'We have one medium left in our stock room'."
+        },
+        {
+          "id": "slq1-3",
+          "question": "What special promotion was running on the winter coat?",
+          "options": ["Buy one get one free", "Twenty percent off", "Free socks", "No discount"],
+          "correct_answer": 1,
+          "explanation": "Nhân viên thông báo: 'that coat is currently twenty percent off this week'."
+        }
+      ]
+    }
+  ],
+  "speaking": {
+    "situation": "Bạn đang đi mua sắm tại một cửa hàng quần áo. Hãy thực hành nói to các câu hỏi về cỡ áo, phòng thử đồ và giá cả.",
+    "sample_dialogue": [
+      {
+        "speaker": "Sales Associate",
+        "text": "Can I help you find your size?",
+        "vietnamese": "Tôi có thể giúp bạn tìm size vừa vặn không?"
+      },
+      {
+        "speaker": "You",
+        "text": "Yes, do you have this jacket in a size medium?",
+        "vietnamese": "Vâng, bạn có chiếc áo khoác này cỡ M không?"
+      },
+      {
+        "speaker": "Sales Associate",
+        "text": "Here you go! The fitting room is right behind you.",
+        "vietnamese": "Của bạn đây! Phòng thử đồ ở ngay sau lưng bạn."
+      },
+      {
+        "speaker": "You",
+        "text": "Thank you! Could you tell me if this item is on sale?",
+        "vietnamese": "Cảm ơn bạn! Cho tôi hỏi món này có đang giảm giá không?"
+      }
+    ],
+    "practice_sentences": [
+      {
+        "id": "ssp1-1",
+        "text": "Excuse me, do you have this jacket in a size medium?",
+        "phonetic_ipa": "/ɪkˈskjuːz miː, duː juː hæv ðɪs ˈdʒækɪt ɪn ə saɪz ˈmiːdiəm/",
+        "vietnamese_hint": "Xin lỗi, bạn có áo khoác này cỡ M không?"
+      },
+      {
+        "id": "ssp1-2",
+        "text": "Where are the fitting rooms? I would like to try this on.",
+        "phonetic_ipa": "/weər ɑːr ðə ˈfɪtɪŋ ruːmz, aɪ wʊd laɪk tuː traɪ ðɪs ɑːn/",
+        "vietnamese_hint": "Phòng thử đồ ở đâu vậy? Tôi muốn mặc thử món này."
+      },
+      {
+        "id": "ssp1-3",
+        "text": "It is a bit too tight. Could I try one size up, please?",
+        "phonetic_ipa": "/ɪt ɪz ə bɪt tuː taɪt, kʊd aɪ traɪ wʌn saɪz ʌp pliːz/",
+        "vietnamese_hint": "Nó hơi chật. Tôi có thể thử cỡ lớn hơn một size được không?"
+      },
+      {
+        "id": "ssp1-4",
+        "text": "What is your store's return and exchange policy?",
+        "phonetic_ipa": "/wɒt ɪz jɔːr stɔːrz rɪˈtɜːrn ænd ɪksˈtʃeɪndʒ ˈpɑːləsi/",
+        "vietnamese_hint": "Chính sách đổi trả hàng của cửa hàng mình như thế nào?"
+      }
+    ]
+  },
+  "practice": [
+    {
+      "id": "spq1-1",
+      "type": "vocabulary_quiz",
+      "question": "What is the small cubicle in a clothing store where customers can test clothes called?",
+      "options": ["Fitting room", "Checkout counter", "Warehouse", "Escalator"],
+      "correct_answer": 0,
+      "explanation": "'Fitting room' là phòng thử quần áo trong cửa hàng thời trang."
+    },
+    {
+      "id": "spq1-2",
+      "type": "vocabulary_quiz",
+      "question": "If an item of clothing is 'a bit too tight', what should you request?",
+      "options": ["One size down", "One size up", "A pair of scissors", "A smaller shoe"],
+      "correct_answer": 1,
+      "explanation": "Khi áo/quần bị chật (too tight), bạn cần tăng lên một cỡ ('one size up')."
+    },
+    {
+      "id": "spq1-3",
+      "type": "grammar_quiz",
+      "question": "Choose the correct sentence to ask about sizes:",
+      "options": [
+        "Do you have this shirt in a size medium?",
+        "Do you have this shirt on medium size?",
+        "Have medium size shirt?",
+        "Is shirt medium you have?"
+      ],
+      "correct_answer": 0,
+      "explanation": "Cấu trúc chuẩn: 'Do you have [item] in a size [size]?'"
+    },
+    {
+      "id": "spq1-4",
+      "type": "grammar_quiz",
+      "question": "Complete the sentence: 'Can I try this jacket ______ before I buy it?'",
+      "options": ["on", "in", "up", "at"],
+      "correct_answer": 0,
+      "explanation": "Cụm động từ: 'try on' (thử quần áo, giày dép lên người)."
+    },
+    {
+      "id": "spq1-5",
+      "type": "sentence_building",
+      "vietnamese": "Bạn có chiếc áo khoác này cỡ vừa (M) không?",
+      "scrambled_words": ["this jacket", "in a size medium?", "have", "Do you"],
+      "correct_order": ["Do you", "have", "this jacket", "in a size medium?"],
+      "hint": "Bắt đầu với 'Do you have...'"
+    },
+    {
+      "id": "spq1-6",
+      "type": "sentence_building",
+      "vietnamese": "Phòng thử đồ ở đâu để tôi có thể mặc thử?",
+      "scrambled_words": ["I can", "try this on?", "Where are", "the fitting rooms", "so"],
+      "correct_order": ["Where are", "the fitting rooms", "so", "I can", "try this on?"],
+      "hint": "Cụm 'Where are the fitting rooms so I can try this on?'"
+    },
+    {
+      "id": "spq1-7",
+      "type": "translation",
+      "source_text": "Chiếc áo này hơi bị chật, bạn có size lớn hơn không?",
+      "source_lang": "vi",
+      "correct_answer": "This shirt is a bit too tight, do you have a larger size?",
+      "accept_answers": [
+        "This shirt is a bit too tight do you have a larger size",
+        "It is a bit too tight, do you have one size up?",
+        "This is a bit too tight, do you have a bigger size?",
+        "It's a bit too tight, do you have a larger size?"
+      ],
+      "hint": "Dùng cấu trúc: 'This shirt is a bit too tight, do you have a larger size?'"
+    },
+    {
+      "id": "spq1-8",
+      "type": "speaking_challenge",
+      "prompt": "You want to try on a pair of jeans. Ask the sales assistant where the fitting rooms are.",
+      "sample_answer": "Excuse me, where are the fitting rooms located?",
+      "vietnamese_hint": "Nói bằng tiếng Anh: 'Excuse me, where are the fitting rooms located?'"
+    }
+  ]
+}

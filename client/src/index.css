@@ -32,11 +32,34 @@ body {
 
 /* Hide scrollbar while preserving scrollability */
 .no-scrollbar::-webkit-scrollbar,
-.no-scrollbar *::-webkit-scrollbar {
+.no-scrollbar *::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
   display: none;
 }
 .no-scrollbar,
-.no-scrollbar * {
+.no-scrollbar *,
+.scrollbar-none {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+/* 3D Flip Card Cross-Platform Support (Mobile Safari & Chrome) */
+.perspective-1000 {
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
 }

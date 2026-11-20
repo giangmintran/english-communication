@@ -40,17 +40,23 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* MAIN CONTENT AREA: Activity Heatmap + Continue Learning + Collections on left, Your Progress on right */}
+      {/* MAIN CONTENT AREA: Activity Heatmap + Continue Learning + Collections on left, Your Progress on right (on mobile, Your Progress is above Explore Collections) */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 sm:gap-6 items-start">
         {/* Left Column: Activity Heatmap & Continue Learning & Explore Collections */}
         <div className="xl:col-span-9 space-y-6 sm:space-y-8">
           <ActivityHeatmapCard />
           <ContinueLearningCard />
+
+          {/* Trên giao diện điện thoại / tablet (< xl): Hiển thị phần tiến độ bên trên phần Khám phá bộ sưu tập */}
+          <div className="xl:hidden">
+            <YourProgressCard />
+          </div>
+
           <ExploreCollections />
         </div>
 
-        {/* Right Column: Your Progress Card */}
-        <div className="xl:col-span-3 h-full">
+        {/* Right Column: Your Progress Card (chỉ hiển thị ở màn hình desktop xl trở lên) */}
+        <div className="hidden xl:block xl:col-span-3 h-full">
           <YourProgressCard />
         </div>
       </div>

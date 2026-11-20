@@ -1,0 +1,413 @@
+{
+  "lesson": {
+    "id": "lesson-travel-01",
+    "deck_id": "deck-travel",
+    "title": "At the Airport & Checking In",
+    "description": "Làm thủ tục lên máy bay, gửi hành lý, hỏi cổng ra tàu bay và điền tờ khai nhập cảnh.",
+    "topic": "Airport & Flight Check-in",
+    "level": "A2",
+    "estimated_minutes": 35,
+    "order_index": 1,
+    "image_url": "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80"
+  },
+  "warmup": {
+    "situation": "Bạn đang có mặt tại sân bay quốc tế để chuẩn bị cho chuyến bay ra nước ngoài. Bạn phải làm thủ tục check-in tại quầy, xuất trình hộ chiếu, gửi hành lý ký gửi, chọn chỗ ngồi và hỏi đường đến cổng lên máy bay (gate).",
+    "objective": "Sau bài học, bạn có thể tự tin giao tiếp tại quầy check-in sân bay, hỏi về hành lý xách tay và ký gửi, yêu cầu chỗ ngồi cạnh cửa sổ/lối đi và hiểu các thông báo cổng lên máy bay.",
+    "warm_up_question": "Do you prefer a window seat or an aisle seat when flying, and how would you ask the check-in agent for it in English?",
+    "key_phrases": [
+      "Here is my passport and booking",
+      "Could I have a window seat, please?",
+      "How many bags are you checking in?",
+      "Which gate does this flight board from?"
+    ],
+    "image_url": "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=800&q=80"
+  },
+  "vocabulary": [
+    {
+      "id": "tv1-1",
+      "word": "boarding pass",
+      "phonetic_ipa": "/ˈbɔːr.dɪŋ ˌpæs/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "thẻ lên máy bay",
+      "collocations": ["show your boarding pass", "print the boarding pass", "digital boarding pass"],
+      "example_sentence": "Please have your passport and boarding pass ready at the gate.",
+      "example_meaning": "Vui lòng chuẩn bị sẵn hộ chiếu và thẻ lên máy bay tại cổng lên tàu."
+    },
+    {
+      "id": "tv1-2",
+      "word": "checked baggage",
+      "phonetic_ipa": "/ˌtʃekt ˈbæɡ.ɪdʒ/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "hành lý ký gửi",
+      "collocations": ["allowance for checked baggage", "drop off checked baggage"],
+      "example_sentence": "How many pieces of checked baggage do you have today?",
+      "example_meaning": "Hôm nay quý khách có bao nhiêu kiện hành lý ký gửi ạ?"
+    },
+    {
+      "id": "tv1-3",
+      "word": "carry-on",
+      "phonetic_ipa": "/ˈkær.i.ɑːn/",
+      "part_of_speech": "noun / adjective",
+      "vietnamese_meaning": "hành lý xách tay",
+      "collocations": ["carry-on bag", "carry-on weight limit", "overhead carry-on"],
+      "example_sentence": "You are allowed one carry-on bag and one personal item on board.",
+      "example_meaning": "Quý khách được phép mang một túi xách tay và một vật dụng cá nhân lên khoang máy bay."
+    },
+    {
+      "id": "tv1-4",
+      "word": "window seat",
+      "phonetic_ipa": "/ˈwɪn.doʊ ˌsiːt/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "ghế cạnh cửa sổ",
+      "collocations": ["request a window seat", "prefer a window seat"],
+      "example_sentence": "I love taking photos of clouds, so I always request a window seat.",
+      "example_meaning": "Tôi thích chụp ảnh những đám mây, vì vậy tôi luôn yêu cầu ghế cạnh cửa sổ."
+    },
+    {
+      "id": "tv1-5",
+      "word": "aisle seat",
+      "phonetic_ipa": "/ˈaɪl ˌsiːt/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "ghế cạnh lối đi",
+      "collocations": ["book an aisle seat", "easy access aisle seat"],
+      "example_sentence": "An aisle seat makes it much easier to stretch your legs during a long flight.",
+      "example_meaning": "Ghế cạnh lối đi giúp bạn duỗi chân dễ dàng hơn nhiều trong chuyến bay dài."
+    },
+    {
+      "id": "tv1-6",
+      "word": "departure gate",
+      "phonetic_ipa": "/dɪˈpɑːr.tʃɚ ˌɡeɪt/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "cổng khởi hành, cổng ra máy bay",
+      "collocations": ["head to the departure gate", "gate change", "gate closing"],
+      "example_sentence": "Your flight will depart from Gate 24, which begins boarding at 3:15 PM.",
+      "example_meaning": "Chuyến bay của quý khách sẽ khởi hành từ Cổng 24, bắt đầu đón khách lúc 3:15 chiều."
+    },
+    {
+      "id": "tv1-7",
+      "word": "delayed",
+      "phonetic_ipa": "/dɪˈleɪd/",
+      "part_of_speech": "adjective",
+      "vietnamese_meaning": "bị hoãn, trễ giờ",
+      "collocations": ["flight is delayed", "delayed by two hours", "delayed due to bad weather"],
+      "example_sentence": "Due to heavy thunderstorms, the departure has been delayed by one hour.",
+      "example_meaning": "Do giông bão lớn, giờ khởi hành đã bị hoãn lại một tiếng."
+    },
+    {
+      "id": "tv1-8",
+      "word": "scales",
+      "phonetic_ipa": "/skeɪlz/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "cân đo trọng lượng hành lý",
+      "collocations": ["place luggage on the scales", "check-in scales"],
+      "example_sentence": "Please place your suitcase flat on the scales.",
+      "example_meaning": "Làm ơn đặt vali của quý khách nằm phẳng lên bàn cân ạ."
+    },
+    {
+      "id": "tv1-9",
+      "word": "terminal",
+      "phonetic_ipa": "/ˈtɜːr.mɪ.nəl/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "nhà ga sân bay",
+      "collocations": ["international terminal", "domestic terminal", "terminal shuttle"],
+      "example_sentence": "International flights depart from Terminal 2 across the road.",
+      "example_meaning": "Các chuyến bay quốc tế khởi hành từ Nhà ga số 2 ở phía bên kia đường."
+    },
+    {
+      "id": "tv1-10",
+      "word": "security checkpoint",
+      "phonetic_ipa": "/səˈkjʊr.ə.ti ˌtʃek.pɔɪnt/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "khu vực soi chiếu kiểm tra an ninh",
+      "collocations": ["pass through security checkpoint", "airport security"],
+      "example_sentence": "Please proceed directly to the security checkpoint after check-in.",
+      "example_meaning": "Vui lòng di chuyển thẳng tới khu vực kiểm tra an ninh sau khi làm thủ tục."
+    }
+  ],
+  "grammar": {
+    "title": "Indirect Questions & Polite Airport Requests (Could you tell me... / Do you know...)",
+    "explanation": "Tại sân bay, để hỏi thông tin lịch sự với nhân viên hàng không, người bản ngữ thường dùng câu hỏi gián tiếp bắt đầu bằng 'Could you tell me...' hoặc 'Do you know if...'. Chú ý: trong câu hỏi gián tiếp, thứ tự từ trở về dạng khẳng định (Subject + Verb).",
+    "formula": "Could you tell me where / what time / which + [subject] + [verb]? | Could I please have a [seat type]?",
+    "examples": [
+      {
+        "english": "Could you tell me which gate flight VN302 boards from?",
+        "vietnamese": "Anh có thể cho tôi biết chuyến bay VN302 đón khách từ cổng nào không?",
+        "highlight": "Could you tell me which gate"
+      },
+      {
+        "english": "Do you know if this flight is on schedule?",
+        "vietnamese": "Chị có biết liệu chuyến bay này có đúng lịch trình không ạ?",
+        "highlight": "Do you know if"
+      },
+      {
+        "english": "Could I please have a window seat near the front?",
+        "vietnamese": "Làm ơn cho tôi xin một ghế cạnh cửa sổ ở phía trước được không?",
+        "highlight": "Could I please have"
+      }
+    ],
+    "common_mistakes": [
+      {
+        "wrong": "Could you tell me where is the gate? (Đảo 'is' lên trước)",
+        "correct": "Could you tell me where the gate is? (Chủ ngữ 'the gate' đứng trước động từ 'is')",
+        "explanation": "Trong câu hỏi gián tiếp, cấu trúc đảo ngữ không được áp dụng sau từ để hỏi."
+      },
+      {
+        "wrong": "Give me window seat.",
+        "correct": "Could I have a window seat, please?",
+        "explanation": "Luôn dùng 'Could I have...' kèm 'please' để câu nói lịch thiệp tại quầy check-in."
+      }
+    ]
+  },
+  "expressions": [
+    {
+      "id": "te1-1",
+      "expression": "Could I have a window seat, please?",
+      "phonetic_ipa": "/kʊd aɪ hæv ə ˈwɪndoʊ siːt pliːz/",
+      "meaning": "Làm ơn cho tôi chọn ghế cạnh cửa sổ được không?",
+      "context": "Nói với nhân viên check-in khi họ hỏi bạn sở thích chọn chỗ ngồi.",
+      "formality": "polite",
+      "variations": [
+        "I'd prefer an aisle seat if possible, please.",
+        "Do you have any window seats left?",
+        "Can I get a seat near the emergency exit?"
+      ]
+    },
+    {
+      "id": "te1-2",
+      "expression": "Are there any extra fees for overweight baggage?",
+      "phonetic_ipa": "/ɑːr ðeər ˈeni ˈekstrə fiːz fɔːr ˌoʊvərˈweɪt ˈbæɡɪdʒ/",
+      "meaning": "Có bị tính thêm phí cho hành lý quá cân không ạ?",
+      "context": "Hỏi nhân viên quầy khi cân vali vượt quá số kg quy định.",
+      "formality": "polite",
+      "variations": [
+        "Is my bag within the weight limit?",
+        "How much is the overweight fee per kilo?",
+        "Do I need to pay for an extra bag?"
+      ]
+    },
+    {
+      "id": "te1-3",
+      "expression": "Which gate does this flight board from, and what time?",
+      "phonetic_ipa": "/wɪtʃ ɡeɪt dʌz ðɪs flaɪt bɔːrd frɒm ænd wɒt taɪm/",
+      "meaning": "Chuyến bay này lên máy bay ở cổng nào và lúc mấy giờ vậy ạ?",
+      "context": "Hỏi thông tin cổng khởi hành sau khi nhân viên in vé xong.",
+      "formality": "polite",
+      "variations": [
+        "Where is Gate 18 located?",
+        "How do I get to the international terminal?",
+        "What time should I be at the boarding gate?"
+      ]
+    },
+    {
+      "id": "te1-4",
+      "expression": "Here is my passport and booking confirmation.",
+      "phonetic_ipa": "/hɪər ɪz maɪ ˈpæspɔːrt ænd ˈbʊkɪŋ ˌkɑːnfərˈmeɪʃən/",
+      "meaning": "Đây là hộ chiếu và mã xác nhận đặt chỗ của tôi.",
+      "context": "Nói câu đầu tiên khi bước tới quầy làm thủ tục check-in.",
+      "formality": "neutral",
+      "variations": [
+        "Good morning, checking in for the flight to Tokyo.",
+        "Here are our passports.",
+        "I checked in online, just dropping off luggage."
+      ]
+    }
+  ],
+  "listening": [
+    {
+      "id": "tl1-1",
+      "title": "Checking In at the Airport Counter",
+      "dialogue": [
+        {
+          "speaker": "Agent",
+          "text": "Good morning! Welcome to SkyAir. Where are you flying to today?",
+          "vietnamese": "Chào buổi sáng! Chào mừng quý khách đến với SkyAir. Hôm nay quý khách bay đi đâu ạ?"
+        },
+        {
+          "speaker": "Passenger",
+          "text": "Good morning! I am flying to London Heathrow. Here is my passport and e-ticket.",
+          "vietnamese": "Chào cô! Tôi bay đi London Heathrow. Đây là hộ chiếu và vé điện tử của tôi."
+        },
+        {
+          "speaker": "Agent",
+          "text": "Thank you, Mr. Clark. How many bags will you be checking in today?",
+          "vietnamese": "Cảm ơn ông Clark. Hôm nay ông có bao nhiêu kiện hành lý ký gửi ạ?"
+        },
+        {
+          "speaker": "Passenger",
+          "text": "Just this one large suitcase. And I have this small backpack as my carry-on.",
+          "vietnamese": "Chỉ một chiếc vali lớn này thôi. Và tôi có một chiếc balo nhỏ làm hành lý xách tay."
+        },
+        {
+          "speaker": "Agent",
+          "text": "Great! Please place your suitcase on the scales. It is exactly 21 kilos, well within the limit. Would you prefer a window or an aisle seat?",
+          "vietnamese": "Tuyệt vời! Xin mời ông đặt vali lên cân. Đúng 21 kg, nằm trong mức quy định. Ông muốn ghế cửa sổ hay lối đi ạ?"
+        },
+        {
+          "speaker": "Passenger",
+          "text": "Could I have an aisle seat, please? That way I can stretch my legs.",
+          "vietnamese": "Làm ơn cho tôi xin ghế cạnh lối đi được không? Như vậy tôi có thể duỗi chân thoải mái."
+        },
+        {
+          "speaker": "Agent",
+          "text": "Certainly! Here is your boarding pass. You will board from Gate B12 at 10:45 AM. Have a wonderful flight!",
+          "vietnamese": "Chắc chắn rồi ạ! Đây là thẻ lên máy bay của ông. Quý khách sẽ lên máy bay tại Cổng B12 lúc 10:45 sáng. Chúc ông chuyến bay tốt đẹp!"
+        }
+      ],
+      "questions": [
+        {
+          "id": "tlq1-1",
+          "question": "Where is the passenger flying to?",
+          "options": ["Paris", "Tokyo", "London Heathrow", "New York"],
+          "correct_answer": 2,
+          "explanation": "Hành khách trả lời: 'I am flying to London Heathrow'."
+        },
+        {
+          "id": "tlq1-2",
+          "question": "What kind of seat did the passenger request?",
+          "options": ["A window seat", "An aisle seat", "A middle seat", "An exit row seat"],
+          "correct_answer": 1,
+          "explanation": "Hành khách yêu cầu: 'Could I have an aisle seat, please?'"
+        },
+        {
+          "id": "tlq1-3",
+          "question": "Which departure gate should the passenger go to?",
+          "options": ["Gate A4", "Gate B12", "Gate C21", "Gate D10"],
+          "correct_answer": 1,
+          "explanation": "Nhân viên thông báo: 'You will board from Gate B12 at 10:45 AM'."
+        }
+      ]
+    }
+  ],
+  "speaking": {
+    "situation": "Bạn đang đứng tại quầy check-in của sân bay quốc tế. Hãy thực hành nói to các câu giao tiếp cần thiết từ việc xuất trình giấy tờ đến việc chọn ghế ngồi.",
+    "sample_dialogue": [
+      {
+        "speaker": "Agent",
+        "text": "May I have your passport, please?",
+        "vietnamese": "Cho tôi xin hộ chiếu của quý khách ạ?"
+      },
+      {
+        "speaker": "You",
+        "text": "Here you go. Could I have a window seat, please?",
+        "vietnamese": "Của cô đây ạ. Làm ơn cho tôi xin ghế cạnh cửa sổ nhé?"
+      },
+      {
+        "speaker": "Agent",
+        "text": "Sure thing! Place your checked bag on the scales, please.",
+        "vietnamese": "Chắc chắn rồi ạ! Mời bạn đặt hành lý ký gửi lên cân."
+      },
+      {
+        "speaker": "You",
+        "text": "Which gate does this flight depart from?",
+        "vietnamese": "Chuyến bay này khởi hành ở cổng nào vậy cô?"
+      }
+    ],
+    "practice_sentences": [
+      {
+        "id": "tsp1-1",
+        "text": "Here is my passport and booking confirmation.",
+        "phonetic_ipa": "/hɪər ɪz maɪ ˈpæspɔːrt ænd ˈbʊkɪŋ ˌkɑːnfərˈmeɪʃən/",
+        "vietnamese_hint": "Đây là hộ chiếu và mã xác nhận đặt chỗ của tôi."
+      },
+      {
+        "id": "tsp1-2",
+        "text": "Could I please have a window seat near the front?",
+        "phonetic_ipa": "/kʊd aɪ pliːz hæv ə ˈwɪndoʊ siːt nɪər ðə frʌnt/",
+        "vietnamese_hint": "Làm ơn cho tôi xin ghế cạnh cửa sổ ở phía trước được không?"
+      },
+      {
+        "id": "tsp1-3",
+        "text": "How many kilograms of carry-on luggage am I allowed?",
+        "phonetic_ipa": "/haʊ ˈmeni ˈkɪləɡræmz əv ˈkæri ɑːn ˈlʌɡɪdʒ æm aɪ əˈlaʊd/",
+        "vietnamese_hint": "Tôi được phép mang bao nhiêu kilogam hành lý xách tay?"
+      },
+      {
+        "id": "tsp1-4",
+        "text": "Could you tell me where Gate B12 is located?",
+        "phonetic_ipa": "/kʊd juː tel miː weər ɡeɪt biː twelv ɪz loʊˈkeɪtɪd/",
+        "vietnamese_hint": "Bạn có thể chỉ cho tôi cổng B12 nằm ở đâu không?"
+      }
+    ]
+  },
+  "practice": [
+    {
+      "id": "tpq1-1",
+      "type": "vocabulary_quiz",
+      "question": "What is the official document that allows a passenger to board an airplane?",
+      "options": ["Credit card", "Boarding pass", "Hotel key", "Luggage tag"],
+      "correct_answer": 1,
+      "explanation": "'Boarding pass' là thẻ lên máy bay cấp sau khi hoàn tất thủ tục check-in."
+    },
+    {
+      "id": "tpq1-2",
+      "type": "vocabulary_quiz",
+      "question": "Which term describes a seat located next to the walking passage of an airplane?",
+      "options": ["Window seat", "Aisle seat", "Cockpit", "Cargo seat"],
+      "correct_answer": 1,
+      "explanation": "'Aisle seat' là ghế ngồi cạnh lối đi giữa các hàng ghế."
+    },
+    {
+      "id": "tpq1-3",
+      "type": "grammar_quiz",
+      "question": "Which indirect question is grammatically correct?",
+      "options": [
+        "Could you tell me where is the departure gate?",
+        "Could you tell me where the departure gate is?",
+        "Could you tell me where does the departure gate be?",
+        "Tell me where is gate."
+      ],
+      "correct_answer": 1,
+      "explanation": "Trong câu hỏi gián tiếp, thứ tự từ là: Từ để hỏi (where) + Chủ ngữ (the departure gate) + Động từ (is)."
+    },
+    {
+      "id": "tpq1-4",
+      "type": "grammar_quiz",
+      "question": "Choose the most polite question to request an aisle seat:",
+      "options": [
+        "I need aisle seat immediately.",
+        "Could I have an aisle seat, please?",
+        "Give me aisle seat now.",
+        "Aisle seat is mine."
+      ],
+      "correct_answer": 1,
+      "explanation": "Cấu trúc 'Could I have + [item], please?' là cách diễn đạt lịch sự và nhã nhặn nhất."
+    },
+    {
+      "id": "tpq1-5",
+      "type": "sentence_building",
+      "vietnamese": "Làm ơn cho tôi một ghế cạnh cửa sổ được không?",
+      "scrambled_words": ["a window seat,", "have", "please?", "Could", "I"],
+      "correct_order": ["Could", "I", "have", "a window seat,", "please?"],
+      "hint": "Bắt đầu với 'Could I have...'"
+    },
+    {
+      "id": "tpq1-6",
+      "type": "sentence_building",
+      "vietnamese": "Bạn có thể cho tôi biết chuyến bay khởi hành từ cổng nào không?",
+      "scrambled_words": ["boards from?", "which gate", "Could you", "the flight", "tell me"],
+      "correct_order": ["Could you", "tell me", "which gate", "the flight", "boards from?"],
+      "hint": "Cụm câu hỏi gián tiếp: 'Could you tell me which gate...'"
+    },
+    {
+      "id": "tpq1-7",
+      "type": "translation",
+      "source_text": "Đây là hộ chiếu và mã xác nhận đặt vé của tôi.",
+      "source_lang": "vi",
+      "correct_answer": "Here is my passport and booking confirmation.",
+      "accept_answers": [
+        "Here is my passport and booking confirmation",
+        "Here's my passport and booking confirmation.",
+        "Here are my passport and booking confirmation.",
+        "Here is my passport and ticket."
+      ],
+      "hint": "Dùng cụm: 'Here is my passport and booking confirmation.'"
+    },
+    {
+      "id": "tpq1-8",
+      "type": "speaking_challenge",
+      "prompt": "The check-in agent asks: 'Would you prefer a window seat or an aisle seat?'. How do you politely request an aisle seat?",
+      "sample_answer": "Could I have an aisle seat, please?",
+      "vietnamese_hint": "Nói bằng tiếng Anh: 'Could I have an aisle seat, please?'"
+    }
+  ]
+}

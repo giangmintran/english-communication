@@ -291,5 +291,36 @@ export const api = {
         });
       } catch (_) {}
     },
+
+    // Lưu kết quả bài học Daily Lesson 7 bước
+    saveDailyLesson: async (payload: {
+      date: string;
+      lessonId: string;
+      collectionId: string;
+      sprintDay: number;
+      wordIds: string[];
+      score: number;
+      totalQuestions: number;
+      completed: boolean;
+    }) => {
+      try {
+        return await requestWithAuth('/progress/daily-lesson', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+      } catch (err) {
+        console.warn('Could not save daily lesson to server:', err);
+        return null;
+      }
+    },
+
+    // Lấy lịch sử học các ngày
+    getDailyHistory: async () => {
+      try {
+        return await requestWithAuth<any[]>('/progress/history');
+      } catch {
+        return [];
+      }
+    },
   },
 };

@@ -123,18 +123,14 @@ export default function DailyReviewPage() {
       try {
         setLoading(true);
 
-        // A. Tải danh sách từ vựng hôm nay
+        // A. Tải toàn bộ kho từ vựng giao tiếp hàng ngày
         const deckData = await api.decks.getById('daily');
         const items = deckData?.flashcards || deckData?.items || [];
         const sourceItems = items.length > 0 ? items : (dailyItemsJson as LearningItem[]);
         // Khách (chưa đăng nhập): giới hạn học thử 5 từ mới
         const targetCount = !user ? 5 : Math.max(todayGoal || 20, 20);
-        const selectedWords = sourceItems.slice(0, targetCount);
 
-        // B. Sinh câu hỏi xáo trộn random bất kỳ (mỗi từ ~ 3 câu hỏi)
-        const generated = generateDailyReviewQuestions(selectedWords, targetCount, 'shuffled');
-
-        // C. Kiểm tra tiến trình đã lưu trước đó (Client LocalStorage trước)
+        // B. Kiểm tra tiến trình đã lưu trước đó (Client LocalStorage trước)
         let savedProgress: DailyReviewProgress | null = getTodayReviewProgress(todayStr);
 
         // Nếu người dùng đã đăng nhập và local chưa có tiến trình, tải từ server
@@ -148,6 +144,66 @@ export default function DailyReviewPage() {
             }
           } catch (_) {}
         }
+
+        // C. Chọn danh sách từ vựng thông minh cho ngày hôm nay (không trùng từ hôm qua)
+        let selectedWords: LearningItem[] = [];
+
+        // 1. Nếu hôm nay ĐÃ CÓ phiên học trước đó và đã có wordIds:
+        if (savedProgress && savedProgress.wordIds && savedProgress.wordIds.length > 0) {
+          const wordIdSet = new Set(savedProgress.wordIds);
+          selectedWords = sourceItems.filter((item) => wordIdSet.has(item.id));
+        }
+
+        // 2. Nếu hôm nay là phiên MỚI: Chọn 20 từ mới tiếp theo chưa từng học ở các ngày trước
+        if (selectedWords.length < targetCount) {
+          const storeState = useLearningStore.getState();
+          const reviews = storeState.reviews || {};
+          const dailyProgress = storeState.dailyReviewProgress || {};
+
+          // Tập hợp tất cả các từ đã học từ các ngày trước
+          const learnedWordIds = new Set<string>();
+          Object.keys(reviews).forEach((id) => learnedWordIds.add(id));
+          Object.entries(dailyProgress).forEach(([date, prog]) => {
+            if (date !== todayStr && prog?.wordIds) {
+              prog.wordIds.forEach((id) => learnedWordIds.add(id));
+            }
+          });
+
+          // Lọc ra các từ hoàn toàn MỚI chưa học
+          const unlearnedWords = sourceItems.filter((item) => !learnedWordIds.has(item.id));
+
+          // Lọc ra các từ ĐẾN HẠN ôn tập Spaced Repetition (SRS)
+          const now = new Date();
+          const dueWords = sourceItems.filter((item) => {
+            const rev = reviews[item.id];
+            return rev && rev.next_review_at && new Date(rev.next_review_at) <= now;
+          });
+
+          const candidates: LearningItem[] = [];
+
+          // Ưu tiên 1: Lấy các từ mới chưa học tiếp theo trong kho từ
+          if (unlearnedWords.length >= targetCount) {
+            candidates.push(...unlearnedWords.slice(0, targetCount));
+          } else {
+            // Nếu số từ mới còn ít: lấy hết từ mới còn lại + bổ sung từ đến hạn ôn tập
+            candidates.push(...unlearnedWords);
+            const needed = targetCount - candidates.length;
+            const dueAvailable = dueWords.filter((w) => !candidates.some((c) => c.id === w.id));
+            candidates.push(...dueAvailable.slice(0, needed));
+
+            // Nếu vẫn chưa đủ (đã học hết kho từ): lấy lại các từ cũ để củng cố
+            if (candidates.length < targetCount) {
+              const remainingNeeded = targetCount - candidates.length;
+              const otherWords = sourceItems.filter((w) => !candidates.some((c) => c.id === w.id));
+              candidates.push(...otherWords.slice(0, remainingNeeded));
+            }
+          }
+
+          selectedWords = candidates.slice(0, targetCount);
+        }
+
+        // D. Sinh câu hỏi xáo trộn random bất kỳ (mỗi từ ~ 3 câu hỏi)
+        const generated = generateDailyReviewQuestions(selectedWords, targetCount, 'shuffled');
 
         if (mounted) {
           setWords(selectedWords);
@@ -460,7 +516,7 @@ export default function DailyReviewPage() {
       <div className="flex flex-col items-center justify-center min-h-[500px] space-y-4">
         <div className="w-10 h-10 border-4 border-blue-600 dark:border-blue-400 border-t-transparent rounded-full animate-spin" />
         <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-          Đang đồng bộ tiến trình và chuẩn bị 60 câu hỏi ôn tập...
+          {t('dailyReview.loadingSession')}
         </p>
       </div>
     );
@@ -469,13 +525,13 @@ export default function DailyReviewPage() {
   if (questions.length === 0) {
     return (
       <div className="max-w-md mx-auto my-12 p-8 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800 space-y-4">
-        <p className="text-slate-500">Chưa tìm thấy từ vựng để ôn tập.</p>
+        <p className="text-slate-500">{t('dailyReview.noWordsFound')}</p>
         <Link
           to="/"
           className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-semibold"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Về trang chủ</span>
+          <span>{t('common.backHome')}</span>
         </Link>
       </div>
     );
@@ -487,6 +543,7 @@ export default function DailyReviewPage() {
       <div className="max-w-4xl mx-auto py-8 px-4">
         <ReviewSummary
           summary={sessionSummary}
+          words={words}
           onRestartAll={handleRestartAll}
           onRetryMistakes={handleRetryMistakes}
         />
@@ -507,13 +564,13 @@ export default function DailyReviewPage() {
           <Link
             to="/"
             className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-xs shrink-0"
-            title="Quay lại Trang Chủ"
+            title={t('common.backHome')}
           >
             <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           </Link>
           <div className="min-w-0">
             <h1 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2 truncate">
-              <span>{isRetryingMistakes ? 'Ôn lại câu sai' : `Ôn tập ${words.length} từ hôm nay`}</span>
+              <span>{isRetryingMistakes ? t('dailyReview.retryTitle') : t('dailyReview.pageTitle', { count: words.length })}</span>
               <span
                 className={cn(
                   'text-[11px] sm:text-xs font-semibold px-2 py-0.5 rounded-full shrink-0',

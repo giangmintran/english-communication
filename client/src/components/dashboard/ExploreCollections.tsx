@@ -71,11 +71,27 @@ export function ExploreCollections({ isPage = false }: ExploreCollectionsProps) 
     };
   }, []);
 
-  // Quy tắc khách (Guest): chỉ hiện tối đa 5 bộ sưu tập trên Dashboard
+  // Quy tắc hiển thị:
+  // - Tại trang chủ (!isPage - "Phần Khám phá bộ sưu tập"): chỉ hiển thị 5 bộ sưu tập có nhiều từ vựng nhất
+  // - Tại trang /collections (isPage): hiển thị toàn bộ danh sách bộ sưu tập (khách được mở khóa 5 bộ đầu)
+  const MAX_DASHBOARD_COLLECTIONS = 5;
   const MAX_GUEST_COLLECTIONS = 5;
-  const displayedCollections = !user && !isPage
-    ? collections.slice(0, MAX_GUEST_COLLECTIONS)
-    : collections;
+
+  const displayedCollections = React.useMemo(() => {
+    if (!isPage) {
+      return [...collections]
+        .sort((a, b) => {
+          const countA = a.total_phrases ?? a.phrases?.length ?? a.items?.length ?? 0;
+          const countB = b.total_phrases ?? b.phrases?.length ?? b.items?.length ?? 0;
+          if (countB !== countA) {
+            return countB - countA;
+          }
+          return (a.order_index ?? 0) - (b.order_index ?? 0);
+        })
+        .slice(0, MAX_DASHBOARD_COLLECTIONS);
+    }
+    return collections;
+  }, [collections, isPage]);
 
   return (
     <div className="w-full">
@@ -123,7 +139,7 @@ export function ExploreCollections({ isPage = false }: ExploreCollectionsProps) 
             const Icon = iconMap[col.icon_name] || BookOpen;
             const progress = collectionProgress[col.id] || collectionProgress[col.slug];
             const hasStarted = Boolean(progress && progress.learned_count > 0);
-            const isLocked = !user && idx >= MAX_GUEST_COLLECTIONS;
+            const isLocked = !user && isPage && idx >= MAX_GUEST_COLLECTIONS;
 
             if (isLocked) {
               return (

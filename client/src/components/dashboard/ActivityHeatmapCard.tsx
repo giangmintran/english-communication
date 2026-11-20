@@ -16,6 +16,35 @@ interface Day7Item {
   isCompleted: boolean;
 }
 
+// Helper trích xuất số lượng từ vựng duy nhất đã học (tránh nhầm số câu hỏi 60 thành 60 từ)
+function getWordsCountFromReview(review?: any, fallbackCount: number = 0): number {
+  if (!review) return fallbackCount;
+
+  // 1. Tính từ số từ vựng duy nhất trong kết quả các câu hỏi
+  if (review.results && Object.keys(review.results).length > 0) {
+    const uniqueWordIds = new Set(
+      Object.values(review.results)
+        .map((r: any) => r.question?.wordId || r.questionId)
+        .filter(Boolean)
+    );
+    if (uniqueWordIds.size > 0) {
+      return uniqueWordIds.size;
+    }
+  }
+
+  // 2. Tính từ danh sách wordIds lưu trong tiến trình
+  if (review.wordIds && review.wordIds.length > 0) {
+    return review.wordIds.length;
+  }
+
+  // 3. Quy đổi từ số câu hỏi đã trả lời về số từ (mỗi từ có 3 câu hỏi)
+  if (review.answeredCount > 0) {
+    return Math.min(20, Math.ceil(review.answeredCount / 3));
+  }
+
+  return fallbackCount;
+}
+
 export function ActivityHeatmapCard() {
   const { streakDays, todayLearned, dailyReviewProgress, todayGoal } = useLearningStore();
   const { t, language } = useTranslation();
@@ -55,23 +84,20 @@ export function ActivityHeatmapCard() {
         count = 0;
       } else if (isToday) {
         const todayReview = dailyReviewProgress[todayStr];
-        count = Math.max(
-          todayLearned,
-          todayReview?.answeredCount || (todayReview?.results ? Object.keys(todayReview.results).length : 0)
-        );
-        if (count === 0 && streakDays > 0) {
-          count = Math.min(20, Math.max(5, todayLearned));
+        count = getWordsCountFromReview(todayReview, todayLearned);
+        if (count === 0 && streakDays > 0 && todayLearned > 0) {
+          count = Math.min(20, todayLearned);
         }
       } else {
         const savedReview = dailyReviewProgress[dStr];
         if (savedReview && (savedReview.answeredCount > 0 || (savedReview.results && Object.keys(savedReview.results).length > 0))) {
-          count = savedReview.answeredCount || Object.keys(savedReview.results || {}).length;
+          count = getWordsCountFromReview(savedReview);
         } else {
           // Tính theo chuỗi streak gần đây
           const diffDays = Math.floor((now.getTime() - dObj.getTime()) / (1000 * 3600 * 24));
           if (diffDays > 0 && diffDays <= streakDays) {
-            const seed = (dObj.getDate() * 13 + dObj.getMonth() * 7) % 15;
-            count = 14 + seed;
+            const seed = (dObj.getDate() * 13 + dObj.getMonth() * 7) % 5;
+            count = 16 + seed;
           }
         }
       }
@@ -111,10 +137,10 @@ export function ActivityHeatmapCard() {
         {/* Section Header: Tiêu đề + Nút "Xem tất cả" mở Modal */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-1.5 h-5 bg-emerald-500 rounded-full" />
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2.5">
+            <div className="w-1.5 h-4 sm:h-5 bg-emerald-500 rounded-full" />
+            <h2 className="text-base sm:text-lg lg:text-xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
               <span>{t('home.activityHistoryTitle')}</span>
-              <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-200/60 dark:border-emerald-800">
+              <span className="text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 font-bold border border-emerald-200/60 dark:border-emerald-800">
                 {t('home.sevenDaysTitle')}
               </span>
             </h2>
@@ -124,25 +150,25 @@ export function ActivityHeatmapCard() {
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="text-xs sm:text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1.5 transition-colors cursor-pointer group"
+            className="text-xs sm:text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 flex items-center gap-1 sm:gap-1.5 transition-colors cursor-pointer group"
           >
             <span>{t('home.seeAll')}</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+            <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>
 
         {/* 7-Day Activity Strip Card */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-100 dark:border-slate-800 shadow-card transition-colors space-y-5">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 lg:p-6 border border-slate-100 dark:border-slate-800 shadow-card transition-colors space-y-4 sm:space-y-5">
           {/* Grid 7 ngày trong tuần */}
-          <div className="grid grid-cols-7 gap-2 sm:gap-3.5">
+          <div className="grid grid-cols-7 gap-1.5 sm:gap-2.5 lg:gap-3.5">
             {weekDays.map((day) => {
               return (
                 <div
                   key={day.dateStr}
                   className={cn(
-                    'flex flex-col items-center justify-between p-2.5 sm:p-3.5 rounded-2xl transition-all select-none',
+                    'flex flex-col items-center justify-between p-1 sm:p-2.5 lg:p-3 rounded-xl sm:rounded-2xl transition-all select-none',
                     day.isToday
-                      ? 'bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/80 ring-2 ring-blue-500/20'
+                      ? 'bg-blue-50/60 dark:bg-blue-950/30 border-2 border-blue-500 dark:border-blue-400 shadow-xs shadow-blue-500/10'
                       : day.isCompleted
                         ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100/80 dark:border-emerald-900/30'
                         : day.isFuture
@@ -151,10 +177,10 @@ export function ActivityHeatmapCard() {
                   )}
                 >
                   {/* Tên thứ & Ngày */}
-                  <div className="text-center mb-2">
+                  <div className="text-center mb-1 sm:mb-2">
                     <span
                       className={cn(
-                        'block text-xs font-bold uppercase tracking-wider',
+                        'block text-[10px] sm:text-xs font-bold uppercase tracking-wider',
                         day.isToday
                           ? 'text-blue-600 dark:text-blue-400 font-extrabold'
                           : 'text-slate-500 dark:text-slate-400'
@@ -162,49 +188,52 @@ export function ActivityHeatmapCard() {
                     >
                       {day.dayName}
                     </span>
-                    <span className="block text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+                    <span className="block text-[9px] sm:text-[11px] text-slate-400 dark:text-slate-500 font-medium">
                       {day.dayNum}
                     </span>
                   </div>
 
                   {/* Trạng thái Icon / Circle */}
-                  <div className="my-1">
+                  <div className="my-0.5 sm:my-1">
                     {day.isFuture ? (
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-300 dark:text-slate-600 text-xs">
+                      <div className="w-7 h-7 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-full border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-300 dark:text-slate-600 text-xs">
                         •
                       </div>
                     ) : day.isCompleted ? (
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/25">
-                        <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.3]" />
+                      <div className="w-7 h-7 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/25">
+                        <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 stroke-[2.3]" />
                       </div>
                     ) : day.count > 0 ? (
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 font-bold flex items-center justify-center text-xs sm:text-sm">
+                      <div className="w-7 h-7 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-xl sm:rounded-2xl bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 font-bold flex items-center justify-center text-[11px] sm:text-xs lg:text-sm">
                         {day.count}
                       </div>
                     ) : day.isToday ? (
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                        <Flame className="w-4 h-4 sm:w-5 sm:h-5 fill-blue-500/20" />
+                      <div className="w-7 h-7 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-xl sm:rounded-2xl bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                        <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 fill-blue-500/20" />
                       </div>
                     ) : (
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center text-xs">
+                      <div className="w-7 h-7 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-xl sm:rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 flex items-center justify-center text-xs">
                         -
                       </div>
                     )}
                   </div>
 
-                  {/* Số từ hoặc Tag hôm nay */}
-                  <div className="mt-2 text-center">
-                    {day.isToday ? (
-                      <span className="inline-block px-1.5 py-0.5 rounded-full bg-blue-600 text-white text-[10px] font-extrabold">
-                        {t('home.todayBadge')}
-                      </span>
-                    ) : day.count > 0 ? (
-                      <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300">
-                        {day.count} từ
+                  {/* Số từ hiển thị đồng nhất cho tất cả các ngày, song ngữ Vi/En */}
+                  <div className="mt-1 sm:mt-2 text-center w-full truncate">
+                    {day.count > 0 ? (
+                      <span
+                        className={cn(
+                          'text-[9px] sm:text-[11px] font-bold block truncate',
+                          day.isToday
+                            ? 'text-blue-600 dark:text-blue-400'
+                            : 'text-slate-700 dark:text-slate-300'
+                        )}
+                      >
+                        {t('home.dayWordsCount', { count: day.count })}
                       </span>
                     ) : (
-                      <span className="text-[11px] text-slate-400 dark:text-slate-500">
-                        {day.isFuture ? '-' : '0 từ'}
+                      <span className="text-[9px] sm:text-[11px] text-slate-400 dark:text-slate-500 block">
+                        {day.isFuture ? '-' : t('home.dayZeroWords')}
                       </span>
                     )}
                   </div>
@@ -214,33 +243,22 @@ export function ActivityHeatmapCard() {
           </div>
 
           {/* Thanh tóm tắt nhanh chuỗi & Nút mở modal */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs sm:text-sm">
-            <div className="flex items-center gap-3 flex-wrap text-slate-600 dark:text-slate-300">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-xs sm:text-sm">
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap text-slate-600 dark:text-slate-300">
               <span className="flex items-center gap-1.5 font-bold text-amber-600 dark:text-amber-400">
-                <Flame className="w-4 h-4 fill-amber-500" />
+                <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-500 shrink-0" />
                 <span>{t('home.currentStreakDays', { count: streakDays })}</span>
               </span>
-              <span className="text-slate-300 dark:text-slate-700">•</span>
+              <span className="text-slate-300 dark:text-slate-700 hidden xs:inline">•</span>
               <span className="flex items-center gap-1.5 font-semibold text-slate-700 dark:text-slate-200">
-                <BookOpen className="w-4 h-4 text-blue-500" />
+                <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500 shrink-0" />
                 <span>{t('home.weekTotalWords', { count: weekTotalWords })}</span>
               </span>
-              <span className="text-slate-300 dark:text-slate-700">•</span>
+              <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
               <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                {completedDaysCount}/7 ngày hoàn thành
+                {t('home.completedDaysOutOfSeven', { completed: completedDaysCount })}
               </span>
             </div>
-
-            {/* Link kích hoạt Modal */}
-            {/* <button
-              type="button"
-              onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 px-3 py-1.5 rounded-xl border border-emerald-200/60 dark:border-emerald-800 transition-all cursor-pointer"
-            >
-              <Calendar className="w-3.5 h-3.5" />
-              <span>{t('home.viewAllHeatmap')}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button> */}
           </div>
         </div>
       </div>

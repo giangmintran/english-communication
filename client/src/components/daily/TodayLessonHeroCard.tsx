@@ -54,10 +54,13 @@ export function TodayLessonHeroCard({
       {/* Top Header Bar */}
       <div className="relative flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800/80">
         <div className="flex flex-wrap items-center gap-2">
-          {/* Badge: Chủ đề hôm nay */}
+          {/* Badge: Chủ đề hôm nay / Thematic Sprint */}
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold shadow-xs">
-            <Sparkles className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
-            <span>Chủ đề hôm nay</span>
+            {lesson.sprint_day ? (
+              <span>Chuyên đề 3 ngày · Ngày {lesson.sprint_day}/3</span>
+            ) : (
+              <span>{t('daily.todayTopic')}</span>
+            )}
           </span>
 
           {/* Ngày hôm nay */}
@@ -65,6 +68,12 @@ export function TodayLessonHeroCard({
             <Calendar className="w-3.5 h-3.5 text-slate-400" />
             <span>{todayFormatted}</span>
           </span>
+
+          {/* Quy tắc 70/30 */}
+          {/* <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-700 dark:text-amber-300 text-xs font-bold border border-amber-200/50 dark:border-amber-800/50">
+            <Sparkles className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+            <span>Quy tắc 70/30 (7 mới + 3 ôn)</span>
+          </span> */}
 
           {deckTitle && (
             <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 text-xs font-bold border border-blue-200/50 dark:border-blue-800/50">
@@ -78,17 +87,17 @@ export function TodayLessonHeroCard({
           {isCompleted ? (
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300 text-xs font-bold border border-emerald-200/80 dark:border-emerald-800 shadow-2xs">
               <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Đã hoàn thành hôm nay</span>
+              <span>{t('daily.completedToday')}</span>
             </span>
           ) : hasStarted ? (
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-300 text-xs font-bold border border-amber-200/80 dark:border-amber-800 shadow-2xs">
               <Clock className="w-3.5 h-3.5" />
-              <span>Đang học (Bước {currentStep + 1}/7)</span>
+              <span>{t('daily.studyingStep', { step: currentStep + 1 })}</span>
             </span>
           ) : (
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-xs font-bold border border-blue-200/40 dark:border-blue-900/40">
               <Flame className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
-              <span>Mục tiêu chính</span>
+              <span>{t('daily.primaryGoal')}</span>
             </span>
           )}
         </div>
@@ -98,7 +107,14 @@ export function TodayLessonHeroCard({
       <div className="relative pt-5 sm:pt-6 grid grid-cols-1 md:grid-cols-12 gap-5 sm:gap-6 items-center">
         {/* Left Column: Lesson Details */}
         <div className="md:col-span-8 space-y-3.5">
-          {lesson.topic && (
+          {lesson.stage_title && (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-100/70 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 text-xs font-bold border border-blue-200/50 dark:border-blue-800/50">
+              <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+              <span>{lesson.stage_title}</span>
+            </div>
+          )}
+
+          {lesson.topic && !lesson.stage_title && (
             <p className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
               <span>{lesson.topic}</span>
             </p>
@@ -119,22 +135,22 @@ export function TodayLessonHeroCard({
             </span>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold">
               <Clock className="w-3.5 h-3.5 text-slate-400" />
-              <span>~{lesson.estimated_minutes} phút</span>
+              <span>~{lesson.estimated_minutes} {t('common.mins')}</span>
             </span>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-semibold">
               <Layers className="w-3.5 h-3.5 text-slate-400" />
-              <span>Lộ trình 7 bước</span>
+              <span>{t('daily.stepProgress')}</span>
             </span>
           </div>
 
           {/* 7-Step Mini Visual Progress Bar */}
           <div className="pt-2">
             <div className="flex items-center justify-between text-[11px] text-slate-400 font-medium mb-1.5">
-              <span>Tiến độ 7 bước học tương tác</span>
+              <span>{t('daily.stepProgressTitle')}</span>
               <span>
                 {isCompleted
-                  ? '7/7 bước (Hoàn tất)'
-                  : `${Math.min(7, currentStep)}/7 bước`}
+                  ? t('daily.stepsCompleted')
+                  : t('daily.stepsCount', { current: Math.min(7, currentStep) })}
               </span>
             </div>
             <div className="grid grid-cols-7 gap-1 sm:gap-1.5">
@@ -153,10 +169,10 @@ export function TodayLessonHeroCard({
                       isStepDone
                         ? 'bg-emerald-500'
                         : isCurrent
-                        ? 'bg-blue-600 ring-2 ring-blue-300 dark:ring-blue-800'
-                        : 'bg-slate-200 dark:bg-slate-800'
+                          ? 'bg-blue-600 ring-2 ring-blue-300 dark:ring-blue-800'
+                          : 'bg-slate-200 dark:bg-slate-800'
                     )}
-                    title={`Bước ${stepIdx + 1}`}
+                    title={`${t('dailyLesson.step')} ${stepIdx + 1}`}
                   />
                 );
               })}
@@ -177,7 +193,7 @@ export function TodayLessonHeroCard({
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-3">
                 <span className="text-white text-xs font-semibold drop-shadow-sm flex items-center gap-1">
                   <Play className="w-3.5 h-3.5 text-blue-400 fill-blue-400" />
-                  <span>Chủ đề được chọn cho hôm nay</span>
+                  <span>{t('daily.chosenTopicForToday')}</span>
                 </span>
               </div>
             </div>
@@ -193,12 +209,12 @@ export function TodayLessonHeroCard({
             <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 shrink-0" />
               <span>
-                Xuất sắc! Bạn đã hoàn thành chủ đề hôm nay. Bạn có thể ôn tập lại hoặc bấm "Học thêm" để khám phá chủ đề tiếp theo.
+                {t('daily.completedHeroNotice')}
               </span>
             </span>
           ) : (
             <span>
-              💡 Học đều đặn 1 chủ đề mỗi ngày giúp bạn ghi nhớ sâu và phản xạ tự nhiên nhất.
+              {t('daily.regularStudyTip')}
             </span>
           )}
         </p>
@@ -212,7 +228,7 @@ export function TodayLessonHeroCard({
               className="px-4 py-3 rounded-2xl text-xs font-bold text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700/80 transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs"
             >
               <Compass className="w-4 h-4 text-blue-500" />
-              <span>Học thêm chủ đề khác</span>
+              <span>{t('daily.exploreMoreTopics')}</span>
             </button>
           )}
 
@@ -222,14 +238,14 @@ export function TodayLessonHeroCard({
               className="px-5 py-3 rounded-2xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all shadow-md shadow-emerald-500/20 flex items-center justify-center gap-2"
             >
               <RotateCcw className="w-4 h-4" />
-              <span>Ôn tập lại</span>
+              <span>{t('daily.reviewAgain')}</span>
             </Link>
           ) : (
             <Link
               to={`/daily/lesson/${lesson.id}`}
               className="px-6 py-3.5 rounded-2xl text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-95 transition-all shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2"
             >
-              <span>{hasStarted ? 'Tiếp tục học bài hôm nay' : 'Bắt đầu học bài hôm nay'}</span>
+              <span>{hasStarted ? t('daily.continueTodayLesson') : t('daily.startTodayLesson')}</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           )}

@@ -96,14 +96,14 @@ export default function LearnDeckPage() {
             <div className="flex items-center gap-2.5 min-w-0">
               <Lock className="w-4 h-4 text-amber-500 shrink-0" />
               <span className="text-amber-800 dark:text-amber-300 font-medium truncate">
-                Chế độ khách: Giới hạn học thử 5 từ mới.
+                {t('flashcards.guestTrialLimitNotice')}
               </span>
             </div>
             <button
               onClick={() => setIsAuthModalOpen(true)}
               className="text-blue-600 dark:text-blue-400 font-bold hover:underline shrink-0 cursor-pointer"
             >
-              Mở khóa tất cả →
+              {t('flashcards.unlockAll')}
             </button>
           </div>
         </div>

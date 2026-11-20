@@ -31,11 +31,17 @@ export function DailyReminderModal({ isOpen, onClose }: DailyReminderModalProps)
   const {
     todayGoal,
     todayLearned,
+    lastLearnedDate,
+    checkAndResetNewDay,
     streakDays,
     reviews,
     collectionReviews,
     getTodayReviewProgress,
   } = useLearningStore();
+
+  React.useEffect(() => {
+    checkAndResetNewDay();
+  }, [checkAndResetNewDay]);
 
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
   const reviewProgress = getTodayReviewProgress(todayStr);
@@ -71,8 +77,28 @@ export function DailyReminderModal({ isOpen, onClose }: DailyReminderModalProps)
     user?.email?.split('@')[0] ||
     'Learner';
 
-  // 2. Tính số từ mới còn cần học hôm nay để đạt chỉ tiêu
-  const actualLearned = Math.min(todayGoal, Math.max(0, todayLearned));
+  // 2. Tính số từ mới đã học hôm nay (chuẩn xác theo ngày hôm nay, không nhận giá trị hôm qua)
+  const actualLearned = useMemo(() => {
+    if (reviewProgress) {
+      if (reviewProgress.results && Object.keys(reviewProgress.results).length > 0) {
+        const uniqueWords = new Set(
+          Object.values(reviewProgress.results)
+            .map((r: any) => r.question?.wordId || r.questionId)
+            .filter(Boolean)
+        );
+        return Math.min(todayGoal, uniqueWords.size);
+      }
+      if (reviewProgress.wordIds && reviewProgress.wordIds.length > 0) {
+        return Math.min(todayGoal, reviewProgress.wordIds.length);
+      }
+      return Math.min(todayGoal, Math.ceil((reviewProgress.answeredCount || 0) / 3));
+    }
+    if (lastLearnedDate === todayStr) {
+      return Math.min(todayGoal, Math.max(0, todayLearned));
+    }
+    return 0;
+  }, [reviewProgress, lastLearnedDate, todayStr, todayGoal, todayLearned]);
+
   const wordsToLearn = Math.max(0, todayGoal - actualLearned);
   const isGoalReached = actualLearned >= todayGoal && actualLearned > 0;
 

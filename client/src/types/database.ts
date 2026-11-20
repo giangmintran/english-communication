@@ -88,6 +88,7 @@ export interface CollectionItem {
   difficulty_level: 'A1' | 'A2' | 'B1' | 'B2';
   audio_url?: string;
   order_index?: number;
+  sprint_day?: 1 | 2 | 3;
 }
 
 export interface Collection {
@@ -173,7 +174,8 @@ export type LeaderboardEntry = {
 
 export type DailyLesson = {
   id: string;
-  deck_id: string;
+  deck_id: string; // Tương thích ngược với hệ thống cũ
+  collection_id?: string; // ID của Collection trong Thematic Sprint
   title: string;
   description: string;
   topic: string;
@@ -181,6 +183,9 @@ export type DailyLesson = {
   estimated_minutes: number;
   order_index: number;
   image_url?: string;
+  sprint_day?: 1 | 2 | 3; // Ngày thứ mấy trong Sprint 3 ngày (1: Khởi động, 2: Tương tác, 3: Phản xạ)
+  sprint_total_days?: number; // Mặc định là 3
+  stage_title?: string; // Tên giai đoạn: VD "Giai đoạn 1: Khởi động & Nền tảng"
 };
 
 export type LessonWarmup = {
@@ -201,6 +206,8 @@ export type LessonVocabItem = {
   example_sentence: string;
   example_meaning: string;
   audio_url?: string;
+  is_review?: boolean; // True nếu là từ ôn tập 30% theo quy tắc 70/30
+  sprint_day?: 1 | 2 | 3;
 };
 
 export type LessonGrammar = {

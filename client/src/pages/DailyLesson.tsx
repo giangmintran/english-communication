@@ -30,7 +30,7 @@ export default function DailyLessonPage() {
         }
       } catch (err: any) {
         if (mounted) {
-          setError(err.message || 'Lỗi khi tải bài học');
+          setError(err.message || t('dailyLesson.loadError'));
         }
       } finally {
         if (mounted) {
@@ -63,7 +63,7 @@ export default function DailyLessonPage() {
           <AlertCircle className="w-6 h-6" />
         </div>
         <h3 className="font-bold text-slate-900 dark:text-white text-base">
-          {error || 'Không tìm thấy bài học'}
+          {error || t('dailyLesson.notFound')}
         </h3>
         <Link
           to="/daily"
@@ -76,8 +76,12 @@ export default function DailyLessonPage() {
     );
   }
 
-  // Chế độ khách (chưa đăng nhập): chỉ cho phép học thử bài đầu tiên (lesson-restaurant-01 hoặc lesson-daily-1)
-  const isLockedForGuest = !user && lessonId !== 'lesson-restaurant-01' && lessonId !== 'lesson-daily-1';
+  // Chế độ khách (chưa đăng nhập): chỉ cho phép học thử ĐÚNG 1 bài mẫu trong Explore topics hoặc bài dynamic của ngày hôm nay
+  const isLockedForGuest =
+    !user &&
+    lessonId !== 'lesson-restaurant-01' &&
+    !lessonId?.startsWith('lesson-dynamic-') &&
+    !lessonId?.startsWith('lesson-ai-');
 
   if (isLockedForGuest) {
     return (
@@ -89,13 +93,13 @@ export default function DailyLessonPage() {
         <div>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 text-xs font-bold uppercase tracking-wider mb-2">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Chế độ khách bị giới hạn</span>
+            <span>{t('dailyLesson.guestLimitedTag')}</span>
           </span>
           <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
-            Bài học này yêu cầu đăng nhập
+            {t('dailyLesson.loginRequiredTitle')}
           </h3>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
-            Bạn đang học ở chế độ khách (chỉ được học thử 1 bài mẫu). Vui lòng đăng nhập với tài khoản Google để mở khóa toàn bộ bài học và lưu lộ trình tiến bộ của bạn.
+            {t('dailyLesson.loginRequiredDesc')}
           </p>
         </div>
 
@@ -105,21 +109,21 @@ export default function DailyLessonPage() {
             className="w-full py-3.5 px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm rounded-2xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-blue-500/20 cursor-pointer"
           >
             <GoogleIcon className="w-4 h-4" />
-            <span>Đăng nhập với Google để mở khóa</span>
+            <span>{t('dailyLesson.loginWithGoogleToUnlock')}</span>
           </button>
 
           <Link
             to="/daily/lesson/lesson-restaurant-01"
             className="w-full py-3 px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs sm:text-sm rounded-2xl flex items-center justify-center gap-2 transition-colors block"
           >
-            <span>Học bài mẫu miễn phí (Bài 1)</span>
+            <span>{t('dailyLesson.tryFreeSample')}</span>
           </Link>
 
           <Link
             to="/daily"
             className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors inline-block pt-1"
           >
-            ← Quay lại danh sách bài học
+            ← {t('dailyLesson.backToLessons')}
           </Link>
         </div>
       </div>

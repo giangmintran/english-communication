@@ -81,9 +81,9 @@ export function DailyFilterDrawer({
 
   const levels = ['all', 'A1', 'A2', 'B1', 'B2'];
   const statuses: { id: 'all' | 'completed' | 'in_progress'; label: string }[] = [
-    { id: 'all', label: 'Tất cả trạng thái' },
-    { id: 'completed', label: 'Đã hoàn thành' },
-    { id: 'in_progress', label: 'Chưa hoàn thành' },
+    { id: 'all', label: t('daily.statusAll') },
+    { id: 'completed', label: t('daily.statusCompleted') },
+    { id: 'in_progress', label: t('daily.statusInProgress') },
   ];
 
   const hasActiveFilters =
@@ -108,10 +108,10 @@ export function DailyFilterDrawer({
             </div>
             <div>
               <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                Bộ lọc bài học
+                {t('daily.filterDrawerTitle')}
               </h3>
               <p className="text-xs text-slate-400">
-                Tùy chỉnh danh sách hiển thị
+                {t('daily.filterDrawerSubtitle')}
               </p>
             </div>
           </div>
@@ -119,7 +119,7 @@ export function DailyFilterDrawer({
           <button
             onClick={onClose}
             className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-            aria-label="Đóng bộ lọc"
+            aria-label={t('daily.closeFilter')}
           >
             <X className="w-5 h-5" />
           </button>
@@ -132,10 +132,10 @@ export function DailyFilterDrawer({
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
                 <Layers className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                <span>Chủ đề bài học</span>
+                <span>{t('daily.filterTopicTitle')}</span>
               </label>
               <span className="text-[11px] text-slate-400">
-                {decks.length + 1} lựa chọn
+                {t('daily.optionsCount', { count: decks.length + 1 })}
               </span>
             </div>
 
@@ -165,7 +165,7 @@ export function DailyFilterDrawer({
                   <span>{t('daily.allLessons')}</span>
                 </div>
                 <span className="px-2 py-0.5 rounded-full bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-500 border border-slate-200/60 dark:border-slate-700">
-                  {getDeckCount('all')} bài
+                  {t('daily.lessonsCount', { count: getDeckCount('all') })}
                 </span>
               </button>
 
@@ -200,7 +200,7 @@ export function DailyFilterDrawer({
                       <span className="truncate">{deck.title}</span>
                     </div>
                     <span className="px-2 py-0.5 rounded-full bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-500 border border-slate-200/60 dark:border-slate-700 shrink-0">
-                      {count} bài
+                      {t('daily.lessonsCount', { count })}
                     </span>
                   </button>
                 );
@@ -212,7 +212,7 @@ export function DailyFilterDrawer({
           <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
               <BookOpen className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-              <span>Trình độ (Level)</span>
+              <span>{t('daily.filterLevelTitle')}</span>
             </label>
 
             <div className="flex flex-wrap gap-2">
@@ -230,7 +230,7 @@ export function DailyFilterDrawer({
                         : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                     )}
                   >
-                    {lvl === 'all' ? 'Tất cả level' : lvl}
+                    {lvl === 'all' ? t('daily.allLevels') : lvl}
                   </button>
                 );
               })}
@@ -241,7 +241,7 @@ export function DailyFilterDrawer({
           <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>Trạng thái học</span>
+              <span>{t('daily.filterStatusTitle')}</span>
             </label>
 
             <div className="grid grid-cols-1 gap-2">
@@ -277,7 +277,7 @@ export function DailyFilterDrawer({
             className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>Đặt lại</span>
+            <span>{t('daily.resetFilters')}</span>
           </button>
 
           <button
@@ -285,7 +285,7 @@ export function DailyFilterDrawer({
             onClick={onClose}
             className="flex-1 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all shadow-sm shadow-blue-500/25 flex items-center justify-center cursor-pointer"
           >
-            <span>Áp dụng bộ lọc</span>
+            <span>{t('daily.applyFilter')}</span>
           </button>
         </div>
       </aside>

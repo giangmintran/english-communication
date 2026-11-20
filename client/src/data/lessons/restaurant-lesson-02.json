@@ -1,0 +1,404 @@
+{
+  "lesson": {
+    "id": "lesson-restaurant-02",
+    "deck_id": "deck-restaurant",
+    "title": "Dealing with Order Issues & Compliments",
+    "description": "Cách góp ý nhẹ nhàng khi món ăn bị nhầm hoặc nguội, và khen ngợi món ăn ngon.",
+    "topic": "Handling Problems & Compliments",
+    "level": "A2",
+    "estimated_minutes": 30,
+    "order_index": 2,
+    "image_url": "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80"
+  },
+  "warmup": {
+    "situation": "Khi dùng bữa tại nhà hàng, đôi khi món ăn bị nguội, nhầm lẫn đồ ăn hoặc đồ ăn quá ngon khiến bạn muốn khen ngợi đầu bếp. Bạn cần biết cách phản hồi lịch sự, khéo léo mà không làm không khí căng thẳng.",
+    "objective": "Sau bài học, bạn có thể tự tin phản ánh khi món ăn có vấn đề (nguội, nhầm món, thiếu đồ) và khen ngợi món ăn ngon chuẩn phong cách người bản xứ.",
+    "warm_up_question": "If a waiter brings you a dish you didn't order, how would you politely tell them without sounding angry?",
+    "key_phrases": [
+      "I think there's been a mistake",
+      "Could you heat this up for me?",
+      "My compliments to the chef",
+      "Everything was cooked to perfection"
+    ],
+    "image_url": "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80"
+  },
+  "vocabulary": [
+    {
+      "id": "rv2-1",
+      "word": "mistake",
+      "phonetic_ipa": "/mɪˈsteɪk/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "sự nhầm lẫn, sơ suất",
+      "collocations": ["make a mistake", "honest mistake", "there is a mistake with"],
+      "example_sentence": "I think there has been a small mistake with our bill.",
+      "example_meaning": "Tôi nghĩ đã có một chút nhầm lẫn trong hóa đơn của chúng tôi."
+    },
+    {
+      "id": "rv2-2",
+      "word": "undercooked",
+      "phonetic_ipa": "/ˌʌn.dɚˈkʊkt/",
+      "part_of_speech": "adjective",
+      "vietnamese_meaning": "chưa chín tới, còn sống",
+      "collocations": ["undercooked chicken", "slightly undercooked"],
+      "example_sentence": "Excuse me, the chicken seems a bit undercooked in the center.",
+      "example_meaning": "Xin lỗi phục vụ, miếng gà dường như còn hơi sống ở phần giữa."
+    },
+    {
+      "id": "rv2-3",
+      "word": "lukewarm",
+      "phonetic_ipa": "/ˈluːk.wɔːrm/",
+      "part_of_speech": "adjective",
+      "vietnamese_meaning": "nguội, chỉ âm ấm (không đủ nóng)",
+      "collocations": ["lukewarm soup", "serve lukewarm"],
+      "example_sentence": "The vegetable soup was served lukewarm instead of steaming hot.",
+      "example_meaning": "Món súp rau củ được mang ra khi đã nguội chứ không còn nóng hổi."
+    },
+    {
+      "id": "rv2-4",
+      "word": "replace",
+      "phonetic_ipa": "/rɪˈpleɪs/",
+      "part_of_speech": "verb",
+      "vietnamese_meaning": "đổi món mới, thay thế",
+      "collocations": ["replace the dish", "replace it right away"],
+      "example_sentence": "We will gladly replace your meal immediately, sir.",
+      "example_meaning": "Chúng tôi sẽ đổi ngay món mới cho quý khách ạ."
+    },
+    {
+      "id": "rv2-5",
+      "word": "compliment",
+      "phonetic_ipa": "/ˈkɑːm.plə.mənt/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "lời khen ngợi, tán thưởng",
+      "collocations": ["my compliments to the chef", "pay a compliment", "accept compliments"],
+      "example_sentence": "Please pass my sincere compliments to the chef for this outstanding pasta.",
+      "example_meaning": "Làm ơn chuyển lời khen chân thành của tôi tới bếp trưởng vì món mì Ý tuyệt hảo này."
+    },
+    {
+      "id": "rv2-6",
+      "word": "delicious",
+      "phonetic_ipa": "/dɪˈlɪʃ.əs/",
+      "part_of_speech": "adjective",
+      "vietnamese_meaning": "rất ngon, thơm ngon",
+      "collocations": ["absolutely delicious", "look delicious", "smell delicious"],
+      "example_sentence": "The grilled salmon was absolutely delicious and full of flavor.",
+      "example_meaning": "Món cá hồi nướng thực sự thơm ngon và rất đậm đà."
+    },
+    {
+      "id": "rv2-7",
+      "word": "apologize",
+      "phonetic_ipa": "/əˈpɑː.lə.dʒaɪz/",
+      "part_of_speech": "verb",
+      "vietnamese_meaning": "xin lỗi chân thành",
+      "collocations": ["sincerely apologize", "apologize for the inconvenience", "apologize for the delay"],
+      "example_sentence": "I sincerely apologize for bringing the wrong side order.",
+      "example_meaning": "Tôi chân thành xin lỗi vì đã mang nhầm món ăn kèm."
+    },
+    {
+      "id": "rv2-8",
+      "word": "on the house",
+      "phonetic_ipa": "/ɒn ðə haʊs/",
+      "part_of_speech": "idiom",
+      "vietnamese_meaning": "quán mời miễn phí (để tạ lỗi hoặc đãi khách)",
+      "collocations": ["drinks on the house", "dessert on the house"],
+      "example_sentence": "Because of the long wait, tonight's dessert is on the house.",
+      "example_meaning": "Do quý khách phải đợi lâu, món tráng miệng tối nay quán xin mời miễn phí."
+    },
+    {
+      "id": "rv2-9",
+      "word": "to-go box",
+      "phonetic_ipa": "/tuː ɡoʊ bɑːks/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "hộp mang về, hộp đựng thức ăn thừa",
+      "collocations": ["ask for a to-go box", "pack in a to-go box"],
+      "example_sentence": "Could I have a to-go box for the rest of my steak, please?",
+      "example_meaning": "Làm ơn cho tôi xin một chiếc hộp để gói phần bít tết còn lại mang về được không?"
+    },
+    {
+      "id": "rv2-10",
+      "word": "satisfaction",
+      "phonetic_ipa": "/ˌsæt̬.ɪsˈfæk.ʃən/",
+      "part_of_speech": "noun",
+      "vietnamese_meaning": "sự hài lòng, thỏa mãn",
+      "collocations": ["customer satisfaction", "guarantee satisfaction"],
+      "example_sentence": "Your satisfaction is our priority, and we hope you enjoyed your dinner.",
+      "example_meaning": "Sự hài lòng của quý khách là ưu tiên hàng đầu, và chúng tôi hy vọng quý khách có bữa tối ngon miệng."
+    }
+  ],
+  "grammar": {
+    "title": "Polite Softeners for Complaining (I'm afraid... / It seems... / Could you please...)",
+    "explanation": "Khi phản ánh vấn đề trong nhà hàng, người bản xứ dùng các từ giảm nhẹ (softeners) như 'I'm afraid...', 'It seems like...' để giữ thái độ nhã nhặn, tôn trọng nhân viên phục vụ thay vì nói cộc lốc.",
+    "formula": "Excuse me, I'm afraid [there is a problem] | Could you please [action] for me?",
+    "examples": [
+      {
+        "english": "Excuse me, I'm afraid this soup is a bit lukewarm.",
+        "vietnamese": "Xin lỗi bạn, tôi e là món súp này hơi bị nguội rồi.",
+        "highlight": "I'm afraid"
+      },
+      {
+        "english": "It seems there has been a mix-up; I ordered the grilled fish.",
+        "vietnamese": "Dường như có chút nhầm lẫn; tôi gọi món cá nướng cơ.",
+        "highlight": "It seems there has been"
+      },
+      {
+        "english": "Could you please warm this up for me?",
+        "vietnamese": "Bạn làm ơn hâm nóng lại món này giúp tôi được không?",
+        "highlight": "Could you please"
+      }
+    ],
+    "common_mistakes": [
+      {
+        "wrong": "This food is bad and cold, change it now!",
+        "correct": "Excuse me, I'm afraid this dish has gone cold. Could you heat it up, please?",
+        "explanation": "Không nên dùng câu mệnh lệnh thô lỗ. Luôn bắt đầu bằng 'Excuse me, I'm afraid...' và kết thúc bằng 'please'."
+      },
+      {
+        "wrong": "You made a mistake!",
+        "correct": "I think there might be a small mistake with our order.",
+        "explanation": "Tránh đổ lỗi trực tiếp cho nhân viên ('You made a mistake'), hãy nói giảm nhẹ bằng 'I think there might be a mistake'."
+      }
+    ]
+  },
+  "expressions": [
+    {
+      "id": "re2-1",
+      "expression": "Excuse me, I think there's been a mistake with our order.",
+      "phonetic_ipa": "/ɪkˈskjuːz miː, aɪ θɪŋk ðeəz biːn ə mɪˈsteɪk wɪð ˈaʊər ˈɔːdər/",
+      "meaning": "Xin lỗi bạn, tôi nghĩ có chút nhầm lẫn trong đơn gọi món của chúng tôi.",
+      "context": "Dùng khi người phục vụ mang nhầm món bạn không hề gọi.",
+      "formality": "polite",
+      "variations": [
+        "I'm afraid this isn't what I ordered.",
+        "Excuse me, we actually ordered the chicken, not the beef.",
+        "I think there might be a mix-up with this table."
+      ]
+    },
+    {
+      "id": "re2-2",
+      "expression": "Could you please heat this up for me? It's a bit cold.",
+      "phonetic_ipa": "/kʊd juː pliːz hiːt ðɪs ʌp fɔː miː/",
+      "meaning": "Bạn có thể hâm nóng lại món này giúp tôi không? Nó hơi bị nguội.",
+      "context": "Dùng khi món ăn mang ra không đủ nóng hoặc đã để lâu bị nguội.",
+      "formality": "polite",
+      "variations": [
+        "Could you warm this up, please?",
+        "This dish has gotten cold, could you reheat it?",
+        "Would you mind heating this up for me?"
+      ]
+    },
+    {
+      "id": "re2-3",
+      "expression": "My compliments to the chef! The steak was cooked to perfection.",
+      "phonetic_ipa": "/maɪ ˈkɑːmplɪmənts tuː ðə ʃef/",
+      "meaning": "Gửi lời khen của tôi tới bếp trưởng nhé! Miếng bít tết được nấu chín hoàn hảo.",
+      "context": "Khen ngợi chân thành khi món ăn ngon xuất sắc.",
+      "formality": "polite",
+      "variations": [
+        "Please tell the chef that this was fantastic!",
+        "The food was absolutely wonderful, compliments to the kitchen!",
+        "This is hands down the best pasta I've ever had."
+      ]
+    },
+    {
+      "id": "re2-4",
+      "expression": "Excuse me, we are still waiting for our side dish.",
+      "phonetic_ipa": "/ɪkˈskjuːz miː, wiː ɑːr stɪl ˈweɪtɪŋ fɔːr ˈaʊər saɪd dɪʃ/",
+      "meaning": "Xin lỗi bạn, chúng tôi vẫn đang đợi món ăn kèm chưa thấy mang ra.",
+      "context": "Nhắc khéo khi người phục vụ quên mang một món nào đó trong đơn.",
+      "formality": "polite",
+      "variations": [
+        "Could you check on our salad, please?",
+        "We ordered fries as well, are they coming soon?",
+        "Just a reminder about our side dish."
+      ]
+    }
+  ],
+  "listening": [
+    {
+      "id": "rl2-1",
+      "title": "A Gentle Complaint and a Sweet Solution",
+      "dialogue": [
+        {
+          "speaker": "Customer",
+          "text": "Excuse me, could you come over for a second, please?",
+          "vietnamese": "Xin lỗi bạn, bạn có thể ghé qua bàn một chút được không?"
+        },
+        {
+          "speaker": "Waiter",
+          "text": "Yes, of course! How is everything with your meal, ma'am?",
+          "vietnamese": "Dạ vâng, thưa bà! Bữa ăn của mình thế nào rồi ạ?"
+        },
+        {
+          "speaker": "Customer",
+          "text": "The flavor is wonderful, but I'm afraid my mushroom pasta is quite lukewarm.",
+          "vietnamese": "Hương vị rất tuyệt, nhưng tôi e là đĩa mì nấm này hơi bị nguội rồi."
+        },
+        {
+          "speaker": "Waiter",
+          "text": "Oh, I sincerely apologize for that! Let me take it right back to the kitchen and have the chef make you a fresh, piping hot plate.",
+          "vietnamese": "Ôi, tôi thành thật xin lỗi vì điều đó! Để tôi mang vào bếp ngay và nhờ đầu bếp làm lại một đĩa mới nóng hổi cho bà ạ."
+        },
+        {
+          "speaker": "Customer",
+          "text": "Thank you so much, I really appreciate your prompt help.",
+          "vietnamese": "Cảm ơn bạn nhiều, tôi rất trân trọng sự hỗ trợ nhanh nhẹn của bạn."
+        },
+        {
+          "speaker": "Waiter",
+          "text": "Here is your fresh pasta, ma'am. Also, our manager insisted on offering your coffee on the house today.",
+          "vietnamese": "Dạ đây là đĩa mì mới của bà. Ngoài ra, quản lý của chúng tôi gửi tặng cà phê hôm nay hoàn toàn miễn phí ạ."
+        }
+      ],
+      "questions": [
+        {
+          "id": "lq2-1",
+          "question": "What was the problem with the customer's pasta?",
+          "options": ["It was too salty", "It was lukewarm and not hot", "It was the wrong dish", "It had no mushrooms"],
+          "correct_answer": 1,
+          "explanation": "Khách hàng nhận xét: 'I'm afraid my mushroom pasta is quite lukewarm'."
+        },
+        {
+          "id": "lq2-2",
+          "question": "How did the waiter respond to the problem?",
+          "options": ["He argued with the customer", "He offered a refund immediately", "He apologized and had the kitchen prepare a fresh plate", "He brought the bill"],
+          "correct_answer": 2,
+          "explanation": "Người phục vụ nói: 'I sincerely apologize... Let me have the chef make you a fresh, piping hot plate'."
+        },
+        {
+          "id": "lq2-3",
+          "question": "What complimentary item did the restaurant offer on the house?",
+          "options": ["A glass of wine", "A free coffee", "Dessert cake", "Garlic bread"],
+          "correct_answer": 1,
+          "explanation": "Người phục vụ nói: 'our manager insisted on offering your coffee on the house today'."
+        }
+      ]
+    }
+  ],
+  "speaking": {
+    "situation": "Bạn đang dùng bữa tại nhà hàng và gặp một vài tình huống cần phản hồi. Hãy luyện nói các câu dưới đây với ngữ điệu lịch sự, tự tin.",
+    "sample_dialogue": [
+      {
+        "speaker": "Waiter",
+        "text": "Is everything alright with your dinner?",
+        "vietnamese": "Mọi thứ trong bữa tối đều ổn chứ ạ?"
+      },
+      {
+        "speaker": "You",
+        "text": "The steak is wonderful! My compliments to the chef.",
+        "vietnamese": "Miếng bít tết tuyệt vời lắm! Gửi lời khen của tôi tới bếp trưởng nhé."
+      },
+      {
+        "speaker": "Waiter",
+        "text": "Thank you so much, I will surely let him know!",
+        "vietnamese": "Cảm ơn bạn rất nhiều, tôi nhất định sẽ báo với anh ấy!"
+      },
+      {
+        "speaker": "You",
+        "text": "Also, could you check on our dessert, please?",
+        "vietnamese": "Ngoài ra, bạn kiểm tra giúp món tráng miệng của chúng tôi nhé?"
+      }
+    ],
+    "practice_sentences": [
+      {
+        "id": "sp2-1",
+        "text": "Excuse me, I think there has been a mistake with our order.",
+        "phonetic_ipa": "/ɪkˈskjuːz miː, aɪ θɪŋk ðeər hæz biːn ə mɪˈsteɪk wɪð ˈaʊər ˈɔːrdər/",
+        "vietnamese_hint": "Xin lỗi, tôi nghĩ có chút nhầm lẫn trong món ăn của chúng tôi."
+      },
+      {
+        "id": "sp2-2",
+        "text": "Could you please heat this up for me? It's a bit cold.",
+        "phonetic_ipa": "/kʊd juː pliːz hiːt ðɪs ʌp fɔːr miː, ɪts ə bɪt koʊld/",
+        "vietnamese_hint": "Bạn có thể hâm nóng lại giúp tôi không? Nó hơi bị nguội."
+      },
+      {
+        "id": "sp2-3",
+        "text": "My compliments to the chef, this dish is cooked to perfection!",
+        "phonetic_ipa": "/maɪ ˈkɑːmplɪmənts tuː ðə ʃef, ðɪs dɪʃ ɪz kʊkt tuː pərˈfekʃən/",
+        "vietnamese_hint": "Gửi lời khen tới bếp trưởng, món này nấu quá chuẩn!"
+      },
+      {
+        "id": "sp2-4",
+        "text": "Thank you for replacing it so quickly, that is great service.",
+        "phonetic_ipa": "/θæŋk juː fɔːr rɪˈpleɪsɪŋ ɪt soʊ ˈkwɪkli, ðæt ɪz ɡreɪt ˈsɜːrvɪs/",
+        "vietnamese_hint": "Cảm ơn bạn đã đổi món nhanh như vậy, dịch vụ thật tuyệt vời."
+      }
+    ]
+  },
+  "practice": [
+    {
+      "id": "pq2-1",
+      "type": "vocabulary_quiz",
+      "question": "Which word means 'only slightly warm, not hot enough'?",
+      "options": ["Boiling", "Lukewarm", "Steaming", "Frozen"],
+      "correct_answer": 1,
+      "explanation": "'Lukewarm' nghĩa là nguội ngắt hoặc chỉ âm ấm, chưa đủ độ nóng."
+    },
+    {
+      "id": "pq2-2",
+      "type": "vocabulary_quiz",
+      "question": "What does 'on the house' mean in a restaurant?",
+      "options": ["Delivered to your home", "Free of charge paid by the restaurant", "Very expensive", "Ordered by the chef"],
+      "correct_answer": 1,
+      "explanation": "'On the house' là thành ngữ chỉ món ăn/thức uống quán mời miễn phí."
+    },
+    {
+      "id": "pq2-3",
+      "type": "grammar_quiz",
+      "question": "Which sentence is the most polite way to complain about cold food?",
+      "options": [
+        "Take this away and give me hot food!",
+        "Excuse me, I'm afraid this soup is a bit cold. Could you heat it up, please?",
+        "You always serve cold food here.",
+        "This is terrible, I will not pay."
+      ],
+      "correct_answer": 1,
+      "explanation": "Dùng 'Excuse me, I'm afraid...' và 'Could you heat it up, please?' là cách nói nhã nhặn và hiệu quả nhất."
+    },
+    {
+      "id": "pq2-4",
+      "type": "grammar_quiz",
+      "question": "Complete the compliment: 'My ______ to the chef for this outstanding pasta.'",
+      "options": ["compliments", "apologies", "mistakes", "orders"],
+      "correct_answer": 0,
+      "explanation": "Thành ngữ chuẩn: 'My compliments to the chef' (Gửi lời khen ngợi tới bếp trưởng)."
+    },
+    {
+      "id": "pq2-5",
+      "type": "sentence_building",
+      "vietnamese": "Tôi nghĩ có chút nhầm lẫn trong đơn gọi món của chúng tôi.",
+      "scrambled_words": ["with", "a mistake", "I think", "our order.", "there's been"],
+      "correct_order": ["I think", "there's been", "a mistake", "with", "our order."],
+      "hint": "Cụm từ: 'I think there's been a mistake with...'"
+    },
+    {
+      "id": "pq2-6",
+      "type": "sentence_building",
+      "vietnamese": "Làm ơn chuyển lời khen của tôi tới bếp trưởng nhé.",
+      "scrambled_words": ["to", "My compliments", "please.", "the chef,", ""],
+      "correct_order": ["My compliments", "to", "the chef,", "please."],
+      "hint": "Bắt đầu bằng 'My compliments to...'"
+    },
+    {
+      "id": "pq2-7",
+      "type": "translation",
+      "source_text": "Bạn có thể hâm nóng lại món này giúp tôi được không?",
+      "source_lang": "vi",
+      "correct_answer": "Could you heat this up for me, please?",
+      "accept_answers": [
+        "Could you heat this up for me please",
+        "Could you heat this up, please?",
+        "Could you please heat this up for me?",
+        "Could you please heat this up?",
+        "Can you heat this up for me, please?"
+      ],
+      "hint": "Dùng cụm: 'Could you heat this up for me, please?'"
+    },
+    {
+      "id": "pq2-8",
+      "type": "speaking_challenge",
+      "prompt": "The waiter asks you: 'Is everything good with your steak?'. How do you compliment that it's cooked to perfection?",
+      "sample_answer": "It is delicious! My compliments to the chef.",
+      "vietnamese_hint": "Nói bằng tiếng Anh: 'It is delicious! My compliments to the chef.'"
+    }
+  ]
+}
