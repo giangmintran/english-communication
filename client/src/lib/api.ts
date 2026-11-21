@@ -266,6 +266,18 @@ export const api = {
       }
     },
 
+    // Lấy toàn bộ lịch sử ôn tập gần đây từ server
+    getAllDailyReviews: async (): Promise<DailyReviewProgress[]> => {
+      try {
+        const res = await requestWithAuth<DailyReviewProgress[]>(
+          '/progress/daily-review?all=true'
+        );
+        return Array.isArray(res) ? res : [];
+      } catch {
+        return [];
+      }
+    },
+
     // Lưu tiến trình ôn tập lên server
     saveDailyReview: async (progress: DailyReviewProgress): Promise<DailyReviewProgress> => {
       return requestWithAuth<DailyReviewProgress>('/progress/daily-review', {

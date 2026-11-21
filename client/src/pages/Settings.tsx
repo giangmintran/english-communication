@@ -11,6 +11,7 @@ import {
   Globe,
   Sparkles,
   CheckCircle2,
+  Info,
 } from 'lucide-react';
 import { useLearningStore } from '@/lib/store';
 import { useAuth } from '@/context/AuthContext';
@@ -22,10 +23,20 @@ import { supabase } from '@/lib/supabaseClient';
 import { api } from '@/lib/api';
 
 export default function SettingsPage() {
-  const { profile, todayGoal, updateProfile } = useLearningStore();
+  const { profile, todayGoal, updateProfile, dailyReviewProgress, lastLearnedDate, todayLearned } = useLearningStore();
   const { user, signInWithGoogle, signOut } = useAuth();
   const { theme, resolvedTheme, setTheme } = useTheme();
   const { t, language, setLanguage } = useTranslation();
+
+  const todayStr = React.useMemo(() => new Date().toISOString().split('T')[0], []);
+  const todayReview = dailyReviewProgress[todayStr];
+
+  const isTodayCompleted = React.useMemo(() => {
+    if (todayReview?.isCompleted) return true;
+    if (todayReview?.totalQuestions && todayReview?.answeredCount >= todayReview?.totalQuestions && todayReview?.answeredCount > 0) return true;
+    const wordsFromStore = lastLearnedDate === todayStr ? todayLearned : 0;
+    return todayGoal > 0 && wordsFromStore >= todayGoal;
+  }, [todayReview, lastLearnedDate, todayStr, todayLearned, todayGoal]);
 
   const displayName =
     (user?.id === profile.id && profile.display_name ? profile.display_name : null) ||
@@ -365,6 +376,12 @@ export default function SettingsPage() {
             <option value={15}>{t('settings.goal15')}</option>
             <option value={20}>{t('settings.goal20')}</option>
           </select>
+          {isTodayCompleted && (
+            <p className="mt-2 text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5 font-medium">
+              <Info className="w-3.5 h-3.5 shrink-0" />
+              <span>{t('settings.goalTomorrowNotice')}</span>
+            </p>
+          )}
         </div>
 
         <div>
@@ -386,7 +403,7 @@ export default function SettingsPage() {
         <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
           {saved ? (
             <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1.5 animate-in fade-in">
-              <Check className="w-4 h-4" /> {t('settings.savedSuccess')}
+              <Check className="w-4 h-4" /> {isTodayCompleted && goal !== todayGoal ? t('settings.savedTomorrowNotice') : t('settings.savedSuccess')}
             </span>
           ) : <span />}
 

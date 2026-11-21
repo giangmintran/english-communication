@@ -31,6 +31,8 @@ app.use(
 // 2. CORS an toàn hỗ trợ cả Localhost và Vercel Production
 const allowedOrigins = [
   CLIENT_ORIGIN,
+  'https://speakup-englsih.vercel.app',
+  'https://speakup-english.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',
   'http://127.0.0.1:5173',
@@ -39,8 +41,8 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Cho phép requests không có origin (server-to-server, curl) hoặc origin nằm trong danh sách whitelist
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Cho phép requests không có origin (server-to-server, curl) hoặc origin nằm trong danh sách whitelist hoặc mọi domain Vercel preview/production
+      if (!origin || allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
         callback(null, true);
       } else {
         callback(null, false);
@@ -52,10 +54,10 @@ app.use(
 
 app.use(express.json({ limit: '1mb' })); // Giới hạn kích thước payload
 
-// 3. Giới hạn tần suất gọi API (Rate Limiting) chống spam và DoS
+// 3. Giới hạn tần suất gọi API (Rate Limiting) chống spam và DoS (tối ưu cho 10-30 người dùng đồng thời)
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 phút
-  max: 300, // Tối đa 300 request / 15 phút cho mỗi IP
+  max: 1500, // Cho phép 1500 request / 15 phút cho mỗi IP (tránh bị 429 khi 10 người dùng chung mạng WiFi)
   standardHeaders: true,
   legacyHeaders: false,
   message: {

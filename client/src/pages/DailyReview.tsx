@@ -33,6 +33,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
 import dailyItemsJson from '@/data/dailyItems.json';
+import { selectDailyWords, loadDailyWordsFromCollectionItems } from '@/lib/dailyWordSelector';
 
 export default function DailyReviewPage() {
   const navigate = useNavigate();
@@ -85,8 +86,28 @@ export default function DailyReviewPage() {
       pendingSyncProgressRef.current = null;
 
       if (user?.id) {
-        api.progress.saveDailyReview(toSync).catch((err) => {
-          console.warn('Background batch sync failed:', err);
+        api.progress.saveDailyReview(toSync).catch(async (err) => {
+          console.warn('Background batch sync failed, trying Supabase fallback:', err);
+          try {
+            const { supabase } = await import('@/lib/supabaseClient');
+            const now = new Date().toISOString();
+            await supabase.from('daily_reviews').upsert({
+              user_id: user.id,
+              review_date: toSync.date,
+              deck_id: toSync.deckId || 'daily',
+              word_ids: toSync.wordIds || [],
+              current_index: toSync.currentIndex || 0,
+              total_questions: toSync.totalQuestions || 60,
+              answered_count: toSync.answeredCount || 0,
+              correct_count: toSync.correctCount || 0,
+              is_completed: toSync.isCompleted || false,
+              results: toSync.results || {},
+              updated_at: now,
+            }, { onConflict: 'user_id,review_date' });
+
+            // Cập nhật last_active_date trong profiles (tiến trình Daily độc lập với collection_reviews)
+            await supabase.from('profiles').update({ last_active_date: now }).eq('id', user.id);
+          } catch (_) {}
         });
       }
     },
@@ -123,83 +144,78 @@ export default function DailyReviewPage() {
       try {
         setLoading(true);
 
-        // A. Tải toàn bộ kho từ vựng giao tiếp hàng ngày
-        const deckData = await api.decks.getById('daily');
-        const items = deckData?.flashcards || deckData?.items || [];
-        const sourceItems = items.length > 0 ? items : (dailyItemsJson as LearningItem[]);
-        // Khách (chưa đăng nhập): giới hạn học thử 5 từ mới
-        const targetCount = !user ? 5 : Math.max(todayGoal || 20, 20);
+        // A. Tải toàn bộ kho từ vựng từ bảng collection_items trên database (kèm fallback đầy đủ)
+        const sourceItems = await loadDailyWordsFromCollectionItems();
+        // Khách (chưa đăng nhập): giới hạn học thử 5 từ mới. Người dùng đã đăng nhập: học theo mục tiêu (5, 10, 15, 20 từ)
+        const targetCount = !user ? Math.min(5, todayGoal || 5) : (todayGoal || 20);
 
         // B. Kiểm tra tiến trình đã lưu trước đó (Client LocalStorage trước)
         let savedProgress: DailyReviewProgress | null = getTodayReviewProgress(todayStr);
 
-        // Nếu người dùng đã đăng nhập và local chưa có tiến trình, tải từ server
+        // Nếu người dùng đã đăng nhập và local chưa có tiến trình, tải từ server hoặc supabase
         if (user && (!savedProgress || savedProgress.answeredCount === 0)) {
+          let serverProgress: DailyReviewProgress | null = null;
           try {
-            const serverProgress = await api.progress.getDailyReview(todayStr);
-            if (serverProgress && serverProgress.answeredCount > 0) {
-              savedProgress = serverProgress;
-              // Đồng bộ về local store
-              await saveDailyReviewProgress(serverProgress, user.id);
-            }
+            serverProgress = await api.progress.getDailyReview(todayStr);
           } catch (_) {}
+
+          if (serverProgress && (serverProgress.answeredCount > 0 || serverProgress.isCompleted)) {
+            savedProgress = serverProgress;
+            // Đồng bộ về local store
+            await saveDailyReviewProgress(serverProgress, user.id);
+          } else {
+            try {
+              const { supabase } = await import('@/lib/supabaseClient');
+              const { data: dbDaily } = await supabase
+                .from('daily_reviews')
+                .select('*')
+                .eq('user_id', user.id)
+                .eq('review_date', todayStr)
+                .maybeSingle();
+
+              if (dbDaily && (dbDaily.answered_count > 0 || dbDaily.is_completed)) {
+                const mapped: DailyReviewProgress = {
+                  date: dbDaily.review_date,
+                  deckId: dbDaily.deck_id || 'daily',
+                  wordIds: dbDaily.word_ids || [],
+                  currentIndex: dbDaily.current_index || 0,
+                  totalQuestions: dbDaily.total_questions || targetCount * 3,
+                  answeredCount: dbDaily.answered_count || 0,
+                  correctCount: dbDaily.correct_count || 0,
+                  isCompleted: dbDaily.is_completed || false,
+                  results: dbDaily.results || {},
+                  lastUpdated: dbDaily.updated_at,
+                };
+                savedProgress = mapped;
+                await saveDailyReviewProgress(mapped, user.id);
+              }
+            } catch (_) {}
+          }
         }
 
         // C. Chọn danh sách từ vựng thông minh cho ngày hôm nay (không trùng từ hôm qua)
-        let selectedWords: LearningItem[] = [];
+        const selectedWords = selectDailyWords({
+          dateStr: todayStr,
+          targetCount,
+          sourceItems,
+          user,
+        });
 
-        // 1. Nếu hôm nay ĐÃ CÓ phiên học trước đó và đã có wordIds:
-        if (savedProgress && savedProgress.wordIds && savedProgress.wordIds.length > 0) {
-          const wordIdSet = new Set(savedProgress.wordIds);
-          selectedWords = sourceItems.filter((item) => wordIdSet.has(item.id));
-        }
-
-        // 2. Nếu hôm nay là phiên MỚI: Chọn 20 từ mới tiếp theo chưa từng học ở các ngày trước
-        if (selectedWords.length < targetCount) {
-          const storeState = useLearningStore.getState();
-          const reviews = storeState.reviews || {};
-          const dailyProgress = storeState.dailyReviewProgress || {};
-
-          // Tập hợp tất cả các từ đã học từ các ngày trước
-          const learnedWordIds = new Set<string>();
-          Object.keys(reviews).forEach((id) => learnedWordIds.add(id));
-          Object.entries(dailyProgress).forEach(([date, prog]) => {
-            if (date !== todayStr && prog?.wordIds) {
-              prog.wordIds.forEach((id) => learnedWordIds.add(id));
-            }
+        // Đảm bảo lưu wordIds của phiên hôm nay vào store nếu chưa có để đồng bộ xuyên suốt
+        const currentDailyReview = useLearningStore.getState().dailyReviewProgress[todayStr];
+        if (!currentDailyReview?.wordIds || currentDailyReview.wordIds.length === 0) {
+          useLearningStore.getState().saveDailyReviewProgressLocal({
+            date: todayStr,
+            deckId: 'daily',
+            wordIds: selectedWords.map((w) => w.id),
+            currentIndex: 0,
+            totalQuestions: selectedWords.length * 3,
+            answeredCount: 0,
+            correctCount: 0,
+            isCompleted: false,
+            results: {},
+            lastUpdated: new Date().toISOString(),
           });
-
-          // Lọc ra các từ hoàn toàn MỚI chưa học
-          const unlearnedWords = sourceItems.filter((item) => !learnedWordIds.has(item.id));
-
-          // Lọc ra các từ ĐẾN HẠN ôn tập Spaced Repetition (SRS)
-          const now = new Date();
-          const dueWords = sourceItems.filter((item) => {
-            const rev = reviews[item.id];
-            return rev && rev.next_review_at && new Date(rev.next_review_at) <= now;
-          });
-
-          const candidates: LearningItem[] = [];
-
-          // Ưu tiên 1: Lấy các từ mới chưa học tiếp theo trong kho từ
-          if (unlearnedWords.length >= targetCount) {
-            candidates.push(...unlearnedWords.slice(0, targetCount));
-          } else {
-            // Nếu số từ mới còn ít: lấy hết từ mới còn lại + bổ sung từ đến hạn ôn tập
-            candidates.push(...unlearnedWords);
-            const needed = targetCount - candidates.length;
-            const dueAvailable = dueWords.filter((w) => !candidates.some((c) => c.id === w.id));
-            candidates.push(...dueAvailable.slice(0, needed));
-
-            // Nếu vẫn chưa đủ (đã học hết kho từ): lấy lại các từ cũ để củng cố
-            if (candidates.length < targetCount) {
-              const remainingNeeded = targetCount - candidates.length;
-              const otherWords = sourceItems.filter((w) => !candidates.some((c) => c.id === w.id));
-              candidates.push(...otherWords.slice(0, remainingNeeded));
-            }
-          }
-
-          selectedWords = candidates.slice(0, targetCount);
         }
 
         // D. Sinh câu hỏi xáo trộn random bất kỳ (mỗi từ ~ 3 câu hỏi)
@@ -232,17 +248,28 @@ export default function DailyReviewPage() {
                   .map((r: any) => r.question?.wordId || r.questionId)
                   .filter(Boolean)
               ).size;
-              setTodayLearned(Math.min(todayGoal || 20, uniqueWords));
-            } else if (savedProgress.wordIds && savedProgress.wordIds.length > 0) {
-              setTodayLearned(Math.min(todayGoal || 20, savedProgress.wordIds.length));
+              const storeNow = useLearningStore.getState();
+              const baseCount = storeNow.lastLearnedDate === todayStr ? storeNow.todayLearned : 0;
+              setTodayLearned(Math.min(todayGoal || 20, Math.max(baseCount, uniqueWords)));
+            } else if (savedProgress.wordIds && savedProgress.wordIds.length > 0 && savedProgress.answeredCount > 0) {
+              const countFromReview = Math.min(savedProgress.wordIds.length, Math.ceil(savedProgress.answeredCount / 3));
+              const storeNow = useLearningStore.getState();
+              const baseCount = storeNow.lastLearnedDate === todayStr ? storeNow.todayLearned : 0;
+              setTodayLearned(Math.min(todayGoal || 20, Math.max(baseCount, countFromReview)));
             }
           }
         }
       } catch (err) {
         console.warn('Lỗi khi khởi tạo phiên ôn tập:', err);
         if (mounted) {
-          const fallbackCount = !user ? 5 : 20;
-          const fallback = (dailyItemsJson as LearningItem[]).slice(0, fallbackCount);
+          const fallbackCount = !user ? Math.min(5, todayGoal || 5) : (todayGoal || 20);
+          const fallbackSource = await loadDailyWordsFromCollectionItems();
+          const fallback = selectDailyWords({
+            dateStr: todayStr,
+            targetCount: fallbackCount,
+            sourceItems: fallbackSource,
+            user,
+          });
           setWords(fallback);
           setQuestions(generateDailyReviewQuestions(fallback, fallbackCount, 'shuffled'));
         }
@@ -388,7 +415,12 @@ export default function DailyReviewPage() {
       pendingSyncProgressRef.current = updatedProgress;
     } else {
       setIsCompleted(true);
-      // Đã hoàn tất toàn bộ 60 câu: GỬI BATCH SYNC 1 LẦN DUY NHẤT LÊN SERVER
+      const uniqueWords = new Set(
+        Object.values(results).map((r) => r.question?.wordId || r.questionId).filter(Boolean)
+      ).size;
+      setTodayLearned(Math.min(todayGoal || 20, uniqueWords || words.length));
+
+      // Đã hoàn tất toàn bộ câu hỏi: GỬI BATCH SYNC 1 LẦN DUY NHẤT LÊN SERVER
       const finalProgress: DailyReviewProgress = {
         date: todayStr,
         deckId: 'daily',
@@ -406,9 +438,9 @@ export default function DailyReviewPage() {
     }
   };
 
-  // 4. Tính toán thống kê kết quả bài thi dựa trên toàn bộ 60 câu
+  // 4. Tính toán thống kê kết quả bài thi dựa trên toàn bộ câu hỏi
   const sessionSummary: ReviewSessionSummary = useMemo(() => {
-    const total = questions.length || 60;
+    const total = questions.length || 0;
     const correct = questions.filter((q) => results[q.id]?.isCorrect).length;
     const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
 
@@ -439,7 +471,7 @@ export default function DailyReviewPage() {
     };
   }, [questions, results]);
 
-  // 5. Làm lại toàn bộ 60 câu -> Reset tiến trình trên client và server
+  // 5. Làm lại toàn bộ câu -> Bốc random tập từ mới từ collection_items và reset tiến trình
   const handleRestartAll = async () => {
     // Hủy bỏ bất kỳ timer đồng bộ đang chờ nào để tránh lưu đè dữ liệu cũ
     if (syncTimerRef.current) {
@@ -459,8 +491,34 @@ export default function DailyReviewPage() {
     setIsRetryingMistakes(false);
     setResumedFromPrevious(false);
 
+    // Bốc random tập từ mới từ kho collection_items
+    const sourceItems = await loadDailyWordsFromCollectionItems();
+    const targetCount = !user ? Math.min(5, todayGoal || 5) : (todayGoal || 20);
+    const freshWords = selectDailyWords({
+      dateStr: todayStr,
+      targetCount,
+      sourceItems,
+      user,
+      forceNew: true,
+    });
+    setWords(freshWords);
+
+    // Lưu wordIds mới vào store
+    useLearningStore.getState().saveDailyReviewProgressLocal({
+      date: todayStr,
+      deckId: 'daily',
+      wordIds: freshWords.map((w) => w.id),
+      currentIndex: 0,
+      totalQuestions: freshWords.length * 3,
+      answeredCount: 0,
+      correctCount: 0,
+      isCompleted: false,
+      results: {},
+      lastUpdated: new Date().toISOString(),
+    });
+
     // Sinh bộ câu hỏi mới xáo trộn ngẫu nhiên với các phương án nhiễu mới
-    const freshQuestions = generateDailyReviewQuestions(words, 20, 'shuffled');
+    const freshQuestions = generateDailyReviewQuestions(freshWords, freshWords.length, 'shuffled');
     setQuestions(freshQuestions);
   };
 

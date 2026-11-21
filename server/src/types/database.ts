@@ -53,14 +53,15 @@ export type ReviewRecord = {
 export type CollectionReviewRecord = {
   id: string;
   user_id: string;
-  deck_id: string;
-  item_id: string;
+  collection_id: string;
+  phrase_id: string;
   repetitions: number;
   interval_days: number;
   ease_factor: number;
   next_review_at: string;
   last_reviewed_at: string;
   last_quality: number;
+  is_mastered?: boolean;
   created_at?: string;
   updated_at?: string;
 };

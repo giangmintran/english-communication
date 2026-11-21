@@ -24,7 +24,7 @@ export default function CollectionStudyPage() {
 
   const colId = deckId || 'collection';
   const currentColProgress = collectionProgress[colId];
-  const phraseStates = currentColProgress?.phrase_states || collectionReviews;
+  const phraseStates = currentColProgress?.phrase_states || {};
 
   const effectiveReviews = useMemo(() => {
     return phraseStates || {};

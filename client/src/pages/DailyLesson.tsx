@@ -14,7 +14,7 @@ export default function DailyLessonPage() {
   const [content, setContent] = useState<DailyLessonContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
 
   useEffect(() => {
     let mounted = true;
@@ -24,7 +24,7 @@ export default function DailyLessonPage() {
 
       try {
         setLoading(true);
-        const data = await lessonApi.getContentById(lessonId);
+        const data = await lessonApi.getContentById(lessonId, language);
         if (mounted && data) {
           setContent(data);
         }
@@ -43,7 +43,7 @@ export default function DailyLessonPage() {
     return () => {
       mounted = false;
     };
-  }, [lessonId]);
+  }, [lessonId, language]);
 
   if (loading) {
     return (
