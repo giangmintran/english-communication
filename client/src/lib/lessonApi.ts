@@ -3,6 +3,7 @@ import { allDailyLessons, getLessonContentById } from '@/data/lessons';
 import {
   getOrGenerateTodayDailyLesson,
   getGeneratedDailyLessonById,
+  localizeLessonContent,
   DailyLessonGeneratorOptions,
 } from '@/lib/dailyLessonGenerator';
 
@@ -32,11 +33,11 @@ export const lessonApi = {
   },
 
   /**
-   * Lấy chi tiết nội dung 7 phần bài học
+   * Lấy chi tiết nội dung 7 phần bài học (hỗ trợ chuyển đổi ngôn ngữ)
    */
-  getContentById: async (lessonId: string): Promise<DailyLessonContent> => {
+  getContentById: async (lessonId: string, language?: 'vi' | 'en'): Promise<DailyLessonContent> => {
     // 1. Kiểm tra xem có phải bài học sinh động (dynamic / AI) không
-    const generated = getGeneratedDailyLessonById(lessonId);
+    const generated = getGeneratedDailyLessonById(lessonId, language);
     if (generated) {
       return generated;
     }
@@ -46,6 +47,12 @@ export const lessonApi = {
     if (!content) {
       throw new Error(`Lesson with id ${lessonId} not found`);
     }
+
+    // 3. Nếu là bài học mẫu và ngôn ngữ yêu cầu là tiếng Anh, localize tự động
+    if (language === 'en') {
+      return localizeLessonContent(content, 'en');
+    }
+
     return content;
   },
 };

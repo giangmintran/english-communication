@@ -3,6 +3,7 @@ import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { useLearningStore } from '@/lib/store';
 import { api } from '@/lib/api';
+import type { DailyReviewProgress } from '@/types/quiz';
 
 interface AuthContextType {
   user: User | null;
@@ -24,7 +25,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const applyUserMetadata = useCallback((currentUser: User) => {
     const meta = currentUser.user_metadata || {};
     const currentStore = useLearningStore.getState();
-    const isSameUser = currentStore.profile?.id === currentUser.id;
+    const isSameUser = Boolean(
+      (currentStore.userId && currentStore.userId === currentUser.id) ||
+      (currentStore.profile?.id && currentStore.profile.id === currentUser.id && currentStore.profile.id !== 'usr-mock-1')
+    );
+
+    if (!isSameUser) {
+      // Đăng nhập tài khoản khác hoặc lần đầu đăng nhập: Dọn sạch hoàn toàn cache của tài khoản cũ
+      useLearningStore.getState().clearUserData(currentUser.id);
+    }
 
     const displayName =
       (isSameUser && currentStore.profile.display_name ? currentStore.profile.display_name : null) ||
@@ -55,6 +64,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       totalWordsLearned: isSameUser ? currentStore.totalWordsLearned : 0,
       overallProgressPercent: isSameUser ? currentStore.overallProgressPercent : 0,
       speakingTimeMinutes: isSameUser ? currentStore.speakingTimeMinutes : 0,
+      reviews: isSameUser ? currentStore.reviews : {},
+      collectionReviews: isSameUser ? currentStore.collectionReviews : {},
+      collectionProgress: isSameUser ? currentStore.collectionProgress : {},
+      dailyReviewProgress: isSameUser ? currentStore.dailyReviewProgress : {},
     });
   }, []);
 
@@ -90,29 +103,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         meta.picture ||
         `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=2563eb&color=fff&bold=true`;
 
-      // 3. Query reviews to compute REAL statistics for the logged-in user
-      const { data: userReviews } = await supabase
-        .from('reviews')
-        .select('*')
-        .eq('user_id', currentUser.id);
-
+      // 3. Query tiến trình học thực tế từ bảng collection_reviews (chỉ dành riêng cho Collections, loại trừ col-daily)
       const reviewsMap: Record<string, any> = {};
+      const collectionReviewsMap: Record<string, any> = {};
+      const collectionProgressMap: Record<string, any> = {};
       const todayStr = new Date().toISOString().split('T')[0];
 
-      if (userReviews && userReviews.length > 0) {
-        userReviews.forEach((rev) => {
-          reviewsMap[rev.item_id] = {
-            repetitions: rev.repetitions,
-            interval_days: rev.interval_days,
-            ease_factor: rev.ease_factor,
-            next_review_at: rev.next_review_at,
-            last_quality: rev.last_quality,
-          };
-        });
-      }
-
-      // 3b. Query bảng riêng collection_reviews (khi người dùng đã tạo bảng trên DB)
-      const collectionReviewsMap: Record<string, any> = {};
       try {
         const { data: colData, error: colError } = await supabase
           .from('collection_reviews')
@@ -121,44 +117,133 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (!colError && colData && colData.length > 0) {
           colData.forEach((rev) => {
-            collectionReviewsMap[rev.item_id] = {
-              repetitions: rev.repetitions,
-              interval_days: rev.interval_days,
-              ease_factor: rev.ease_factor,
-              next_review_at: rev.next_review_at,
-              last_quality: rev.last_quality,
-            };
+            // Loại bỏ hoàn toàn bản ghi col-daily để không làm lẫn lộn với Daily Routine
+            if (rev.collection_id === 'col-daily') return;
+            const key = rev.phrase_id || rev.item_id;
+            const colId = rev.collection_id || rev.deck_id;
+            if (key) {
+              const itemSRS = {
+                repetitions: rev.repetitions,
+                interval_days: rev.interval_days,
+                ease_factor: rev.ease_factor,
+                next_review_at: rev.next_review_at,
+                last_quality: rev.last_quality,
+                is_mastered: Boolean(rev.is_mastered || rev.repetitions >= 3 || rev.interval_days >= 7),
+              };
+              collectionReviewsMap[key] = itemSRS;
+              if (colId) {
+                if (!collectionProgressMap[colId]) {
+                  collectionProgressMap[colId] = {
+                    collection_id: colId,
+                    learned_count: 0,
+                    mastered_count: 0,
+                    total_phrases: 20,
+                    progress_percent: 0,
+                    last_studied_at: rev.last_reviewed_at || new Date().toISOString(),
+                    phrase_states: {},
+                  };
+                }
+                collectionProgressMap[colId].phrase_states[key] = itemSRS;
+              }
+            }
           });
         }
       } catch (_) {
-        // Bảng collection_reviews sẽ được người dùng tạo sau
+        // Bảng collection_reviews
       }
 
-      // Tổng hợp từ vựng đã học từ cả Daily và Collection (loại bỏ trùng ID nếu có)
-      const allLearnedItemIds = new Set([
-        ...Object.keys(reviewsMap),
-        ...Object.keys(collectionReviewsMap),
-      ]);
-      const totalWordsLearned = allLearnedItemIds.size;
+      // Cập nhật learned_count và progress_percent cho từng collection
+      Object.keys(collectionProgressMap).forEach((cId) => {
+        const cp = collectionProgressMap[cId];
+        const states = cp.phrase_states || {};
+        const learned = Object.keys(states).length;
+        const mastered = Object.values(states).filter((s: any) => s.is_mastered).length;
+        const total = Math.max(cp.total_phrases || 20, learned);
+        cp.learned_count = learned;
+        cp.mastered_count = mastered;
+        cp.progress_percent = total > 0 ? Math.min(100, Math.round((mastered / total) * 100)) : 0;
+      });
+
+      // 4. Tải toàn bộ lịch sử ôn tập (Daily Routine) của riêng currentUser từ Supabase
+      const userDailyProgressMap: Record<string, DailyReviewProgress> = {};
+      let activeDailyProgress: DailyReviewProgress | null = null;
+
+      try {
+        const { data: allDbDaily } = await supabase
+          .from('daily_reviews')
+          .select('*')
+          .eq('user_id', currentUser.id)
+          .order('review_date', { ascending: false })
+          .limit(60);
+
+        if (allDbDaily && allDbDaily.length > 0) {
+          allDbDaily.forEach((dbDaily) => {
+            const mappedProgress: DailyReviewProgress = {
+              date: dbDaily.review_date,
+              deckId: dbDaily.deck_id || 'daily',
+              wordIds: dbDaily.word_ids || [],
+              currentIndex: dbDaily.current_index || 0,
+              totalQuestions: dbDaily.total_questions || 60,
+              answeredCount: dbDaily.answered_count || 0,
+              correctCount: dbDaily.correct_count || 0,
+              isCompleted: Boolean(dbDaily.is_completed),
+              results: dbDaily.results || {},
+              lastUpdated: dbDaily.updated_at,
+            };
+            userDailyProgressMap[dbDaily.review_date] = mappedProgress;
+            if (dbDaily.review_date === todayStr && (dbDaily.answered_count > 0 || dbDaily.is_completed)) {
+              activeDailyProgress = mappedProgress;
+            }
+          });
+        }
+      } catch (_) {}
+
+      // Nếu cùng một user và client đã có tiến trình hôm nay chưa đồng bộ, giữ lại tiến trình đó
+      const storeState = useLearningStore.getState();
+      const isSameUser = storeState.userId === currentUser.id;
+      if (isSameUser) {
+        const localToday = storeState.getTodayReviewProgress(todayStr);
+        const serverAnswered = (activeDailyProgress as DailyReviewProgress | null)?.answeredCount || 0;
+        if (localToday && localToday.answeredCount > serverAnswered) {
+          activeDailyProgress = localToday;
+          userDailyProgressMap[todayStr] = localToday;
+        }
+      }
+
+      // Tính số từ vựng duy nhất đã học hôm nay của Daily Routine
+      let initialDailyLearned = 0;
+      if (activeDailyProgress) {
+        if (activeDailyProgress.results && Object.keys(activeDailyProgress.results).length > 0) {
+          const uniqueWords = new Set(
+            Object.values(activeDailyProgress.results).map((r: any) => r.question?.wordId || r.questionId).filter(Boolean)
+          );
+          initialDailyLearned = uniqueWords.size;
+        } else if (activeDailyProgress.wordIds && activeDailyProgress.wordIds.length > 0 && activeDailyProgress.answeredCount > 0) {
+          initialDailyLearned = Math.min(
+            activeDailyProgress.wordIds.length,
+            Math.ceil(activeDailyProgress.answeredCount / 3)
+          );
+        }
+      }
+
+      // Tổng hợp từ vựng đã học
+      const totalWordsLearned = Object.keys(collectionReviewsMap).length + (activeDailyProgress?.wordIds?.length || 0);
       const streakCount = dbProfile?.streak_count ?? 1;
       const dailyGoal = dbProfile?.daily_goal_words ?? 20;
       const progressPercent = totalWordsLearned > 0 ? Math.min(100, Math.round((totalWordsLearned / 700) * 100)) : 0;
 
-      // Tính số từ đã học cho Daily Routine hôm nay (tách biệt hoàn toàn với Collections)
-      const existingClientDailyProgress = useLearningStore.getState().getTodayReviewProgress(todayStr);
-      let initialDailyLearned = 0;
-      if (existingClientDailyProgress) {
-        if (existingClientDailyProgress.results && Object.keys(existingClientDailyProgress.results).length > 0) {
-          const uniqueWords = new Set(
-            Object.values(existingClientDailyProgress.results).map((r: any) => r.question?.wordId || r.questionId).filter(Boolean)
-          );
-          initialDailyLearned = Math.min(dailyGoal, uniqueWords.size);
-        } else if (existingClientDailyProgress.wordIds && existingClientDailyProgress.wordIds.length > 0) {
-          initialDailyLearned = Math.min(dailyGoal, existingClientDailyProgress.wordIds.length);
-        }
-      }
+      // Nếu bài học hôm nay đã xong, giữ nguyên số lượng từ của bài học hôm nay
+      const isTodayCompleted = Boolean(
+        activeDailyProgress?.isCompleted ||
+        (activeDailyProgress?.totalQuestions && activeDailyProgress?.answeredCount >= activeDailyProgress?.totalQuestions && activeDailyProgress?.answeredCount > 0)
+      );
 
-      // 4. Update Zustand store with actual user data (Zero mock data)
+      const resolvedTodayGoal =
+        isTodayCompleted && activeDailyProgress?.wordIds && activeDailyProgress.wordIds.length > 0
+          ? activeDailyProgress.wordIds.length
+          : dailyGoal;
+
+      // 5. Cập nhật Zustand store của tài khoản này
       useLearningStore.getState().setUserData({
         profile: {
           id: currentUser.id,
@@ -171,15 +256,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           created_at: dbProfile?.created_at ?? new Date().toISOString(),
         },
         streakDays: streakCount,
-        todayGoal: dailyGoal,
-        todayLearned: initialDailyLearned,
+        todayGoal: resolvedTodayGoal,
+        todayLearned: Math.min(resolvedTodayGoal, initialDailyLearned),
         totalWordsLearned: totalWordsLearned,
         overallProgressPercent: progressPercent,
         reviews: reviewsMap,
         collectionReviews: collectionReviewsMap,
+        collectionProgress: collectionProgressMap,
+        dailyReviewProgress: userDailyProgressMap,
       });
 
-      // 5. Upsert to profiles table if row doesn't exist yet
+      // 6. Upsert to profiles table if row doesn't exist yet
       if (!dbProfile && !fetchError) {
         await supabase.from('profiles').upsert({
           id: currentUser.id,
@@ -190,43 +277,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           current_level: 'A2',
           last_active_date: new Date().toISOString(),
         });
-      }
-
-      // 6. Gộp tiến trình ôn tập 20 từ (Daily Review) giữa client (máy khách) và server
-      try {
-        const todayStr = new Date().toISOString().split('T')[0];
-        const clientProgress = useLearningStore.getState().getTodayReviewProgress(todayStr);
-        let activeDailyProgress = clientProgress;
-
-        if (clientProgress && clientProgress.answeredCount > 0) {
-          // Có tiến trình lưu ở máy khách -> Gọi merge lên server
-          const merged = await api.progress.mergeDailyReview(clientProgress);
-          if (merged) {
-            activeDailyProgress = merged;
-            await useLearningStore.getState().saveDailyReviewProgress(merged, currentUser.id);
-          }
-        } else {
-          // Chưa có ở máy khách -> Lấy tiến trình trên server về máy khách
-          const serverProgress = await api.progress.getDailyReview(todayStr);
-          if (serverProgress) {
-            activeDailyProgress = serverProgress;
-            await useLearningStore.getState().saveDailyReviewProgress(serverProgress, currentUser.id);
-          }
-        }
-
-        // Cập nhật lại todayLearned chính xác từ số từ thực tế của tiến trình Daily Routine
-        if (activeDailyProgress) {
-          if (activeDailyProgress.results && Object.keys(activeDailyProgress.results).length > 0) {
-            const uniqueWords = new Set(
-              Object.values(activeDailyProgress.results).map((r: any) => r.question?.wordId || r.questionId).filter(Boolean)
-            );
-            useLearningStore.getState().setTodayLearned(Math.min(dailyGoal, uniqueWords.size));
-          } else if (activeDailyProgress.wordIds && activeDailyProgress.wordIds.length > 0) {
-            useLearningStore.getState().setTodayLearned(Math.min(dailyGoal, activeDailyProgress.wordIds.length));
-          }
-        }
-      } catch (reviewSyncErr) {
-        console.warn('Lỗi đồng bộ tiến trình Daily Review:', reviewSyncErr);
       }
     } catch (err) {
       console.warn('Profile sync warning:', err);

@@ -166,14 +166,14 @@ export default function CollectionDetailPage() {
   const currentProgress = collectionProgress[colId] || collectionProgress[collection?.slug || ''];
   const phraseStates = currentProgress?.phrase_states || {};
 
-  // Tính toán trạng thái học tập của riêng Collection này
+  // Tính toán trạng thái học tập của riêng Collection này (tách biệt hoàn toàn với Daily Routine)
   const { masteredCount, learningCount, newCount, progressPercent } = useMemo(() => {
     let mastered = 0;
     let learning = 0;
     let notLearned = 0;
 
     items.forEach((item) => {
-      const pState = phraseStates[item.id] || collectionReviews[item.id];
+      const pState = phraseStates[item.id];
       if (!pState) {
         notLearned++;
       } else if (pState.is_mastered || (pState as any).repetitions >= 3 || (pState as any).interval_days >= 7) {
@@ -192,7 +192,7 @@ export default function CollectionDetailPage() {
       newCount: notLearned,
       progressPercent: percent,
     };
-  }, [items, phraseStates, collectionReviews]);
+  }, [items, phraseStates]);
 
   // Lọc danh sách câu/từ theo tìm kiếm và tab
   const filteredItems = useMemo(() => {
@@ -210,7 +210,7 @@ export default function CollectionDetailPage() {
       }
 
       // 2. Lọc theo trạng thái
-      const pState = phraseStates[item.id] || collectionReviews[item.id];
+      const pState = phraseStates[item.id];
       const isMastered = pState && (pState.is_mastered || (pState as any).repetitions >= 3 || (pState as any).interval_days >= 7);
       const isLearning = pState && !isMastered;
       const isStarred = starredIds.has(item.id);
@@ -221,7 +221,7 @@ export default function CollectionDetailPage() {
 
       return true;
     });
-  }, [items, searchQuery, statusFilter, phraseStates, collectionReviews, starredIds]);
+  }, [items, searchQuery, statusFilter, phraseStates, starredIds]);
 
   // Dữ liệu phân trang
   const totalFiltered = filteredItems.length;
@@ -492,9 +492,9 @@ export default function CollectionDetailPage() {
                       <h4 className="font-bold text-slate-900 dark:text-white text-xs group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                         {t('collectionStudy.modeLearn')}
                       </h4>
-                      <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-400">
+                      {/* <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-400">
                         Quizlet
-                      </span>
+                      </span> */}
                     </div>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">
                       {t('collectionStudy.modeLearnDesc')}
@@ -808,7 +808,7 @@ export default function CollectionDetailPage() {
               {/* Items List */}
               <div className="space-y-3">
                 {(isGuest && items.length > 10 ? filteredItems.slice(0, 10) : paginatedItems).map((item, index) => {
-                  const review = phraseStates[item.id] || collectionReviews[item.id];
+                  const review = phraseStates[item.id];
                   const isMastered = review && ((review as any).is_mastered || review.repetitions >= 3 || review.interval_days >= 7);
                   const isLearning = review && !isMastered;
                   const isStarred = starredIds.has(item.id);

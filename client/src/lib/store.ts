@@ -16,7 +16,30 @@ export interface LessonProgressState {
   lastStudiedAt: string;
 }
 
+export const isTodayGoalCompleted = (
+  state: {
+    lastLearnedDate: string;
+    todayLearned: number;
+    todayGoal: number;
+    dailyReviewProgress: Record<string, DailyReviewProgress>;
+  },
+  todayStr: string = new Date().toISOString().split('T')[0]
+): boolean => {
+  const review = state.dailyReviewProgress[todayStr];
+  if (review?.isCompleted) return true;
+  if (review?.totalQuestions && review?.answeredCount >= review?.totalQuestions && review?.answeredCount > 0) return true;
+  if (state.lastLearnedDate === todayStr && state.todayGoal > 0 && state.todayLearned >= state.todayGoal) return true;
+  if (review?.results && Object.keys(review.results).length > 0) {
+    const uniqueWords = new Set(
+      Object.values(review.results).map((r: any) => r.question?.wordId || r.questionId).filter(Boolean)
+    );
+    if (state.todayGoal > 0 && uniqueWords.size >= state.todayGoal) return true;
+  }
+  return false;
+};
+
 export interface LearningState {
+  userId: string | null;
   profile: Profile;
   todayLearned: number;
   lastLearnedDate: string;
@@ -32,6 +55,7 @@ export interface LearningState {
   dailyReviewProgress: Record<string, DailyReviewProgress>;
 
   // Actions
+  clearUserData: (newUserId?: string) => void;
   checkAndResetNewDay: () => void;
   recordReview: (itemId: string, grade: ReviewGrade, userId?: string, isDaily?: boolean) => Promise<void>;
   recordReviewLocal: (itemId: string, grade: ReviewGrade, isDaily?: boolean) => void;
@@ -76,6 +100,7 @@ export interface LearningState {
 export const useLearningStore = create<LearningState>()(
   persist(
     (set, get) => ({
+      userId: null,
       profile: mockProfile,
       todayLearned: 0, // Guest starts with 0 learned words
       lastLearnedDate: new Date().toISOString().split('T')[0],
@@ -89,6 +114,24 @@ export const useLearningStore = create<LearningState>()(
       collectionProgress: {},
       lessonProgress: {},
       dailyReviewProgress: {},
+
+      clearUserData: (newUserId?: string) => {
+        set({
+          userId: newUserId || null,
+          todayLearned: 0,
+          lastLearnedDate: new Date().toISOString().split('T')[0],
+          todayGoal: 20,
+          overallProgressPercent: 0,
+          totalWordsLearned: 0,
+          speakingTimeMinutes: 0,
+          streakDays: 1,
+          reviews: {},
+          collectionReviews: {},
+          collectionProgress: {},
+          lessonProgress: {},
+          dailyReviewProgress: {},
+        });
+      },
 
       getCollectionProgress: (collectionId: string) => {
         return get().collectionProgress[collectionId] || null;
@@ -257,10 +300,31 @@ export const useLearningStore = create<LearningState>()(
           }
 
           if (uid) {
-            await api.progress.saveDailyReview(progress);
+            try {
+              await api.progress.saveDailyReview(progress);
+            } catch (apiErr) {
+              // Direct Supabase fallback
+              const now = new Date().toISOString();
+              await supabase.from('daily_reviews').upsert({
+                user_id: uid,
+                review_date: progress.date,
+                deck_id: progress.deckId || 'daily',
+                word_ids: progress.wordIds || [],
+                current_index: progress.currentIndex || 0,
+                total_questions: progress.totalQuestions || 60,
+                answered_count: progress.answeredCount || 0,
+                correct_count: progress.correctCount || 0,
+                is_completed: progress.isCompleted || false,
+                results: progress.results || {},
+                updated_at: now,
+              }, { onConflict: 'user_id,review_date' });
+
+              // Cập nhật last_active_date trong profiles (tiến độ Daily riêng biệt, không ghi vào collection_reviews)
+              await supabase.from('profiles').update({ last_active_date: now }).eq('id', uid);
+            }
           }
         } catch (err) {
-          console.warn('Could not sync daily review progress to server:', err);
+          console.warn('Could not sync daily review progress to server or supabase:', err);
         }
       },
 
@@ -280,7 +344,11 @@ export const useLearningStore = create<LearningState>()(
           }
 
           if (uid) {
-            await api.progress.resetDailyReview(targetDate);
+            try {
+              await api.progress.resetDailyReview(targetDate);
+            } catch (_) {
+              await supabase.from('daily_reviews').delete().eq('user_id', uid).eq('review_date', targetDate);
+            }
           }
         } catch (err) {
           console.warn('Could not reset daily review progress on server:', err);
@@ -318,9 +386,11 @@ export const useLearningStore = create<LearningState>()(
             totalWordsCount += addedWords;
           }
 
+          const todayStr = meta?.dateStr || new Date().toISOString().split('T')[0];
           return {
             todayLearned: todayLearnedCount,
             totalWordsLearned: totalWordsCount,
+            lastLearnedDate: todayStr,
             lessonProgress: {
               ...state.lessonProgress,
               [lessonId]: {
@@ -345,8 +415,60 @@ export const useLearningStore = create<LearningState>()(
             score: updates.quizScore || 0,
             totalQuestions: updates.totalQuestions || 8,
             completed: true,
-          }).catch((err) => {
-            console.warn('Lỗi khi lưu kết quả bài học daily lên server:', err);
+          }).catch(async (err) => {
+            console.warn('Lỗi khi lưu kết quả bài học daily lên server, dùng direct Supabase fallback:', err);
+            try {
+              const { data: { session } } = await supabase.auth.getSession();
+              const uid = session?.user?.id;
+              if (uid) {
+                const now = new Date().toISOString();
+                await supabase.from('daily_reviews').upsert({
+                  user_id: uid,
+                  review_date: todayStr,
+                  deck_id: meta?.collectionId || 'daily',
+                  word_ids: meta?.wordIds || [],
+                  is_completed: true,
+                  correct_count: updates.quizScore || 0,
+                  total_questions: updates.totalQuestions || 8,
+                  results: {
+                    daily_lesson: {
+                      lessonId,
+                      collectionId: meta?.collectionId,
+                      sprintDay: meta?.sprintDay || 1,
+                      wordIds: meta?.wordIds || [],
+                      score: updates.quizScore || 0,
+                      totalQuestions: updates.totalQuestions || 8,
+                      completed: true,
+                      completedAt: now,
+                    },
+                  },
+                  updated_at: now,
+                }, { onConflict: 'user_id,review_date' });
+
+                // Lưu các từ vựng vào collection_reviews CHỈ KHI thuộc về một collection cụ thể (không phải Daily)
+                if (meta?.collectionId && meta.collectionId !== 'col-daily') {
+                  for (const wid of (meta?.wordIds || [])) {
+                    if (!wid) continue;
+                    await supabase.from('collection_reviews').upsert({
+                      user_id: uid,
+                      collection_id: meta.collectionId,
+                      phrase_id: wid,
+                      repetitions: 1,
+                      interval_days: 1,
+                      ease_factor: 2.5,
+                      next_review_at: new Date(Date.now() + 86400000).toISOString(),
+                      last_reviewed_at: now,
+                      last_quality: 2,
+                      is_mastered: false,
+                      updated_at: now,
+                    }, { onConflict: 'user_id,collection_id,phrase_id' });
+                  }
+                }
+
+                // Cập nhật last_active_date trong profiles
+                await supabase.from('profiles').update({ last_active_date: now }).eq('id', uid);
+              }
+            } catch (_) {}
           });
         }
       },
@@ -369,12 +491,15 @@ export const useLearningStore = create<LearningState>()(
             } else if (todayReview.wordIds && todayReview.wordIds.length > 0) {
               countToday = todayReview.wordIds.length;
             } else {
-              countToday = Math.min(state.todayGoal || 20, Math.ceil((todayReview.answeredCount || 0) / 3));
+              countToday = Math.min(state.profile?.daily_goal_words || 20, Math.ceil((todayReview.answeredCount || 0) / 3));
             }
           }
+          // Khi sang ngày mới: áp dụng số lượng từ mới từ profile.daily_goal_words
+          const newDailyGoal = state.profile?.daily_goal_words || 20;
           set({
             todayLearned: countToday,
             lastLearnedDate: todayStr,
+            todayGoal: newDailyGoal,
           });
         }
       },
@@ -451,7 +576,7 @@ export const useLearningStore = create<LearningState>()(
           overallProgressPercent: newOverallPercent,
         });
 
-        // Persist review to Supabase if authenticated
+        // Persist review to Supabase & Backend API if authenticated
         try {
           let uid = userId;
           if (!uid) {
@@ -461,44 +586,23 @@ export const useLearningStore = create<LearningState>()(
 
           if (uid) {
             const now = new Date().toISOString();
-            const { data: existing } = await supabase
-              .from('reviews')
-              .select('id')
-              .eq('user_id', uid)
-              .eq('item_id', itemId)
-              .maybeSingle();
+            const isMastered = updatedSRS.repetitions >= 3 || updatedSRS.interval_days >= 7;
 
-            if (existing?.id) {
-              await supabase
-                .from('reviews')
-                .update({
-                  repetitions: updatedSRS.repetitions,
-                  interval_days: updatedSRS.interval_days,
-                  ease_factor: updatedSRS.ease_factor,
-                  next_review_at: updatedSRS.next_review_at,
-                  last_reviewed_at: now,
-                  last_quality: grade,
-                })
-                .eq('id', existing.id);
-            } else {
-              await supabase.from('reviews').insert({
-                user_id: uid,
-                item_id: itemId,
-                repetitions: updatedSRS.repetitions,
-                interval_days: updatedSRS.interval_days,
-                ease_factor: updatedSRS.ease_factor,
-                next_review_at: updatedSRS.next_review_at,
-                last_reviewed_at: now,
-                last_quality: grade,
-              });
-            }
+            // 1. Gửi qua Backend API
+            api.progress.record({
+              itemId,
+              repetitions: updatedSRS.repetitions,
+              intervalDays: updatedSRS.interval_days,
+              easeFactor: updatedSRS.ease_factor,
+              nextReviewAt: updatedSRS.next_review_at,
+              lastQuality: grade,
+            }).catch(() => {});
 
-            // Also update last_active_date in profiles
+            // 2. Cập nhật last_active_date trong profiles (tiến trình Daily độc lập với collections)
             await supabase
               .from('profiles')
               .update({
                 last_active_date: now,
-                updated_at: now,
               })
               .eq('id', uid);
           }
@@ -593,47 +697,91 @@ export const useLearningStore = create<LearningState>()(
       },
 
       updateProfile: (updates: Partial<Profile>) => {
-        set((state) => ({
-          profile: { ...state.profile, ...updates },
-          ...(updates.daily_goal_words !== undefined ? { todayGoal: updates.daily_goal_words } : {}),
-        }));
+        set((state) => {
+          const todayStr = new Date().toISOString().split('T')[0];
+          const isCompleted = isTodayGoalCompleted(state, todayStr);
+
+          let nextTodayGoal = state.todayGoal;
+          if (updates.daily_goal_words !== undefined) {
+            // Nếu hôm nay chưa học xong thì cập nhật mục tiêu hôm nay
+            // Nếu đã học xong rồi thì giữ nguyên mục tiêu hôm nay, số lượng mới sẽ áp dụng từ ngày mai
+            if (!isCompleted) {
+              nextTodayGoal = updates.daily_goal_words;
+            }
+          }
+
+          return {
+            profile: { ...state.profile, ...updates },
+            todayGoal: nextTodayGoal,
+          };
+        });
       },
 
       setUserData: (data) => {
-        set((state) => ({
-          profile: data.profile,
-          streakDays: data.streakDays !== undefined ? data.streakDays : state.streakDays,
-          todayGoal: data.todayGoal !== undefined ? data.todayGoal : state.todayGoal,
-          todayLearned: data.todayLearned !== undefined ? data.todayLearned : state.todayLearned,
-          totalWordsLearned: data.totalWordsLearned !== undefined ? data.totalWordsLearned : state.totalWordsLearned,
-          overallProgressPercent: data.overallProgressPercent !== undefined ? data.overallProgressPercent : state.overallProgressPercent,
-          speakingTimeMinutes: data.speakingTimeMinutes !== undefined ? data.speakingTimeMinutes : state.speakingTimeMinutes,
-          reviews: data.reviews !== undefined ? data.reviews : state.reviews,
-          collectionReviews:
-            data.collectionReviews !== undefined
-              ? { ...state.collectionReviews, ...data.collectionReviews }
-              : state.collectionReviews,
-          collectionProgress:
-            data.collectionProgress !== undefined
-              ? { ...state.collectionProgress, ...data.collectionProgress }
-              : state.collectionProgress,
-          dailyReviewProgress:
-            data.dailyReviewProgress !== undefined
-              ? { ...state.dailyReviewProgress, ...data.dailyReviewProgress }
-              : state.dailyReviewProgress,
-        }));
+        set((state) => {
+          const isDifferentUser = Boolean(
+            data.profile?.id &&
+            state.userId &&
+            state.userId !== data.profile.id
+          );
+
+          if (isDifferentUser) {
+            // Đăng nhập tài khoản khác: Xóa sạch toàn bộ dữ liệu của user cũ để tránh rò rỉ tiến trình
+            return {
+              userId: data.profile.id,
+              profile: data.profile,
+              streakDays: data.streakDays !== undefined ? data.streakDays : 1,
+              todayGoal: data.todayGoal !== undefined ? data.todayGoal : (data.profile.daily_goal_words || 20),
+              todayLearned: data.todayLearned !== undefined ? data.todayLearned : 0,
+              totalWordsLearned: data.totalWordsLearned !== undefined ? data.totalWordsLearned : 0,
+              overallProgressPercent: data.overallProgressPercent !== undefined ? data.overallProgressPercent : 0,
+              speakingTimeMinutes: data.speakingTimeMinutes !== undefined ? data.speakingTimeMinutes : 0,
+              reviews: data.reviews || {},
+              collectionReviews: data.collectionReviews || {},
+              collectionProgress: data.collectionProgress || {},
+              dailyReviewProgress: data.dailyReviewProgress || {},
+              lessonProgress: {},
+              lastLearnedDate: new Date().toISOString().split('T')[0],
+            };
+          }
+
+          return {
+            userId: data.profile?.id || state.userId,
+            profile: data.profile,
+            streakDays: data.streakDays !== undefined ? data.streakDays : state.streakDays,
+            todayGoal: data.todayGoal !== undefined ? data.todayGoal : state.todayGoal,
+            todayLearned: data.todayLearned !== undefined ? data.todayLearned : state.todayLearned,
+            totalWordsLearned: data.totalWordsLearned !== undefined ? data.totalWordsLearned : state.totalWordsLearned,
+            overallProgressPercent: data.overallProgressPercent !== undefined ? data.overallProgressPercent : state.overallProgressPercent,
+            speakingTimeMinutes: data.speakingTimeMinutes !== undefined ? data.speakingTimeMinutes : state.speakingTimeMinutes,
+            reviews: data.reviews !== undefined ? data.reviews : state.reviews,
+            collectionReviews:
+              data.collectionReviews !== undefined
+                ? { ...state.collectionReviews, ...data.collectionReviews }
+                : state.collectionReviews,
+            collectionProgress:
+              data.collectionProgress !== undefined
+                ? { ...state.collectionProgress, ...data.collectionProgress }
+                : state.collectionProgress,
+            dailyReviewProgress:
+              data.dailyReviewProgress !== undefined
+                ? { ...state.dailyReviewProgress, ...data.dailyReviewProgress }
+                : state.dailyReviewProgress,
+          };
+        });
       },
 
       resetToGuest: () => {
         set({
+          userId: null,
           profile: mockProfile,
           todayLearned: 0,
           lastLearnedDate: new Date().toISOString().split('T')[0],
           todayGoal: 20,
-          overallProgressPercent: 72,
-          totalWordsLearned: 520,
-          speakingTimeMinutes: 48,
-          streakDays: 8,
+          overallProgressPercent: 0,
+          totalWordsLearned: 0,
+          speakingTimeMinutes: 0,
+          streakDays: 1,
           reviews: {},
           collectionReviews: {},
           collectionProgress: {},

@@ -11,6 +11,7 @@ import {
   Mic,
   Trophy,
   Check,
+  Languages,
 } from 'lucide-react';
 import { DailyLessonContent } from '@/types/database';
 import { WarmupStep } from './WarmupStep';
@@ -56,7 +57,7 @@ export function LessonStepper({ lessonContent }: LessonStepperProps) {
   const [totalQuestions, setTotalQuestions] = useState(lessonContent.practice.length);
   const [answeredQuestions, setAnsweredQuestions] = useState(0);
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, language, setLanguage } = useTranslation();
 
   const isPracticeFinished = totalQuestions > 0 ? answeredQuestions >= totalQuestions : true;
 
@@ -156,7 +157,18 @@ export function LessonStepper({ lessonContent }: LessonStepperProps) {
             <span>{t('dailyLesson.exit')}</span>
           </Link>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
+            {/* Quick Language Toggle */}
+            <button
+              type="button"
+              onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-slate-700 dark:hover:text-blue-400 text-xs font-bold transition-all cursor-pointer border border-transparent hover:border-blue-200 dark:hover:border-blue-800"
+              title={language === 'vi' ? 'Switch to English' : 'Chuyển sang tiếng Việt'}
+            >
+              <Languages className="w-3.5 h-3.5 text-blue-500" />
+              <span>{language === 'vi' ? 'VI' : 'EN'}</span>
+            </button>
+
             <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
               {t('dailyLesson.step')} {currentStep + 1} {t('dailyLesson.of')} {steps.length}:
             </span>

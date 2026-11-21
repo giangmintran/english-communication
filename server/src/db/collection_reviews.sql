@@ -24,6 +24,15 @@ CREATE TABLE IF NOT EXISTS public.collection_reviews (
 -- Kích hoạt Row Level Security (RLS)
 ALTER TABLE public.collection_reviews ENABLE ROW LEVEL SECURITY;
 
+-- Đảm bảo tương thích nếu có truy vấn theo item_id
+ALTER TABLE public.collection_reviews ADD COLUMN IF NOT EXISTS item_id TEXT;
+
+-- Xóa policy cũ nếu có để tránh lỗi khi chạy lại
+DROP POLICY IF EXISTS "Users can view own collection reviews" ON public.collection_reviews;
+DROP POLICY IF EXISTS "Users can insert own collection reviews" ON public.collection_reviews;
+DROP POLICY IF EXISTS "Users can update own collection reviews" ON public.collection_reviews;
+DROP POLICY IF EXISTS "Users can delete own collection reviews" ON public.collection_reviews;
+
 -- 1. Cho phép xem tiến độ collection của chính mình
 CREATE POLICY "Users can view own collection reviews"
     ON public.collection_reviews FOR SELECT

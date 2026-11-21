@@ -186,6 +186,8 @@ export type DailyLesson = {
   sprint_day?: 1 | 2 | 3; // Ngày thứ mấy trong Sprint 3 ngày (1: Khởi động, 2: Tương tác, 3: Phản xạ)
   sprint_total_days?: number; // Mặc định là 3
   stage_title?: string; // Tên giai đoạn: VD "Giai đoạn 1: Khởi động & Nền tảng"
+  stage_title_en?: string;
+  description_en?: string;
 };
 
 export type LessonWarmup = {
@@ -321,5 +323,6 @@ export type DailyLessonContent = {
   listening: LessonListening[];
   speaking: LessonSpeaking;
   practice: PracticeQuizItem[];
+  language?: 'vi' | 'en';
 };
 

@@ -9,6 +9,7 @@ import { AuthPromptModal } from '@/components/auth/AuthPromptModal';
 export function TodaysGoalCard() {
   const { user } = useAuth();
   const {
+    profile,
     todayLearned,
     lastLearnedDate,
     todayGoal,
@@ -32,6 +33,7 @@ export function TodaysGoalCard() {
 
   // Tính số từ thực tế của Daily Routine hôm nay dựa trên kết quả bài làm thực tế
   const currentLearned = React.useMemo(() => {
+    let wordsFromReview = 0;
     if (reviewProgress) {
       if (reviewProgress.results && Object.keys(reviewProgress.results).length > 0) {
         const uniqueWords = new Set(
@@ -39,21 +41,19 @@ export function TodaysGoalCard() {
             .map((r: any) => r.question?.wordId || r.questionId)
             .filter(Boolean)
         );
-        return Math.min(effectiveGoal, uniqueWords.size);
-      }
-      if (reviewProgress.wordIds && reviewProgress.wordIds.length > 0) {
-        return Math.min(effectiveGoal, reviewProgress.wordIds.length);
+        wordsFromReview = uniqueWords.size;
+      } else if (reviewProgress.wordIds && reviewProgress.wordIds.length > 0 && reviewProgress.answeredCount > 0) {
+        wordsFromReview = Math.min(reviewProgress.wordIds.length, Math.ceil(reviewProgress.answeredCount / 3));
       }
     }
-    if (lastLearnedDate === todayStr) {
-      return Math.min(effectiveGoal, Math.max(0, todayLearned));
-    }
-    return 0;
+    const wordsFromStore = lastLearnedDate === todayStr ? Math.max(0, todayLearned) : 0;
+    const maxLearned = Math.max(wordsFromReview, wordsFromStore);
+    return Math.min(effectiveGoal, maxLearned);
   }, [reviewProgress, lastLearnedDate, todayStr, todayLearned, effectiveGoal]);
 
   // Tự động đồng bộ lại todayLearned trong store nếu giá trị cache bị lệch
   React.useEffect(() => {
-    if (todayLearned !== currentLearned) {
+    if (currentLearned > todayLearned) {
       setTodayLearned(currentLearned);
     }
   }, [currentLearned, todayLearned, setTodayLearned]);
@@ -103,8 +103,16 @@ export function TodaysGoalCard() {
               </span>
             )}
           </div>
-          <div className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white mb-2 truncate">
-            {effectiveGoal} {t('home.newWords')}
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
+            <div className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white truncate">
+              {effectiveGoal} {t('home.newWords')}
+            </div>
+            {user && (isGoalReached || isReviewDone) && profile?.daily_goal_words && profile.daily_goal_words !== todayGoal && (
+              <span className="px-2.5 py-0.5 rounded-full bg-blue-100/90 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-semibold flex items-center gap-1 shadow-2xs">
+                <Sparkles className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                <span>{t('home.tomorrowGoalBadge', { count: profile.daily_goal_words })}</span>
+              </span>
+            )}
           </div>
 
           {/* Progress bar */}

@@ -23,6 +23,12 @@ CREATE TABLE IF NOT EXISTS public.daily_reviews (
 -- Kích hoạt Row Level Security (RLS)
 ALTER TABLE public.daily_reviews ENABLE ROW LEVEL SECURITY;
 
+-- Xóa policy cũ nếu có để tránh lỗi khi chạy lại
+DROP POLICY IF EXISTS "Users can view own daily reviews" ON public.daily_reviews;
+DROP POLICY IF EXISTS "Users can insert own daily reviews" ON public.daily_reviews;
+DROP POLICY IF EXISTS "Users can update own daily reviews" ON public.daily_reviews;
+DROP POLICY IF EXISTS "Users can delete own daily reviews" ON public.daily_reviews;
+
 -- 1. Cho phép xem tiến trình của chính mình
 CREATE POLICY "Users can view own daily reviews"
     ON public.daily_reviews FOR SELECT

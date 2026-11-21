@@ -53,7 +53,7 @@ export default function DailyLearningPage() {
         const [decksData, lessonsData, todayContent] = await Promise.all([
           api.decks.getAll(),
           lessonApi.getAll(),
-          lessonApi.getTodayLesson({ userMasteredIds: masteredIds }),
+          lessonApi.getTodayLesson({ userMasteredIds: masteredIds, language }),
         ]);
 
         if (mounted) {
@@ -74,7 +74,7 @@ export default function DailyLearningPage() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [language]);
 
   const handleResetFilters = () => {
     setSelectedDeckId('all');

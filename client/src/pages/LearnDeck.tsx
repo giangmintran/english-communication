@@ -8,6 +8,7 @@ import { useLearningStore } from '@/lib/store';
 import { useTranslation } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/api';
+import { selectDailyWords, loadDailyWordsFromCollectionItems } from '@/lib/dailyWordSelector';
 
 export default function LearnDeckPage() {
   const { deckId } = useParams<{ deckId: string }>();
@@ -34,20 +35,45 @@ export default function LearnDeckPage() {
           let formattedDeck = { ...deckData };
 
           if (isDaily) {
+            const targetCount = !user ? Math.min(5, todayGoal || 5) : (todayGoal || 20);
+            const todayStr = new Date().toISOString().split('T')[0];
+            const colSourceItems = await loadDailyWordsFromCollectionItems();
+            loadedItems = selectDailyWords({
+              dateStr: todayStr,
+              targetCount,
+              sourceItems: colSourceItems,
+              user,
+            });
+
+            // Đồng bộ wordIds của ngày hôm nay vào dailyReviewProgress để các trang luôn dùng chung danh sách từ
+            const storeState = useLearningStore.getState();
+            const currentDaily = storeState.dailyReviewProgress[todayStr];
+            if (!currentDaily?.wordIds || currentDaily.wordIds.length === 0) {
+              storeState.saveDailyReviewProgressLocal({
+                date: todayStr,
+                deckId: 'daily',
+                wordIds: loadedItems.map((w) => w.id),
+                currentIndex: 0,
+                totalQuestions: loadedItems.length,
+                answeredCount: 0,
+                correctCount: 0,
+                isCompleted: false,
+                results: {},
+                lastUpdated: new Date().toISOString(),
+              });
+            }
+
             formattedDeck = {
               ...formattedDeck,
               title: t('home.todaysGoal'),
-              description: `${t('home.todaysGoal')} - ${todayGoal} ${t('common.words')}`,
+              description: `${t('home.todaysGoal')} - ${targetCount} ${t('common.words')}`,
             };
-            if (loadedItems.length > 0) {
-              loadedItems = loadedItems.slice(0, Math.max(todayGoal, 10));
+          } else {
+            // Giới hạn học từ mới cho khách (Guest): Tối đa 5 từ
+            const GUEST_WORD_LIMIT = 5;
+            if (!user && loadedItems.length > GUEST_WORD_LIMIT) {
+              loadedItems = loadedItems.slice(0, GUEST_WORD_LIMIT);
             }
-          }
-
-          // Giới hạn học từ mới cho khách (Guest): Tối đa 5 từ
-          const GUEST_WORD_LIMIT = 5;
-          if (!user && loadedItems.length > GUEST_WORD_LIMIT) {
-            loadedItems = loadedItems.slice(0, GUEST_WORD_LIMIT);
           }
 
           setDeck(formattedDeck);

@@ -84,10 +84,8 @@ export function ActivityHeatmapCard() {
         count = 0;
       } else if (isToday) {
         const todayReview = dailyReviewProgress[todayStr];
-        count = getWordsCountFromReview(todayReview, todayLearned);
-        if (count === 0 && streakDays > 0 && todayLearned > 0) {
-          count = Math.min(20, todayLearned);
-        }
+        const reviewWords = getWordsCountFromReview(todayReview, 0);
+        count = Math.max(reviewWords, todayLearned);
       } else {
         const savedReview = dailyReviewProgress[dStr];
         if (savedReview && (savedReview.answeredCount > 0 || (savedReview.results && Object.keys(savedReview.results).length > 0))) {
@@ -107,7 +105,7 @@ export function ActivityHeatmapCard() {
       }
 
       const effectiveGoal = todayGoal || 20;
-      const isCompleted = count >= Math.min(10, effectiveGoal);
+      const isCompleted = count > 0 && count >= effectiveGoal;
       if (isCompleted && !isFuture) {
         completedCount++;
       }

@@ -57,7 +57,7 @@ export function TodayLessonHeroCard({
           {/* Badge: Chủ đề hôm nay / Thematic Sprint */}
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-bold shadow-xs">
             {lesson.sprint_day ? (
-              <span>Chuyên đề 3 ngày · Ngày {lesson.sprint_day}/3</span>
+              <span>{t('daily.thematicSprintBadge', { day: lesson.sprint_day })}</span>
             ) : (
               <span>{t('daily.todayTopic')}</span>
             )}
