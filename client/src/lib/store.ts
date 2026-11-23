@@ -488,10 +488,10 @@ export const useLearningStore = create<LearningState>()(
                   .filter(Boolean)
               );
               countToday = uniqueWords.size;
-            } else if (todayReview.wordIds && todayReview.wordIds.length > 0) {
+            } else if (todayReview.isCompleted && todayReview.wordIds && todayReview.wordIds.length > 0) {
               countToday = todayReview.wordIds.length;
-            } else {
-              countToday = Math.min(state.profile?.daily_goal_words || 20, Math.ceil((todayReview.answeredCount || 0) / 3));
+            } else if (todayReview.answeredCount > 0) {
+              countToday = Math.min(state.profile?.daily_goal_words || 20, Math.ceil(todayReview.answeredCount / 3));
             }
           }
           // Khi sang ngày mới: áp dụng số lượng từ mới từ profile.daily_goal_words

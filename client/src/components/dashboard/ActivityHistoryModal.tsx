@@ -37,21 +37,22 @@ function getWordsCountFromReview(review?: any, fallbackCount: number = 0): numbe
     }
   }
 
-  // 2. Tính từ danh sách wordIds lưu trong tiến trình
-  if (review.wordIds && review.wordIds.length > 0) {
+  // 2. Nếu đã hoàn thành bài học, lấy toàn bộ danh sách wordIds lưu trong tiến trình
+  if (review.isCompleted && review.wordIds && review.wordIds.length > 0) {
     return review.wordIds.length;
   }
 
   // 3. Quy đổi từ số câu hỏi đã làm về số từ vựng (mỗi từ có 3 câu hỏi)
   if (review.answeredCount > 0) {
-    return Math.min(20, Math.ceil(review.answeredCount / 3));
+    const maxWords = review.wordIds?.length || 20;
+    return Math.min(maxWords, Math.ceil(review.answeredCount / 3));
   }
 
   return fallbackCount;
 }
 
 export function ActivityHistoryModal({ isOpen, onClose }: ActivityHistoryModalProps) {
-  const { streakDays, todayLearned, dailyReviewProgress } = useLearningStore();
+  const { streakDays, todayLearned, lastLearnedDate, dailyReviewProgress } = useLearningStore();
   const { t, language } = useTranslation();
 
   // Chế độ xem: 16 tuần (4 tháng), 26 tuần (6 tháng) hoặc 52 tuần (cả năm)
@@ -141,7 +142,8 @@ export function ActivityHistoryModal({ isOpen, onClose }: ActivityHistoryModalPr
         } else if (isToday) {
           const todayReview = dailyReviewProgress[todayStr];
           const reviewWords = getWordsCountFromReview(todayReview, 0);
-          count = Math.max(reviewWords, todayLearned);
+          const storeTodayWords = lastLearnedDate === todayStr ? Math.max(0, todayLearned) : 0;
+          count = Math.max(reviewWords, storeTodayWords);
         } else {
           const savedReview = dailyReviewProgress[dateStr];
           if (savedReview && (savedReview.answeredCount > 0 || (savedReview.results && Object.keys(savedReview.results).length > 0))) {
@@ -206,7 +208,7 @@ export function ActivityHistoryModal({ isOpen, onClose }: ActivityHistoryModalPr
       longestStreak: bestStreak,
       consistencyRate: rate,
     };
-  }, [totalWeeks, streakDays, todayLearned, dailyReviewProgress, isEn]);
+  }, [totalWeeks, streakDays, todayLearned, lastLearnedDate, dailyReviewProgress, isEn]);
 
   if (!isOpen) return null;
 

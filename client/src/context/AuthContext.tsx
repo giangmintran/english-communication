@@ -227,7 +227,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Tổng hợp từ vựng đã học
-      const totalWordsLearned = Object.keys(collectionReviewsMap).length + (activeDailyProgress?.wordIds?.length || 0);
+      const totalWordsLearned = Object.keys(collectionReviewsMap).length + initialDailyLearned;
       const streakCount = dbProfile?.streak_count ?? 1;
       const dailyGoal = dbProfile?.daily_goal_words ?? 20;
       const progressPercent = totalWordsLearned > 0 ? Math.min(100, Math.round((totalWordsLearned / 700) * 100)) : 0;
