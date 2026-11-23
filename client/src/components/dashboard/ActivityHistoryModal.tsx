@@ -44,7 +44,8 @@ function getWordsCountFromReview(review?: any, fallbackCount: number = 0): numbe
 
   // 3. Quy đổi từ số câu hỏi đã làm về số từ vựng (mỗi từ có 3 câu hỏi)
   if (review.answeredCount > 0) {
-    return Math.min(20, Math.ceil(review.answeredCount / 3));
+    const maxWords = review.wordIds?.length || 20;
+    return Math.min(maxWords, Math.ceil(review.answeredCount / 3));
   }
 
   return 0;
@@ -195,7 +196,7 @@ export function ActivityHistoryModal({ isOpen, onClose }: ActivityHistoryModalPr
       longestStreak: bestStreak,
       consistencyRate: rate,
     };
-  }, [totalWeeks, streakDays, todayLearned, dailyReviewProgress, isEn]);
+  }, [totalWeeks, streakDays, todayLearned, lastLearnedDate, dailyReviewProgress, isEn]);
 
   if (!isOpen) return null;
 

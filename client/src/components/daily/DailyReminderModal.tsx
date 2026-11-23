@@ -88,10 +88,13 @@ export function DailyReminderModal({ isOpen, onClose }: DailyReminderModalProps)
         );
         return Math.min(todayGoal, uniqueWords.size);
       }
-      if (reviewProgress.wordIds && reviewProgress.wordIds.length > 0) {
+      if (reviewProgress.isCompleted && reviewProgress.wordIds && reviewProgress.wordIds.length > 0) {
         return Math.min(todayGoal, reviewProgress.wordIds.length);
       }
-      return Math.min(todayGoal, Math.ceil((reviewProgress.answeredCount || 0) / 3));
+      if (reviewProgress.answeredCount > 0) {
+        return Math.min(todayGoal, Math.ceil(reviewProgress.answeredCount / 3));
+      }
+      return 0;
     }
     if (lastLearnedDate === todayStr) {
       return Math.min(todayGoal, Math.max(0, todayLearned));

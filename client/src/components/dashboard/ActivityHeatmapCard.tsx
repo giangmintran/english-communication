@@ -39,7 +39,8 @@ function getWordsCountFromReview(review?: any, fallbackCount: number = 0): numbe
 
   // 3. Quy đổi từ số câu hỏi đã trả lời về số từ (mỗi từ có 3 câu hỏi)
   if (review.answeredCount > 0) {
-    return Math.min(20, Math.ceil(review.answeredCount / 3));
+    const maxWords = review.wordIds?.length || 20;
+    return Math.min(maxWords, Math.ceil(review.answeredCount / 3));
   }
 
   return 0;
@@ -122,7 +123,7 @@ export function ActivityHeatmapCard() {
       weekTotalWords: totalWords,
       completedDaysCount: completedCount,
     };
-  }, [streakDays, todayLearned, dailyReviewProgress, todayGoal, isEn]);
+  }, [streakDays, todayLearned, lastLearnedDate, dailyReviewProgress, todayGoal, isEn]);
 
   return (
     <>

@@ -483,7 +483,7 @@ export const useLearningStore = create<LearningState>()(
           if (todayReview.results && Object.keys(todayReview.results).length > 0) {
             const uniqueWords = new Set(
               Object.values(todayReview.results)
-                .map((r: any) => r.question?.wordId || r.questionId)
+                .map((r) => r.question?.wordId || r.questionId)
                 .filter(Boolean)
             );
             countToday = uniqueWords.size;
