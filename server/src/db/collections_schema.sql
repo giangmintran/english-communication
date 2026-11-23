@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS public.collection_items (
     audio_url TEXT,
     sprint_day INTEGER DEFAULT 1 CHECK (sprint_day BETWEEN 1 AND 3), -- Ngày 1 (Nền tảng), Ngày 2 (Tương tác), Ngày 3 (Xử lý tình huống)
     order_index INTEGER DEFAULT 0,
+    details JSONB DEFAULT '{}'::jsonb, -- Dữ liệu phong phú: part_of_speech, collocations, usage_note, synonyms, more_examples
     created_at TIMESTAMPTZ DEFAULT timezone('utc'::text, now())
 );
 

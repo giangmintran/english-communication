@@ -13,7 +13,7 @@ import { selectDailyWords, loadDailyWordsFromCollectionItems } from '@/lib/daily
 export default function LearnDeckPage() {
   const { deckId } = useParams<{ deckId: string }>();
   const { user } = useAuth();
-  const { todayGoal } = useLearningStore();
+  const { profile, todayGoal } = useLearningStore();
   const { t } = useTranslation();
   const [deck, setDeck] = useState<DeckWithItems | null>(null);
   const [items, setItems] = useState<LearningItem[]>([]);
@@ -35,7 +35,7 @@ export default function LearnDeckPage() {
           let formattedDeck = { ...deckData };
 
           if (isDaily) {
-            const targetCount = !user ? Math.min(5, todayGoal || 5) : (todayGoal || 20);
+            const targetCount = !user ? Math.min(5, todayGoal || 5) : (profile?.daily_goal_words || todayGoal || 20);
             const todayStr = new Date().toISOString().split('T')[0];
             const colSourceItems = await loadDailyWordsFromCollectionItems();
             loadedItems = selectDailyWords({
@@ -117,7 +117,7 @@ export default function LearnDeckPage() {
     <div className="min-h-screen bg-slate-50/50 dark:bg-[#0B0F19] py-8 transition-colors">
       {/* Guest Mode Notice */}
       {!user && (
-        <div className="max-w-2xl mx-auto mb-4 px-4">
+        <div className="max-w-4xl mx-auto mb-4 px-4">
           <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/50 rounded-2xl p-3 sm:p-3.5 flex items-center justify-between gap-3 text-xs">
             <div className="flex items-center gap-2.5 min-w-0">
               <Lock className="w-4 h-4 text-amber-500 shrink-0" />

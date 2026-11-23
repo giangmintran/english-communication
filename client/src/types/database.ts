@@ -28,6 +28,35 @@ export type DeckWithItems = Deck & {
 
 export type ItemType = 'word' | 'collocation' | 'phrase' | 'sentence';
 
+export interface ItemDetails {
+  part_of_speech?: string; // Ví dụ: 'noun', 'verb', 'phrasal verb', 'idiom'
+  definition?: string;     // Định nghĩa mở rộng
+  collocations?: string[]; // Ví dụ: ['smooth rollout', 'global rollout']
+  synonyms?: string[];     // Ví dụ: ['launch', 'deployment', 'implementation']
+  antonyms?: string[];     // Ví dụ: ['withdrawal', 'recall']
+  usage_note?: string;     // Ví dụ: 'Thường dùng trong môi trường doanh nghiệp khi ra mắt hệ thống/sản phẩm mới.'
+  more_examples?: Array<{
+    en: string;
+    vi: string;
+  }>;
+  vi?: {
+    meaning?: string;
+    definition?: string;
+    usage_note?: string;
+    collocations?: string[];
+    synonyms?: string[];
+    antonyms?: string[];
+  };
+  en?: {
+    definition?: string;
+    meaning?: string;
+    usage_note?: string;
+    collocations?: string[];
+    synonyms?: string[];
+    antonyms?: string[];
+  };
+}
+
 export type LearningItem = {
   id: string;
   deck_id: string;
@@ -39,6 +68,7 @@ export type LearningItem = {
   example_meaning: string;
   audio_url?: string;
   difficulty_level: 'A1' | 'A2' | 'B1' | 'B2';
+  details?: ItemDetails;
 };
 
 export type ReviewGrade = 0 | 1 | 2 | 3; // 0: Again (Quên), 1: Hard (Mơ hồ), 2: Good (Nhớ), 3: Easy (Rất dễ)
@@ -89,6 +119,7 @@ export interface CollectionItem {
   audio_url?: string;
   order_index?: number;
   sprint_day?: 1 | 2 | 3;
+  details?: ItemDetails;
 }
 
 export interface Collection {

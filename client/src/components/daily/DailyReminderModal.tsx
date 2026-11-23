@@ -131,7 +131,7 @@ export function DailyReminderModal({ isOpen, onClose }: DailyReminderModalProps)
     return count;
   }, [reviews, collectionReviews, reviewProgress]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !user) return null;
 
   const handleStartStudy = () => {
     onClose();

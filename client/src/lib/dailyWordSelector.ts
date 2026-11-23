@@ -47,6 +47,7 @@ export async function loadDailyWordsFromCollectionItems(): Promise<LearningItem[
         example_meaning: item.example_meaning || '',
         audio_url: item.audio_url || undefined,
         difficulty_level: item.difficulty_level || 'A2',
+        details: item.details || undefined,
       }));
     }
   } catch (err) {

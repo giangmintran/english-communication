@@ -171,18 +171,20 @@ export function Header({ onOpenMobileMenu, onOpenReminder }: HeaderProps) {
         {/* Vertical divider */}
         <div className="hidden sm:block h-5 sm:h-6 w-px bg-slate-200 dark:bg-slate-800" />
 
-        {/* Notification Bell / Daily Study Reminder */}
-        <button
-          className="relative p-1.5 sm:p-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 rounded-full transition-colors cursor-pointer shrink-0"
-          title={t('header.notifications')}
-          onClick={onOpenReminder}
-          aria-label="Open study reminder"
-        >
-          <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
-          {hasPendingTasks && (
-            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-slate-900 animate-pulse" />
-          )}
-        </button>
+        {/* Notification Bell / Daily Study Reminder (chỉ hiển thị khi đã đăng nhập) */}
+        {user && (
+          <button
+            className="relative p-1.5 sm:p-2 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 rounded-full transition-colors cursor-pointer shrink-0"
+            title={t('header.notifications')}
+            onClick={onOpenReminder}
+            aria-label="Open study reminder"
+          >
+            <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
+            {hasPendingTasks && (
+              <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-white dark:ring-slate-900 animate-pulse" />
+            )}
+          </button>
+        )}
 
         {/* Auth Section */}
         {isLoading ? (

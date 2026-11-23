@@ -103,14 +103,20 @@ router.get('/', edgeCache(300), async (_req: Request, res: Response) => {
   try {
     const { data, error } = await supabase
       .from('collections')
-      .select('*')
+      .select('*, collection_items(count)')
       .order('order_index', { ascending: true });
 
     if (error || !data || data.length === 0) {
       return sendSuccess(res, initialCollectionsFallback, 'Lấy danh sách collections thành công (fallback)');
     }
 
-    return sendSuccess(res, data, 'Lấy danh sách collections thành công');
+    const formattedData = data.map((c: any) => ({
+      ...c,
+      total_phrases: c.collection_items?.[0]?.count ?? c.total_phrases ?? 0,
+      collection_items: undefined,
+    }));
+
+    return sendSuccess(res, formattedData, 'Lấy danh sách collections thành công');
   } catch (err: any) {
     return sendSuccess(res, initialCollectionsFallback, 'Lấy danh sách collections thành công (fallback)');
   }

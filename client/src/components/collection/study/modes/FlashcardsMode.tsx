@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { LearningItem } from '@/types/database';
 import { SRSItemState } from '@/lib/srs';
-import { speakText } from '@/lib/speech';
+import { speakText, stopSpeaking } from '@/lib/speech';
 import { useTranslation } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
 
@@ -82,7 +82,8 @@ export function FlashcardsMode({
 
   const playAudio = useCallback(
     async (text: string) => {
-      if (isPlayingAudio) return;
+      if (!text) return;
+      stopSpeaking();
       setIsPlayingAudio(true);
       try {
         await speakText(text);
@@ -90,17 +91,32 @@ export function FlashcardsMode({
         setIsPlayingAudio(false);
       }
     },
-    [isPlayingAudio]
+    []
   );
+
+  // Dừng phát âm thanh khi component unmount
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+    };
+  }, []);
 
   // Auto-play audio when word changes
   useEffect(() => {
     if (currentItem && autoPlayAudio && !isCompleted) {
-      playAudio(currentItem.english_text);
+      stopSpeaking();
+      const timer = setTimeout(() => {
+        playAudio(currentItem.english_text);
+      }, 100);
+      return () => {
+        clearTimeout(timer);
+        stopSpeaking();
+      };
     }
-  }, [currentIndex, isShuffled]);
+  }, [currentIndex, isShuffled, autoPlayAudio, isCompleted, currentItem?.english_text, playAudio]);
 
   const handleNext = useCallback(() => {
+    stopSpeaking();
     if (currentIndex + 1 < activeItems.length) {
       setCurrentIndex((prev) => prev + 1);
       setIsFlipped(false);
@@ -110,6 +126,7 @@ export function FlashcardsMode({
   }, [currentIndex, activeItems.length]);
 
   const handlePrev = useCallback(() => {
+    stopSpeaking();
     if (currentIndex > 0) {
       setCurrentIndex((prev) => prev - 1);
       setIsFlipped(false);

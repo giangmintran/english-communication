@@ -20,7 +20,12 @@ interface Day7Item {
 function getWordsCountFromReview(review?: any, fallbackCount: number = 0): number {
   if (!review) return fallbackCount;
 
-  // 1. Tính từ số từ vựng duy nhất trong kết quả các câu hỏi
+  // 1. Nếu đã hoàn thành toàn bộ bài ôn tập thì giữ nguyên số lượng từ vựng của ngày đó (kể cả khi làm lại bài tập)
+  if (review.isCompleted && review.wordIds && review.wordIds.length > 0) {
+    return review.wordIds.length;
+  }
+
+  // 2. Tính từ số từ vựng duy nhất trong kết quả các câu hỏi
   if (review.results && Object.keys(review.results).length > 0) {
     const uniqueWordIds = new Set(
       Object.values(review.results)
@@ -32,21 +37,16 @@ function getWordsCountFromReview(review?: any, fallbackCount: number = 0): numbe
     }
   }
 
-  // 2. Tính từ danh sách wordIds lưu trong tiến trình
-  if (review.wordIds && review.wordIds.length > 0) {
-    return review.wordIds.length;
-  }
-
   // 3. Quy đổi từ số câu hỏi đã trả lời về số từ (mỗi từ có 3 câu hỏi)
   if (review.answeredCount > 0) {
     return Math.min(20, Math.ceil(review.answeredCount / 3));
   }
 
-  return fallbackCount;
+  return 0;
 }
 
 export function ActivityHeatmapCard() {
-  const { streakDays, todayLearned, dailyReviewProgress, todayGoal } = useLearningStore();
+  const { streakDays, todayLearned, lastLearnedDate, dailyReviewProgress, todayGoal } = useLearningStore();
   const { t, language } = useTranslation();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -85,18 +85,13 @@ export function ActivityHeatmapCard() {
       } else if (isToday) {
         const todayReview = dailyReviewProgress[todayStr];
         const reviewWords = getWordsCountFromReview(todayReview, 0);
-        count = Math.max(reviewWords, todayLearned);
+        count = todayReview ? reviewWords : (lastLearnedDate === todayStr ? todayLearned : 0);
       } else {
         const savedReview = dailyReviewProgress[dStr];
-        if (savedReview && (savedReview.answeredCount > 0 || (savedReview.results && Object.keys(savedReview.results).length > 0))) {
+        if (savedReview && (savedReview.answeredCount > 0 || (savedReview.results && Object.keys(savedReview.results).length > 0) || savedReview.isCompleted)) {
           count = getWordsCountFromReview(savedReview);
         } else {
-          // Tính theo chuỗi streak gần đây
-          const diffDays = Math.floor((now.getTime() - dObj.getTime()) / (1000 * 3600 * 24));
-          if (diffDays > 0 && diffDays <= streakDays) {
-            const seed = (dObj.getDate() * 13 + dObj.getMonth() * 7) % 5;
-            count = 16 + seed;
-          }
+          count = 0;
         }
       }
 

@@ -136,10 +136,63 @@ export const api = {
   // Bộ sưu tập chuyên đề (Hoàn toàn độc lập với decks/items của Daily Lesson)
   collections: {
     getAll: async (): Promise<Collection[]> => {
-      // Tự động fallback sang initialCollections nếu chưa có API backend
-      return request<Collection[]>('/collections', {}, initialCollections);
+      // 1. Thử gọi backend API
+      try {
+        const res = await request<Collection[]>('/collections');
+        if (res && res.length > 0) return res;
+      } catch (_) {}
+
+      // 2. Nếu backend không khả dụng, lấy trực tiếp từ database Supabase với số lượng từ thực tế
+      try {
+        const { data, error } = await supabase
+          .from('collections')
+          .select('*, collection_items(count)')
+          .order('order_index', { ascending: true });
+
+        if (!error && data && data.length > 0) {
+          return data.map((c: any) => ({
+            ...c,
+            total_phrases: c.collection_items?.[0]?.count ?? c.total_phrases ?? 0,
+          }));
+        }
+      } catch (_) {}
+
+      // 3. Fallback cuối cùng nếu offline hoàn toàn
+      return initialCollections;
     },
     getById: async (idOrSlug: string): Promise<Collection & { items: CollectionItem[] }> => {
+      // 1. Thử gọi backend API
+      try {
+        const res = await request<Collection & { items: CollectionItem[] }>(`/collections/${idOrSlug}`);
+        if (res && (res.items || res.phrases)) return res;
+      } catch (_) {}
+
+      // 2. Thử lấy trực tiếp từ database Supabase
+      try {
+        const cleanKey = idOrSlug.replace(/^col-/, '');
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
+        let query = supabase
+          .from('collections')
+          .select('*, collection_items(*)')
+          .order('order_index', { referencedTable: 'collection_items', ascending: true });
+
+        if (isUuid) {
+          query = query.eq('id', idOrSlug);
+        } else {
+          query = query.or(`id.eq.${idOrSlug},slug.eq.${idOrSlug},slug.eq.${cleanKey}`);
+        }
+
+        const { data, error } = await query.maybeSingle();
+        if (!error && data) {
+          return {
+            ...data,
+            items: data.collection_items || [],
+            phrases: data.collection_items || [],
+          };
+        }
+      } catch (_) {}
+
+      // 3. Fallback cuối cùng nếu offline
       const cleanKey = idOrSlug.replace(/^col-/, '');
       const fallbackCol =
         initialCollections.find((c) => c.id === idOrSlug || c.slug === cleanKey || c.id === `col-${cleanKey}`) ||
@@ -157,11 +210,7 @@ export const api = {
         phrases: phrases,
       };
 
-      return request<Collection & { items: CollectionItem[] }>(
-        `/collections/${idOrSlug}`,
-        {},
-        defaultCollectionWithItems
-      );
+      return defaultCollectionWithItems;
     },
   },
 

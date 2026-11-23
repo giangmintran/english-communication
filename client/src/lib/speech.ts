@@ -1,6 +1,8 @@
 /**
  * Text-to-Speech (TTS) using Web Speech API
  */
+let currentUtteranceId = 0;
+
 export function stopSpeaking(): void {
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
     try {
@@ -10,38 +12,62 @@ export function stopSpeaking(): void {
 }
 
 export function speakText(text: string, lang = 'en-US'): Promise<void> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       console.warn('Speech synthesis not supported in this browser.');
       resolve();
       return;
     }
 
-    // Cancel any ongoing speech
-    window.speechSynthesis.cancel();
+    const thisId = ++currentUtteranceId;
+    // Cancel any ongoing speech immediately
+    try {
+      window.speechSynthesis.cancel();
+    } catch (_) {}
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang;
-    utterance.rate = 0.9; // Slightly slower for clear English learners' comprehension
-    utterance.pitch = 1.0;
+    // A tiny 20ms timeout prevents Chrome from ignoring consecutive speak() calls
+    setTimeout(() => {
+      if (thisId !== currentUtteranceId) {
+        resolve();
+        return;
+      }
 
-    // Pick a natural English voice if available
-    const voices = window.speechSynthesis.getVoices();
-    const englishVoice = voices.find(
-      (v) => v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Samantha'))
-    ) || voices.find((v) => v.lang.startsWith('en'));
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang;
+      utterance.rate = 0.9; // Slightly slower for clear English learners' comprehension
+      utterance.pitch = 1.0;
 
-    if (englishVoice) {
-      utterance.voice = englishVoice;
-    }
+      // Pick a natural English voice if available
+      const voices = window.speechSynthesis.getVoices();
+      const englishVoice = voices.find(
+        (v) => v.lang.startsWith('en') && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Samantha'))
+      ) || voices.find((v) => v.lang.startsWith('en'));
 
-    utterance.onend = () => resolve();
-    utterance.onerror = (e) => {
-      console.warn('Speech synthesis error:', e);
-      resolve();
-    };
+      if (englishVoice) {
+        utterance.voice = englishVoice;
+      }
 
-    window.speechSynthesis.speak(utterance);
+      utterance.onend = () => {
+        if (thisId === currentUtteranceId) {
+          resolve();
+        }
+      };
+
+      utterance.onerror = (e) => {
+        // e.error can be 'canceled' or 'interrupted' when replaced by newer audio
+        if (e.error !== 'canceled' && e.error !== 'interrupted') {
+          console.warn('Speech synthesis error:', e);
+        }
+        resolve();
+      };
+
+      try {
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        console.warn('Failed to speak:', err);
+        resolve();
+      }
+    }, 20);
   });
 }
 
