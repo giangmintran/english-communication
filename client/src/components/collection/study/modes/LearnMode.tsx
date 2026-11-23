@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { LearningItem } from '@/types/database';
 import { SRSItemState } from '@/lib/srs';
-import { speakText } from '@/lib/speech';
+import { speakText, stopSpeaking } from '@/lib/speech';
 import { useTranslation } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
 import {
@@ -159,7 +159,8 @@ export function LearnMode({
 
   const playAudio = useCallback(
     async (text: string) => {
-      if (isSpeaking) return;
+      if (!text) return;
+      stopSpeaking();
       setIsSpeaking(true);
       try {
         await speakText(text);
@@ -167,21 +168,43 @@ export function LearnMode({
         setIsSpeaking(false);
       }
     },
-    [isSpeaking]
+    []
   );
+
+  // Dừng phát âm thanh khi component unmount
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+    };
+  }, []);
 
   // Tự động phát âm thanh nếu autoPlayAudio được bật
   useEffect(() => {
     if (stage === 'preview' && previewViewMode === 'card' && autoPlayAudio && targetBatch[previewIndex]) {
-      playAudio(targetBatch[previewIndex].english_text);
+      stopSpeaking();
+      const timer = setTimeout(() => {
+        playAudio(targetBatch[previewIndex].english_text);
+      }, 100);
+      return () => {
+        clearTimeout(timer);
+        stopSpeaking();
+      };
     }
-  }, [stage, previewIndex, previewViewMode, targetBatch]);
+  }, [stage, previewIndex, previewViewMode, targetBatch, autoPlayAudio, playAudio]);
 
   useEffect(() => {
     if (stage === 'quiz' && currentQueueItem && autoPlayAudio && !isSessionFinished) {
-      playAudio(currentQueueItem.item.english_text);
+      stopSpeaking();
+      setIsSpeaking(false);
+      const timer = setTimeout(() => {
+        playAudio(currentQueueItem.item.english_text);
+      }, 100);
+      return () => {
+        clearTimeout(timer);
+        stopSpeaking();
+      };
     }
-  }, [stage, currentIndex, currentQueueItem?.id]);
+  }, [stage, currentIndex, currentQueueItem?.id, autoPlayAudio, isSessionFinished, playAudio]);
 
   // Focus ô gõ từ khi chuyển sang câu hỏi dạng typing
   useEffect(() => {
@@ -319,6 +342,8 @@ export function LearnMode({
 
   // Chuyển sang câu hỏi kế tiếp trong hàng đợi
   const handleNextQuestion = () => {
+    stopSpeaking();
+    setIsSpeaking(false);
     setSelectedChoiceIdx(null);
     setTypingInput('');
     setIsAnswered(false);

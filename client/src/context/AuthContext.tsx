@@ -218,6 +218,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             Object.values(activeDailyProgress.results).map((r: any) => r.question?.wordId || r.questionId).filter(Boolean)
           );
           initialDailyLearned = uniqueWords.size;
+        } else if (activeDailyProgress.isCompleted && activeDailyProgress.wordIds && activeDailyProgress.wordIds.length > 0) {
+          initialDailyLearned = activeDailyProgress.wordIds.length;
         } else if (activeDailyProgress.wordIds && activeDailyProgress.wordIds.length > 0 && activeDailyProgress.answeredCount > 0) {
           initialDailyLearned = Math.min(
             activeDailyProgress.wordIds.length,
@@ -227,7 +229,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Tổng hợp từ vựng đã học
-      const totalWordsLearned = Object.keys(collectionReviewsMap).length + (activeDailyProgress?.wordIds?.length || 0);
+      const totalWordsLearned = Object.keys(collectionReviewsMap).length + initialDailyLearned;
       const streakCount = dbProfile?.streak_count ?? 1;
       const dailyGoal = dbProfile?.daily_goal_words ?? 20;
       const progressPercent = totalWordsLearned > 0 ? Math.min(100, Math.round((totalWordsLearned / 700) * 100)) : 0;
@@ -238,10 +240,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         (activeDailyProgress?.totalQuestions && activeDailyProgress?.answeredCount >= activeDailyProgress?.totalQuestions && activeDailyProgress?.answeredCount > 0)
       );
 
-      const resolvedTodayGoal =
-        isTodayCompleted && activeDailyProgress?.wordIds && activeDailyProgress.wordIds.length > 0
-          ? activeDailyProgress.wordIds.length
-          : dailyGoal;
+      const resolvedTodayGoal = Math.max(
+        dailyGoal,
+        activeDailyProgress?.wordIds?.length || 0
+      );
 
       // 5. Cập nhật Zustand store của tài khoản này
       useLearningStore.getState().setUserData({

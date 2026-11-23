@@ -210,7 +210,7 @@ export function ExploreCollections({ isPage = false }: ExploreCollectionsProps) 
                     />
                     {/* Word count pill */}
                     <div className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-xs text-[11px] font-bold text-slate-800 dark:text-slate-200 shadow-xs">
-                      {col.total_phrases || 20} {t('common.words')}
+                      {typeof col.total_phrases === 'number' ? col.total_phrases : (col.items?.length ?? col.phrases?.length ?? 0)} {t('common.words')}
                     </div>
 
                     {/* Progress indicator if started */}
