@@ -4,42 +4,34 @@ import {
   X,
   Check,
   RotateCcw,
-  BookOpen,
   Layers,
   CheckCircle2,
 } from 'lucide-react';
-import { Deck, DailyLesson } from '@/types/database';
 import { useTranslation } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
 
 interface DailyFilterDrawerProps {
   isOpen: boolean;
   onClose: () => void;
-  decks: Deck[];
-  lessons: DailyLesson[];
-  lessonProgress: Record<string, { completed?: boolean; currentStep?: number }>;
-  selectedDeckId: string;
-  onSelectDeck: (deckId: string) => void;
-  selectedLevel: string;
-  onSelectLevel: (level: string) => void;
+  categories: string[];
+  selectedCategory: string;
+  onSelectCategory: (category: string) => void;
   selectedStatus: 'all' | 'completed' | 'in_progress';
   onSelectStatus: (status: 'all' | 'completed' | 'in_progress') => void;
   onReset: () => void;
+  getCategoryCount: (category: string) => number;
 }
 
 export function DailyFilterDrawer({
   isOpen,
   onClose,
-  decks,
-  lessons,
-  lessonProgress,
-  selectedDeckId,
-  onSelectDeck,
-  selectedLevel,
-  onSelectLevel,
+  categories,
+  selectedCategory,
+  onSelectCategory,
   selectedStatus,
   onSelectStatus,
   onReset,
+  getCategoryCount,
 }: DailyFilterDrawerProps) {
   const { t } = useTranslation();
 
@@ -68,26 +60,13 @@ export function DailyFilterDrawer({
 
   if (!isOpen) return null;
 
-  // Calculate lesson counts per deck
-  const getDeckCount = (deckId: string) => {
-    if (deckId === 'all') return lessons.length;
-    return lessons.filter(
-      (l) =>
-        l.deck_id === deckId ||
-        l.deck_id === `deck-${deckId}` ||
-        l.deck_id.replace(/^deck-/, '') === deckId
-    ).length;
-  };
-
-  const levels = ['all', 'A1', 'A2', 'B1', 'B2'];
   const statuses: { id: 'all' | 'completed' | 'in_progress'; label: string }[] = [
     { id: 'all', label: t('daily.statusAll') },
     { id: 'completed', label: t('daily.statusCompleted') },
     { id: 'in_progress', label: t('daily.statusInProgress') },
   ];
 
-  const hasActiveFilters =
-    selectedDeckId !== 'all' || selectedLevel !== 'all' || selectedStatus !== 'all';
+  const hasActiveFilters = selectedCategory !== 'all' || selectedStatus !== 'all';
 
   return (
     <div className="fixed inset-0 z-50">
@@ -127,7 +106,7 @@ export function DailyFilterDrawer({
 
         {/* Filter Body Content */}
         <div className="flex-1 overflow-y-auto p-5 space-y-6">
-          {/* Section 1: Topics / Decks */}
+          {/* Section 1: Categories */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
@@ -135,50 +114,21 @@ export function DailyFilterDrawer({
                 <span>{t('daily.filterTopicTitle')}</span>
               </label>
               <span className="text-[11px] text-slate-400">
-                {t('daily.optionsCount', { count: decks.length + 1 })}
+                {t('daily.optionsCount', { count: categories.length })}
               </span>
             </div>
 
             <div className="space-y-1.5">
-              {/* Option: Tất cả bài học */}
-              <button
-                type="button"
-                onClick={() => onSelectDeck('all')}
-                className={cn(
-                  'w-full flex items-center justify-between p-3 rounded-2xl border text-left text-xs font-semibold transition-all cursor-pointer',
-                  selectedDeckId === 'all'
-                    ? 'border-blue-500 bg-blue-50/80 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 font-bold ring-2 ring-blue-500/20'
-                    : 'border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 text-slate-700 dark:text-slate-300 hover:bg-slate-100/60 dark:hover:bg-slate-800'
-                )}
-              >
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className={cn(
-                      'w-4 h-4 rounded-full border flex items-center justify-center transition-colors',
-                      selectedDeckId === 'all'
-                        ? 'border-blue-600 bg-blue-600 text-white'
-                        : 'border-slate-300 dark:border-slate-600'
-                    )}
-                  >
-                    {selectedDeckId === 'all' && <Check className="w-2.5 h-2.5 stroke-[3]" />}
-                  </div>
-                  <span>{t('daily.allLessons')}</span>
-                </div>
-                <span className="px-2 py-0.5 rounded-full bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-500 border border-slate-200/60 dark:border-slate-700">
-                  {t('daily.lessonsCount', { count: getDeckCount('all') })}
-                </span>
-              </button>
-
-              {/* Options: List of Decks */}
-              {decks.map((deck) => {
-                const isSelected = selectedDeckId === (deck.slug || deck.id);
-                const count = getDeckCount(deck.slug || deck.id);
+              {categories.map((cat) => {
+                const isSelected = selectedCategory === cat;
+                const count = getCategoryCount(cat);
+                const label = cat === 'all' ? t('daily.allLessons') : cat;
 
                 return (
                   <button
-                    key={deck.id}
+                    key={cat}
                     type="button"
-                    onClick={() => onSelectDeck(deck.slug || deck.id)}
+                    onClick={() => onSelectCategory(cat)}
                     className={cn(
                       'w-full flex items-center justify-between p-3 rounded-2xl border text-left text-xs font-semibold transition-all cursor-pointer',
                       isSelected
@@ -197,10 +147,10 @@ export function DailyFilterDrawer({
                       >
                         {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
                       </div>
-                      <span className="truncate">{deck.title}</span>
+                      <span className="truncate">{label}</span>
                     </div>
                     <span className="px-2 py-0.5 rounded-full bg-white dark:bg-slate-800 text-[11px] font-semibold text-slate-500 border border-slate-200/60 dark:border-slate-700 shrink-0">
-                      {t('daily.lessonsCount', { count })}
+                      {count}
                     </span>
                   </button>
                 );
@@ -208,36 +158,7 @@ export function DailyFilterDrawer({
             </div>
           </div>
 
-          {/* Section 2: Level Selection */}
-          <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
-            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
-              <BookOpen className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-              <span>{t('daily.filterLevelTitle')}</span>
-            </label>
-
-            <div className="flex flex-wrap gap-2">
-              {levels.map((lvl) => {
-                const isSelected = selectedLevel === lvl;
-                return (
-                  <button
-                    key={lvl}
-                    type="button"
-                    onClick={() => onSelectLevel(lvl)}
-                    className={cn(
-                      'px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95',
-                      isSelected
-                        ? 'bg-blue-600 text-white shadow-xs'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-                    )}
-                  >
-                    {lvl === 'all' ? t('daily.allLevels') : lvl}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Section 3: Status Selection */}
+          {/* Section 2: Status Selection */}
           <div className="space-y-3 pt-4 border-t border-slate-100 dark:border-slate-800">
             <label className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />

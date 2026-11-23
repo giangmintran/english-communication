@@ -16,5 +16,9 @@
   "engines": {
     "node": ">=18.18.0",
     "npm": ">=9.0.0"
+  },
+  "dependencies": {
+    "express-rate-limit": "^8.7.5",
+    "ws": "^8.23.0"
   }
 }

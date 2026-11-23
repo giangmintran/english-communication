@@ -65,15 +65,38 @@ router.put('/me', authenticateUser, async (req: Request, res: Response) => {
   const db = authReq.supabase || supabase;
   const { display_name, daily_goal_words, current_level, avatar_url } = req.body;
 
+  // Validate input dữ liệu đầu vào
+  if (display_name !== undefined) {
+    if (typeof display_name !== 'string' || display_name.trim().length === 0 || display_name.length > 60) {
+      return sendError(res, 'display_name phải là chuỗi từ 1 đến 60 ký tự', 400, 'INVALID_INPUT');
+    }
+  }
+
+  if (daily_goal_words !== undefined) {
+    const goalNum = Number(daily_goal_words);
+    if (!Number.isInteger(goalNum) || goalNum < 1 || goalNum > 200) {
+      return sendError(res, 'daily_goal_words phải là số nguyên từ 1 đến 200', 400, 'INVALID_INPUT');
+    }
+  }
+
+  const VALID_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  if (current_level !== undefined && !VALID_LEVELS.includes(current_level)) {
+    return sendError(res, 'current_level không hợp lệ (hỗ trợ A1, A2, B1, B2, C1, C2)', 400, 'INVALID_INPUT');
+  }
+
+  if (avatar_url !== undefined && (typeof avatar_url !== 'string' || avatar_url.length > 500)) {
+    return sendError(res, 'avatar_url không hợp lệ', 400, 'INVALID_INPUT');
+  }
+
   try {
     const updates: Record<string, any> = {
       updated_at: new Date().toISOString(),
     };
 
-    if (display_name !== undefined) updates.display_name = display_name;
-    if (daily_goal_words !== undefined) updates.daily_goal_words = daily_goal_words;
+    if (display_name !== undefined) updates.display_name = display_name.trim();
+    if (daily_goal_words !== undefined) updates.daily_goal_words = Number(daily_goal_words);
     if (current_level !== undefined) updates.current_level = current_level;
-    if (avatar_url !== undefined) updates.avatar_url = avatar_url;
+    if (avatar_url !== undefined) updates.avatar_url = avatar_url.trim();
 
     const { data, error } = await db
       .from('profiles')

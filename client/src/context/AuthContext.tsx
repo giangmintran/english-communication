@@ -218,6 +218,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             Object.values(activeDailyProgress.results).map((r: any) => r.question?.wordId || r.questionId).filter(Boolean)
           );
           initialDailyLearned = uniqueWords.size;
+        } else if (activeDailyProgress.isCompleted && activeDailyProgress.wordIds && activeDailyProgress.wordIds.length > 0) {
+          initialDailyLearned = activeDailyProgress.wordIds.length;
         } else if (activeDailyProgress.wordIds && activeDailyProgress.wordIds.length > 0 && activeDailyProgress.answeredCount > 0) {
           initialDailyLearned = Math.min(
             activeDailyProgress.wordIds.length,
@@ -238,10 +240,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         (activeDailyProgress?.totalQuestions && activeDailyProgress?.answeredCount >= activeDailyProgress?.totalQuestions && activeDailyProgress?.answeredCount > 0)
       );
 
-      const resolvedTodayGoal =
-        isTodayCompleted && activeDailyProgress?.wordIds && activeDailyProgress.wordIds.length > 0
-          ? activeDailyProgress.wordIds.length
-          : dailyGoal;
+      const resolvedTodayGoal = Math.max(
+        dailyGoal,
+        activeDailyProgress?.wordIds?.length || 0
+      );
 
       // 5. Cập nhật Zustand store của tài khoản này
       useLearningStore.getState().setUserData({

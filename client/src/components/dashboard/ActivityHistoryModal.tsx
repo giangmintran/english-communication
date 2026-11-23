@@ -37,7 +37,7 @@ function getWordsCountFromReview(review?: any, fallbackCount: number = 0): numbe
     }
   }
 
-  // 2. Nếu đã hoàn thành bài học, lấy toàn bộ danh sách wordIds lưu trong tiến trình
+  // 2. Chỉ khi đã hoàn thành toàn bộ bài ôn tập mới tính theo wordIds
   if (review.isCompleted && review.wordIds && review.wordIds.length > 0) {
     return review.wordIds.length;
   }
@@ -48,7 +48,7 @@ function getWordsCountFromReview(review?: any, fallbackCount: number = 0): numbe
     return Math.min(maxWords, Math.ceil(review.answeredCount / 3));
   }
 
-  return fallbackCount;
+  return 0;
 }
 
 export function ActivityHistoryModal({ isOpen, onClose }: ActivityHistoryModalProps) {
@@ -142,25 +142,13 @@ export function ActivityHistoryModal({ isOpen, onClose }: ActivityHistoryModalPr
         } else if (isToday) {
           const todayReview = dailyReviewProgress[todayStr];
           const reviewWords = getWordsCountFromReview(todayReview, 0);
-          const storeTodayWords = lastLearnedDate === todayStr ? Math.max(0, todayLearned) : 0;
-          count = Math.max(reviewWords, storeTodayWords);
+          count = todayReview ? reviewWords : (lastLearnedDate === todayStr ? todayLearned : 0);
         } else {
           const savedReview = dailyReviewProgress[dateStr];
-          if (savedReview && (savedReview.answeredCount > 0 || (savedReview.results && Object.keys(savedReview.results).length > 0))) {
+          if (savedReview && (savedReview.answeredCount > 0 || (savedReview.results && Object.keys(savedReview.results).length > 0) || savedReview.isCompleted)) {
             count = getWordsCountFromReview(savedReview);
           } else {
-            const diffDays = Math.floor((now.getTime() - dateObj.getTime()) / (1000 * 3600 * 24));
-            if (diffDays > 0 && diffDays <= streakDays) {
-              const seed = (dateObj.getDate() * 13 + dateObj.getMonth() * 7) % 5;
-              count = 16 + seed;
-            } else if (diffDays > 0 && diffDays <= 120) {
-              const daySeed = (dateObj.getFullYear() * 37 + dateObj.getMonth() * 17 + dateObj.getDate() * 23) % 100;
-              if (d < 5 && daySeed > 42) {
-                count = (daySeed % 12) + 8;
-              } else if (d >= 5 && daySeed > 65) {
-                count = (daySeed % 8) + 6;
-              }
-            }
+            count = 0;
           }
         }
 

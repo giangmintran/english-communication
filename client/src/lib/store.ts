@@ -105,10 +105,10 @@ export const useLearningStore = create<LearningState>()(
       todayLearned: 0, // Guest starts with 0 learned words
       lastLearnedDate: new Date().toISOString().split('T')[0],
       todayGoal: 20,
-      overallProgressPercent: 72,
-      totalWordsLearned: 520,
-      speakingTimeMinutes: 48,
-      streakDays: 8,
+      overallProgressPercent: 0,
+      totalWordsLearned: 0,
+      speakingTimeMinutes: 0,
+      streakDays: 0,
       reviews: {},
       collectionReviews: {},
       collectionProgress: {},
@@ -477,29 +477,36 @@ export const useLearningStore = create<LearningState>()(
       checkAndResetNewDay: () => {
         const todayStr = new Date().toISOString().split('T')[0];
         const state = get();
-        if (state.lastLearnedDate !== todayStr) {
-          const todayReview = state.dailyReviewProgress[todayStr];
-          let countToday = 0;
-          if (todayReview) {
-            if (todayReview.results && Object.keys(todayReview.results).length > 0) {
-              const uniqueWords = new Set(
-                Object.values(todayReview.results)
-                  .map((r: any) => r.question?.wordId || r.questionId)
-                  .filter(Boolean)
-              );
-              countToday = uniqueWords.size;
-            } else if (todayReview.isCompleted && todayReview.wordIds && todayReview.wordIds.length > 0) {
-              countToday = todayReview.wordIds.length;
-            } else if (todayReview.answeredCount > 0) {
-              countToday = Math.min(state.profile?.daily_goal_words || 20, Math.ceil(todayReview.answeredCount / 3));
-            }
+        const todayReview = state.dailyReviewProgress[todayStr];
+        let countToday = 0;
+        if (todayReview) {
+          if (todayReview.results && Object.keys(todayReview.results).length > 0) {
+            const uniqueWords = new Set(
+              Object.values(todayReview.results)
+                .map((r) => r.question?.wordId || r.questionId)
+                .filter(Boolean)
+            );
+            countToday = uniqueWords.size;
+          } else if (todayReview.isCompleted && todayReview.wordIds && todayReview.wordIds.length > 0) {
+            countToday = todayReview.wordIds.length;
+          } else if (todayReview.answeredCount > 0) {
+            countToday = Math.min(state.profile?.daily_goal_words || 20, Math.ceil((todayReview.answeredCount || 0) / 3));
+          } else {
+            countToday = 0;
           }
-          // Khi sang ngày mới: áp dụng số lượng từ mới từ profile.daily_goal_words
+        }
+
+        if (state.lastLearnedDate !== todayStr) {
           const newDailyGoal = state.profile?.daily_goal_words || 20;
           set({
             todayLearned: countToday,
             lastLearnedDate: todayStr,
             todayGoal: newDailyGoal,
+          });
+        } else if (countToday === 0 && state.todayLearned > 0) {
+          // Khắc phục trường hợp cache cũ lưu nhầm todayLearned > 0 khi chưa làm bài học nào hôm nay
+          set({
+            todayLearned: 0,
           });
         }
       },
@@ -698,16 +705,9 @@ export const useLearningStore = create<LearningState>()(
 
       updateProfile: (updates: Partial<Profile>) => {
         set((state) => {
-          const todayStr = new Date().toISOString().split('T')[0];
-          const isCompleted = isTodayGoalCompleted(state, todayStr);
-
           let nextTodayGoal = state.todayGoal;
           if (updates.daily_goal_words !== undefined) {
-            // Nếu hôm nay chưa học xong thì cập nhật mục tiêu hôm nay
-            // Nếu đã học xong rồi thì giữ nguyên mục tiêu hôm nay, số lượng mới sẽ áp dụng từ ngày mai
-            if (!isCompleted) {
-              nextTodayGoal = updates.daily_goal_words;
-            }
+            nextTodayGoal = updates.daily_goal_words;
           }
 
           return {

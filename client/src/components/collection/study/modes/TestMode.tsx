@@ -8,9 +8,13 @@ import {
   CheckCircle2,
   Lock,
   ArrowRight,
+  Headphones,
+  Languages,
+  BookOpen,
+  Sparkles,
 } from 'lucide-react';
 import { LearningItem } from '@/types/database';
-import { speakText } from '@/lib/speech';
+import { speakText, stopSpeaking } from '@/lib/speech';
 import { useTranslation } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
 import {
@@ -26,6 +30,8 @@ function formatIpa(ipa?: string): string {
   const trimmed = ipa.replace(/^\/+|\/+$/g, '').trim();
   return trimmed ? `/${trimmed}/` : '';
 }
+
+const OPTION_LETTERS = ['A', 'B', 'C', 'D'];
 
 interface TestModeProps {
   items: LearningItem[];
@@ -66,10 +72,14 @@ export function TestMode({
   const answeredCount = Object.keys(userSelections).length;
   const totalQuestions = questions.length;
   const unansweredCount = totalQuestions - answeredCount;
+  const isAllAnswered = answeredCount === totalQuestions && totalQuestions > 0;
+  const progressPercent = totalQuestions > 0 ? Math.round(((currentIndex + 1) / totalQuestions) * 100) : 0;
+  const answeredPercent = totalQuestions > 0 ? Math.round((answeredCount / totalQuestions) * 100) : 0;
 
   const playAudio = useCallback(
     async (text: string) => {
-      if (isPlayingAudio) return;
+      if (!text) return;
+      stopSpeaking();
       setIsPlayingAudio(true);
       try {
         await speakText(text);
@@ -77,16 +87,30 @@ export function TestMode({
         setIsPlayingAudio(false);
       }
     },
-    [isPlayingAudio]
+    []
   );
+
+  // Stop speaking on unmount
+  useEffect(() => {
+    return () => {
+      stopSpeaking();
+    };
+  }, []);
 
   useEffect(() => {
     if (currentQuestion && autoPlayAudio && !isSubmitted) {
       if (currentQuestion.audioText) {
-        playAudio(currentQuestion.audioText);
+        stopSpeaking();
+        const timer = setTimeout(() => {
+          playAudio(currentQuestion.audioText!);
+        }, 100);
+        return () => {
+          clearTimeout(timer);
+          stopSpeaking();
+        };
       }
     }
-  }, [currentIndex, isSubmitted]);
+  }, [currentIndex, isSubmitted, autoPlayAudio, playAudio, currentQuestion?.audioText]);
 
   const handleSelectOption = (optIdx: number) => {
     if (isSubmitted || !currentQuestion) return;
@@ -97,16 +121,50 @@ export function TestMode({
   };
 
   const handleNext = () => {
+    stopSpeaking();
     if (currentIndex + 1 < questions.length) {
       setCurrentIndex((prev) => prev + 1);
     }
   };
 
   const handlePrev = () => {
+    stopSpeaking();
     if (currentIndex > 0) {
       setCurrentIndex((prev) => prev - 1);
     }
   };
+
+  // Hỗ trợ phím tắt số 1, 2, 3, 4 hoặc A, B, C, D và mũi tên trái/phải
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
+
+      if (!isSubmitted && currentQuestion) {
+        if (e.key === '1' || e.key.toLowerCase() === 'a') {
+          handleSelectOption(0);
+        } else if (e.key === '2' || e.key.toLowerCase() === 'b') {
+          handleSelectOption(1);
+        } else if (e.key === '3' || e.key.toLowerCase() === 'c') {
+          handleSelectOption(2);
+        } else if (e.key === '4' || e.key.toLowerCase() === 'd') {
+          handleSelectOption(3);
+        }
+      }
+
+      if (e.key === 'ArrowRight') {
+        if (currentIndex + 1 < questions.length) {
+          handleNext();
+        }
+      } else if (e.key === 'ArrowLeft') {
+        if (currentIndex > 0) {
+          handlePrev();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentIndex, questions.length, currentQuestion, isSubmitted]);
 
   // Nộp bài kiểm tra
   const handleSubmitTest = () => {
@@ -158,7 +216,7 @@ export function TestMode({
   // Nếu khách đã làm bài test trước đó và chưa nộp lượt mới, hiển thị màn hình khóa
   if (isGuest && hasGuestTakenTest && !isSubmitted) {
     return (
-      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-6 sm:p-10 shadow-card text-center space-y-5 max-w-lg mx-auto">
+      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-6 sm:p-10 shadow-card text-center space-y-5 max-w-lg mx-auto">
         <div className="w-16 h-16 rounded-3xl bg-amber-50 dark:bg-amber-950/40 text-amber-500 flex items-center justify-center mx-auto shadow-xs">
           <Lock className="w-8 h-8" />
         </div>
@@ -178,7 +236,7 @@ export function TestMode({
         <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2.5">
           <Link
             to="/login"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl sm:rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/20 transition-all cursor-pointer"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm shadow-md shadow-blue-500/20 transition-all cursor-pointer"
           >
             <span>{t('collectionStudy.guestLoginBtn')}</span>
             <ArrowRight className="w-4 h-4" />
@@ -186,7 +244,7 @@ export function TestMode({
           <button
             type="button"
             onClick={onSwitchToLearn}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl sm:rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs sm:text-sm transition-colors cursor-pointer"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold text-xs sm:text-sm transition-colors cursor-pointer"
           >
             <span>{t('collectionStudy.switchToLearn')}</span>
           </button>
@@ -219,156 +277,224 @@ export function TestMode({
 
   const selectedOpt = userSelections[currentQuestion.id];
 
+  const getQuestionTypeInfo = () => {
+    switch (currentQuestion.type) {
+      case 'vi_to_en':
+        return {
+          icon: Languages,
+          label: t('collectionStudy.questionTypeViToEn'),
+          color: 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-900/40',
+        };
+      case 'listening':
+        return {
+          icon: Headphones,
+          label: t('collectionStudy.questionTypeListening'),
+          color: 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900/40',
+        };
+      case 'en_to_vi':
+      default:
+        return {
+          icon: BookOpen,
+          label: t('collectionStudy.questionTypeEnToVi'),
+          color: 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-900/40',
+        };
+    }
+  };
+
+  const typeInfo = getQuestionTypeInfo();
+  const TypeIcon = typeInfo.icon;
+
   return (
-    <div className="space-y-3 sm:space-y-5">
-      {/* 1. Header: Quick summary & Submit button */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-3 sm:p-5 shadow-card flex items-center justify-between gap-2.5 sm:gap-3">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 block truncate">
-              {t('collectionStudy.testTitle', { total: questions.length })}
+    <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6">
+      {/* 1. Header: Sleek Progress Bar, Stats & Submit Action */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 shadow-card space-y-3.5 transition-colors">
+        <div className="flex items-center justify-between gap-3">
+          {/* Question Counter & Status */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap min-w-0">
+            <span className="px-3 py-1 rounded-xl text-xs sm:text-sm font-extrabold bg-blue-600 text-white shadow-xs">
+              Câu {currentIndex + 1} / {totalQuestions}
             </span>
+
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 hidden xs:inline-flex items-center gap-1.5">
+              <span>Đã trả lời:</span>
+              <span className="font-bold text-slate-800 dark:text-slate-200">
+                {answeredCount}/{totalQuestions}
+              </span>
+            </span>
+
             {isGuest && (
-              <span className="text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/40">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/40">
                 {t('collectionStudy.guestTestNotice')}
               </span>
             )}
           </div>
-          <p className="text-xs font-bold text-slate-500 dark:text-slate-400 truncate">
-            {t('collectionStudy.answeredCount', { current: answeredCount, total: totalQuestions })}
-          </p>
+
+          {/* Submit Test Button */}
+          <button
+            onClick={handleSubmitTest}
+            className={cn(
+              'px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm transition-all flex items-center gap-2 cursor-pointer shrink-0 shadow-xs active:scale-95',
+              isAllAnswered
+                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20 animate-pulse'
+                : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700'
+            )}
+          >
+            {isAllAnswered ? (
+              <>
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Nộp bài ngay</span>
+              </>
+            ) : (
+              <span>{t('collectionStudy.submitTest')}</span>
+            )}
+          </button>
         </div>
 
-        <button
-          onClick={handleSubmitTest}
-          className="px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-xl sm:rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm transition-all shadow-md shadow-blue-500/20 cursor-pointer shrink-0"
-        >
-          {t('collectionStudy.submitTest')}
-        </button>
-      </div>
-
-      {/* 2. Numbered Question Palette / Navigator */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl sm:rounded-3xl p-2.5 sm:p-4 shadow-card">
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-          {questions.map((q, idx) => {
-            const isAnswered = userSelections[q.id] !== undefined;
-            const isCurrent = currentIndex === idx;
-
-            return (
-              <button
-                key={q.id}
-                onClick={() => setCurrentIndex(idx)}
-                className={cn(
-                  'w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl text-[11px] sm:text-xs font-bold shrink-0 transition-all flex items-center justify-center cursor-pointer',
-                  isCurrent
-                    ? 'bg-blue-600 text-white ring-2 ring-blue-400 ring-offset-2 dark:ring-offset-slate-900'
-                    : isAnswered
-                    ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-                )}
-              >
-                {idx + 1}
-              </button>
-            );
-          })}
+        {/* Smooth Animated Progress Bar */}
+        <div className="space-y-1.5">
+          <div className="h-2 sm:h-2.5 w-full bg-slate-100 dark:bg-slate-800/80 rounded-full overflow-hidden relative">
+            <div
+              className="h-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-500 rounded-full transition-all duration-300 ease-out shadow-xs"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </div>
+          <div className="flex items-center justify-between text-[11px] font-medium text-slate-400 dark:text-slate-500 px-0.5">
+            <span>Tiến độ bài thi</span>
+            <span>{progressPercent}%</span>
+          </div>
         </div>
       </div>
 
-      {/* 3. Main Question Card */}
-      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-card space-y-4 sm:space-y-6">
-        {/* Top: Question Number & Audio */}
-        <div className="flex items-center justify-between">
-          <span className="px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-[11px] font-bold bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-900/40">
-            {t('collectionStudy.questionNumber', { current: currentIndex + 1, total: totalQuestions })}
-          </span>
+      {/* 2. Main Question Card */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 shadow-card space-y-6 sm:space-y-7 transition-colors">
+        {/* Top bar: Question Type badge & Audio Player */}
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className={cn('inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border', typeInfo.color)}>
+            <TypeIcon className="w-3.5 h-3.5 shrink-0" />
+            <span>{typeInfo.label}</span>
+          </div>
 
           {currentQuestion.audioText && (
             <button
               onClick={() => playAudio(currentQuestion.audioText!)}
-              className="p-1.5 sm:p-2 rounded-xl text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 hover:bg-blue-100 transition-colors cursor-pointer"
+              className={cn(
+                'inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer border active:scale-95',
+                isPlayingAudio
+                  ? 'bg-blue-600 text-white border-blue-600 animate-pulse shadow-sm'
+                  : 'bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-600 dark:text-blue-400 border-blue-200/80 dark:border-blue-800/60'
+              )}
               title={t('collectionStudy.listenAudio')}
             >
               <Volume2 className="w-4 h-4" />
+              <span>{isPlayingAudio ? 'Đang phát...' : 'Phát âm'}</span>
             </button>
           )}
         </div>
 
-        {/* Prompt */}
-        <div className="text-center py-1 sm:py-2 space-y-1.5 sm:space-y-2 px-1">
-          <p className="text-[11px] sm:text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            {currentQuestion.type === 'vi_to_en'
-              ? t('collectionStudy.questionTypeViToEn')
-              : currentQuestion.type === 'listening'
-              ? t('collectionStudy.questionTypeListening')
-              : t('collectionStudy.questionTypeEnToVi')}
-          </p>
-
-          <h3 className="text-lg sm:text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white break-words">
+        {/* Prompt Section */}
+        <div className="text-center py-2 sm:py-4 space-y-2.5 px-2">
+          <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-900 dark:text-white break-words leading-tight tracking-tight">
             {currentQuestion.prompt}
-          </h3>
+          </h2>
 
           {formatIpa(currentQuestion.item.phonetic_ipa) && currentQuestion.type === 'en_to_vi' && (
-            <p className="text-xs font-mono text-slate-400">
+            <div className="inline-block px-3 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700 text-xs font-mono text-slate-500 dark:text-slate-400">
               {formatIpa(currentQuestion.item.phonetic_ipa)}
-            </p>
+            </div>
           )}
         </div>
 
-        {/* 4 Choices */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+        {/* 4 Option Choices (Responsive: 1 col on mobile, 2 col on tablet/desktop) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-3.5">
           {currentQuestion.options.map((option, optIdx) => {
             const isSelected = selectedOpt === optIdx;
+            const letter = OPTION_LETTERS[optIdx] || `${optIdx + 1}`;
 
             return (
               <button
                 key={optIdx}
+                type="button"
                 onClick={() => handleSelectOption(optIdx)}
                 className={cn(
-                  'p-3 sm:p-4 rounded-xl sm:rounded-2xl border text-left text-xs sm:text-sm font-semibold transition-all flex items-center justify-between gap-2.5 cursor-pointer',
+                  'group relative p-3.5 sm:p-4 rounded-2xl border text-left transition-all duration-200 flex items-center justify-between gap-3 cursor-pointer active:scale-[0.99] select-none',
                   isSelected
-                    ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-500 text-blue-700 dark:text-blue-300 font-bold shadow-xs'
-                    : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600'
+                    ? 'bg-blue-50/90 dark:bg-blue-950/60 border-blue-500 dark:border-blue-400 text-blue-900 dark:text-blue-100 shadow-sm ring-2 ring-blue-500/20'
+                    : 'bg-slate-50/70 dark:bg-slate-800/40 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 border-slate-200/90 dark:border-slate-750 text-slate-800 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600'
                 )}
               >
-                <span className="break-words">{option}</span>
-                <div
-                  className={cn(
-                    'w-4 h-4 rounded-full border flex items-center justify-center shrink-0',
-                    isSelected
-                      ? 'border-blue-600 bg-blue-600 text-white'
-                      : 'border-slate-300 dark:border-slate-600'
-                  )}
-                >
-                  {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  {/* Option Letter Badge (A, B, C, D) */}
+                  <span
+                    className={cn(
+                      'w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center text-xs sm:text-sm font-bold shrink-0 transition-colors',
+                      isSelected
+                        ? 'bg-blue-600 text-white shadow-xs'
+                        : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 group-hover:border-slate-400'
+                    )}
+                  >
+                    {letter}
+                  </span>
+
+                  {/* Option Text */}
+                  <span className="text-xs sm:text-sm font-semibold break-words leading-relaxed">
+                    {option}
+                  </span>
+                </div>
+
+                {/* Right Selection Indicator */}
+                <div className="shrink-0 flex items-center gap-2">
+                  <span className="hidden md:inline-block text-[10px] text-slate-400 font-mono opacity-0 group-hover:opacity-60 transition-opacity">
+                    [{optIdx + 1}]
+                  </span>
+                  <div
+                    className={cn(
+                      'w-5 h-5 rounded-full border flex items-center justify-center transition-all',
+                      isSelected
+                        ? 'border-blue-600 bg-blue-600 text-white shadow-xs'
+                        : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'
+                    )}
+                  >
+                    {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                  </div>
                 </div>
               </button>
             );
           })}
         </div>
 
-        {/* Navigation Buttons: Previous / Next */}
-        <div className="flex items-center justify-between gap-2.5 sm:gap-3 pt-2 sm:pt-3 border-t border-slate-100 dark:border-slate-800">
+        {/* Bottom Navigation Buttons: Previous / Next / Submit */}
+        <div className="flex items-center justify-between gap-3 pt-4 sm:pt-5 border-t border-slate-100 dark:border-slate-800">
+          {/* Previous Button */}
           <button
+            type="button"
             onClick={handlePrev}
             disabled={currentIndex === 0}
-            className="flex items-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="flex items-center gap-1.5 sm:gap-2 py-2.5 px-3.5 sm:px-4 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs sm:text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer select-none"
           >
             <ChevronLeft className="w-4 h-4" />
             <span>{t('collectionStudy.prevQuestion')}</span>
           </button>
 
+          {/* Quick Counter in Center */}
+          <span className="text-xs font-semibold text-slate-400 dark:text-slate-500 hidden sm:inline-block">
+            {currentIndex + 1} / {totalQuestions}
+          </span>
+
+          {/* Next Button or Submit */}
           {currentIndex + 1 < questions.length ? (
             <button
+              type="button"
               onClick={handleNext}
-              className="flex items-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-4 sm:px-5 rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-bold hover:opacity-90 transition-opacity cursor-pointer"
+              className="flex items-center gap-1.5 sm:gap-2 py-2.5 px-4 sm:px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-bold transition-all shadow-md shadow-blue-500/20 active:scale-95 cursor-pointer select-none"
             >
               <span>{t('collectionStudy.nextQuestion')}</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           ) : (
             <button
+              type="button"
               onClick={handleSubmitTest}
-              className="flex items-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-4 sm:px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors shadow-xs cursor-pointer"
+              className="flex items-center gap-1.5 sm:gap-2 py-2.5 px-4 sm:px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold transition-all shadow-md shadow-emerald-500/20 active:scale-95 cursor-pointer select-none"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>{t('collectionStudy.submitTest')}</span>

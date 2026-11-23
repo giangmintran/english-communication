@@ -25,8 +25,8 @@ export function TodaysGoalCard() {
     checkAndResetNewDay();
   }, [checkAndResetNewDay]);
 
-  // Đối với khách chưa đăng nhập: giới hạn mục tiêu dùng thử là 5 từ
-  const effectiveGoal = !user ? 5 : todayGoal;
+  // Đối với khách chưa đăng nhập: giới hạn mục tiêu dùng thử là 5 từ. Người dùng đã đăng nhập: lấy theo setting
+  const effectiveGoal = !user ? 5 : (profile?.daily_goal_words || todayGoal || 20);
 
   const todayStr = React.useMemo(() => new Date().toISOString().split('T')[0], []);
   const reviewProgress = getTodayReviewProgress(todayStr);
@@ -35,25 +35,30 @@ export function TodaysGoalCard() {
   const currentLearned = React.useMemo(() => {
     let wordsFromReview = 0;
     if (reviewProgress) {
-      if (reviewProgress.results && Object.keys(reviewProgress.results).length > 0) {
+      // Nếu đã từng hoàn tất mục tiêu hôm nay thì luôn bảo lưu đầy đủ số từ đã học (không bị giảm khi làm lại bài tập)
+      if (reviewProgress.isCompleted && reviewProgress.wordIds && reviewProgress.wordIds.length > 0) {
+        wordsFromReview = reviewProgress.wordIds.length;
+      } else if (reviewProgress.results && Object.keys(reviewProgress.results).length > 0) {
         const uniqueWords = new Set(
           Object.values(reviewProgress.results)
             .map((r: any) => r.question?.wordId || r.questionId)
             .filter(Boolean)
         );
         wordsFromReview = uniqueWords.size;
-      } else if (reviewProgress.wordIds && reviewProgress.wordIds.length > 0 && reviewProgress.answeredCount > 0) {
-        wordsFromReview = Math.min(reviewProgress.wordIds.length, Math.ceil(reviewProgress.answeredCount / 3));
+      } else if (reviewProgress.answeredCount > 0) {
+        wordsFromReview = Math.min(reviewProgress.wordIds?.length || 20, Math.ceil(reviewProgress.answeredCount / 3));
+      } else {
+        wordsFromReview = 0;
       }
+      return Math.min(effectiveGoal, wordsFromReview);
     }
     const wordsFromStore = lastLearnedDate === todayStr ? Math.max(0, todayLearned) : 0;
-    const maxLearned = Math.max(wordsFromReview, wordsFromStore);
-    return Math.min(effectiveGoal, maxLearned);
+    return Math.min(effectiveGoal, wordsFromStore);
   }, [reviewProgress, lastLearnedDate, todayStr, todayLearned, effectiveGoal]);
 
   // Tự động đồng bộ lại todayLearned trong store nếu giá trị cache bị lệch
   React.useEffect(() => {
-    if (currentLearned > todayLearned) {
+    if (currentLearned !== todayLearned) {
       setTodayLearned(currentLearned);
     }
   }, [currentLearned, todayLearned, setTodayLearned]);
@@ -107,7 +112,7 @@ export function TodaysGoalCard() {
             <div className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white truncate">
               {effectiveGoal} {t('home.newWords')}
             </div>
-            {user && (isGoalReached || isReviewDone) && profile?.daily_goal_words && profile.daily_goal_words !== todayGoal && (
+            {user && (isGoalReached || isReviewDone) && profile?.daily_goal_words && profile.daily_goal_words !== effectiveGoal && (
               <span className="px-2.5 py-0.5 rounded-full bg-blue-100/90 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-semibold flex items-center gap-1 shadow-2xs">
                 <Sparkles className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                 <span>{t('home.tomorrowGoalBadge', { count: profile.daily_goal_words })}</span>

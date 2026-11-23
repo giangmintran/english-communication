@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 interface TodayLessonHeroCardProps {
   lesson: DailyLesson;
   deckTitle?: string;
+  collectionTitle?: string;
   progress?: {
     completed?: boolean;
     currentStep?: number;
@@ -34,6 +35,7 @@ interface TodayLessonHeroCardProps {
 export function TodayLessonHeroCard({
   lesson,
   deckTitle,
+  collectionTitle,
   progress,
   isGuest,
   todayFormatted,
@@ -75,9 +77,9 @@ export function TodayLessonHeroCard({
             <span>Quy tắc 70/30 (7 mới + 3 ôn)</span>
           </span> */}
 
-          {deckTitle && (
+          {(collectionTitle || deckTitle) && (
             <span className="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-700 dark:text-blue-300 text-xs font-bold border border-blue-200/50 dark:border-blue-800/50">
-              {deckTitle}
+              {collectionTitle || deckTitle}
             </span>
           )}
         </div>
