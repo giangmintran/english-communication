@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, Flame, LogOut, Settings, Sun, Moon, Menu, MessageCircle } from 'lucide-react';
+import { Bell, Flame, LogOut, Settings, Sun, Moon, Menu, MessageCircle, MessageSquareHeart } from 'lucide-react';
 import { useLearningStore } from '@/lib/store';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { useTranslation, Language } from '@/context/LanguageContext';
+import { useFeedbackModal } from '@/context/FeedbackModalContext';
 import { GoogleIcon } from '@/components/auth/GoogleIcon';
 import { UserAvatar } from '@/components/common/UserAvatar';
 
@@ -18,6 +19,7 @@ export function Header({ onOpenMobileMenu, onOpenReminder }: HeaderProps) {
   const { user, isLoading, signInWithGoogle, signOut } = useAuth();
   const { resolvedTheme, toggleTheme } = useTheme();
   const { t, language, setLanguage } = useTranslation();
+  const { openFeedback } = useFeedbackModal();
 
   // Kiểm tra xem hôm nay có nhiệm vụ học / từ đến hạn ôn tập không để hiện chấm thông báo
   const hasPendingTasks = React.useMemo(() => {
@@ -239,6 +241,18 @@ export function Header({ onOpenMobileMenu, onOpenReminder }: HeaderProps) {
                     <Settings className="w-4 h-4 text-slate-400 dark:text-slate-500" />
                     <span>{t('header.settings')}</span>
                   </Link>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      openFeedback();
+                    }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors font-medium cursor-pointer"
+                  >
+                    <MessageSquareHeart className="w-4 h-4 text-slate-400 dark:text-slate-500" />
+                    <span>{t('feedback.sidebarBtn') || 'Góp ý & Báo lỗi'}</span>
+                  </button>
 
                   <button
                     onClick={() => {

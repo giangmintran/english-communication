@@ -4,6 +4,8 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { MobileDrawer } from '@/components/layout/MobileDrawer';
 import { DailyReminderModal } from '@/components/daily/DailyReminderModal';
+import { FeedbackModal } from '@/components/feedback/FeedbackModal';
+import { FloatingFeedbackButton } from '@/components/feedback/FloatingFeedbackButton';
 import { useAuth } from '@/context/AuthContext';
 
 export function Layout() {
@@ -70,6 +72,10 @@ export function Layout() {
           onClose={() => setIsReminderOpen(false)}
         />
       )}
+
+      {/* Floating Feedback Button & Global Feedback Modal */}
+      <FloatingFeedbackButton />
+      <FeedbackModal />
     </div>
   );
 }

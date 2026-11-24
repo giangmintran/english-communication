@@ -12,11 +12,13 @@ import {
   Crown,
   ArrowRight,
   MessageCircle,
+  MessageSquareHeart,
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/context/LanguageContext';
+import { useFeedbackModal } from '@/context/FeedbackModalContext';
 
 export interface SidebarProps {
   isCollapsed?: boolean;
@@ -30,6 +32,7 @@ export function Sidebar({
   const location = useLocation();
   const pathname = location.pathname;
   const { t } = useTranslation();
+  const { openFeedback } = useFeedbackModal();
 
   // Kiểm tra xem trang hiện tại có phải là bài học / phiên học tập không
   const isLessonRoute = useMemo(() => {
@@ -161,6 +164,20 @@ export function Sidebar({
               </Link>
             );
           })}
+
+          {/* Quick Feedback button */}
+          <button
+            type="button"
+            onClick={() => openFeedback()}
+            title={t('feedback.sidebarBtn')}
+            className={cn(
+              'w-full flex items-center gap-3.5 px-3 py-3 rounded-2xl text-[15px] font-medium transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/60 dark:hover:bg-blue-950/30 cursor-pointer group',
+              isCollapsed ? 'justify-center' : 'justify-center lg:justify-start lg:px-4'
+            )}
+          >
+            <MessageSquareHeart className="w-5 h-5 text-slate-400 dark:text-slate-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors shrink-0" />
+            {!isCollapsed && <span className="hidden lg:inline">{t('feedback.sidebarBtn')}</span>}
+          </button>
         </nav>
       </div>
 
