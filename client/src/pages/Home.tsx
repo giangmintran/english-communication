@@ -23,9 +23,9 @@ export default function HomePage() {
   return (
     <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto">
       {/* TOP SECTION: Welcome Banner + Today's Goal */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-center">
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 sm:gap-6 items-center">
         {/* Welcome Text */}
-        <div className="lg:col-span-6">
+        <div className="xl:col-span-5 min-w-0">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">
             {t('home.welcomeBack')}, {displayName}! 👋
           </h1>
@@ -35,7 +35,7 @@ export default function HomePage() {
         </div>
 
         {/* Today's Goal Card */}
-        <div className="lg:col-span-6">
+        <div className="xl:col-span-7 min-w-0">
           <TodaysGoalCard />
         </div>
       </div>

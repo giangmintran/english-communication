@@ -384,4 +384,26 @@ export const api = {
       }
     },
   },
+
+  // Hệ thống Góp ý & Báo lỗi (Feedback & Bug Report)
+  feedback: {
+    // Gửi góp ý / báo lỗi mới (hỗ trợ cả khách và user đăng nhập)
+    submit: async (payload: import('@/types/feedback').SubmitFeedbackPayload) => {
+      return await requestWithAuth<import('@/types/feedback').FeedbackItem>('/feedback', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+    },
+
+    // Lấy danh sách góp ý của tài khoản hiện tại
+    getMyFeedbacks: async () => {
+      try {
+        return await requestWithAuth<import('@/types/feedback').FeedbackItem[]>('/feedback/my');
+      } catch (err) {
+        console.warn('Could not load user feedbacks:', err);
+        return [];
+      }
+    },
+  },
 };
+

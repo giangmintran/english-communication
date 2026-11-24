@@ -12,6 +12,7 @@ import {
   Crown,
   ArrowRight,
   MessageCircle,
+  MessageSquareHeart,
   X,
   Sun,
   Moon,
@@ -22,6 +23,7 @@ import { useTranslation, Language } from '@/context/LanguageContext';
 import { useTheme } from '@/context/ThemeContext';
 import { useAuth } from '@/context/AuthContext';
 import { useLearningStore } from '@/lib/store';
+import { useFeedbackModal } from '@/context/FeedbackModalContext';
 import { UserAvatar } from '@/components/common/UserAvatar';
 import { GoogleIcon } from '@/components/auth/GoogleIcon';
 
@@ -37,6 +39,7 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
   const { resolvedTheme, toggleTheme } = useTheme();
   const { user, signInWithGoogle, signOut } = useAuth();
   const { profile } = useLearningStore();
+  const { openFeedback } = useFeedbackModal();
 
   // Close drawer on ESC key
   useEffect(() => {
@@ -237,6 +240,19 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
               )}
             </button>
           </div>
+
+          {/* Quick Feedback & Bug Report Button */}
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              openFeedback();
+            }}
+            className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-200/70 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer mb-3"
+          >
+            <MessageSquareHeart className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            <span>{t('feedback.sidebarBtn')}</span>
+          </button>
 
           {/* Upgrade to Pro Banner */}
           <div className="bg-gradient-to-b from-blue-50/90 to-blue-100/60 dark:from-slate-800/80 dark:to-slate-800/40 rounded-2xl p-4 border border-blue-100/80 dark:border-slate-700/60 text-center">

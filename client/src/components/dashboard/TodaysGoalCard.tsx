@@ -86,30 +86,30 @@ export function TodaysGoalCard() {
   }
 
   return (
-    <div className="bg-gradient-to-r from-blue-50/70 via-sky-50/40 to-blue-50/50 dark:from-slate-900 dark:via-blue-950/30 dark:to-slate-900 border border-blue-100/80 dark:border-slate-800 rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-5 sm:gap-6 shadow-xs transition-colors">
-      <div className="flex items-center gap-4 sm:gap-5">
+    <div className="bg-gradient-to-r from-blue-50/70 via-sky-50/40 to-blue-50/50 dark:from-slate-900 dark:via-blue-950/30 dark:to-slate-900 border border-blue-100/80 dark:border-slate-800 rounded-3xl p-4 sm:p-5 xl:p-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 sm:gap-5 shadow-xs transition-colors overflow-hidden">
+      <div className="flex items-center gap-3.5 sm:gap-4.5 min-w-0 flex-1">
         {/* Target Icon with glowing rings */}
-        <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-white dark:bg-slate-800 border border-blue-100 dark:border-blue-900/60 flex items-center justify-center shadow-md shadow-blue-500/10 shrink-0">
-          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center">
-            <Target className="w-6 h-6 sm:w-7 sm:h-7 text-blue-600 dark:text-blue-400 stroke-[2.2]" />
+        <div className="relative w-12 h-12 sm:w-14 sm:h-14 xl:w-16 xl:h-16 rounded-2xl bg-white dark:bg-slate-800 border border-blue-100 dark:border-blue-900/60 flex items-center justify-center shadow-md shadow-blue-500/10 shrink-0">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 xl:w-12 xl:h-12 rounded-xl bg-blue-500/10 dark:bg-blue-500/20 flex items-center justify-center">
+            <Target className="w-5 h-5 sm:w-6 sm:h-6 xl:w-7 xl:h-7 text-blue-600 dark:text-blue-400 stroke-[2.2]" />
           </div>
           <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-amber-400 rounded-full border-2 border-white dark:border-slate-800" />
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-0.5 sm:mb-1">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">
               {t('home.todaysGoal')}
             </span>
             {!user && (
-              <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-[10px] font-bold flex items-center gap-1">
+              <span className="px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-[10px] font-bold flex items-center gap-1 shrink-0">
                 <Lock className="w-3 h-3" />
                 <span>{t('home.guestTrialBadge')}</span>
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <div className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white truncate">
+          <div className="flex items-center gap-2 mb-1.5 sm:mb-2 flex-wrap">
+            <div className="text-lg sm:text-xl xl:text-2xl font-bold text-slate-900 dark:text-white truncate">
               {effectiveGoal} {t('home.newWords')}
             </div>
             {user && (isGoalReached || isReviewDone) && profile?.daily_goal_words && profile.daily_goal_words !== effectiveGoal && (
@@ -121,8 +121,8 @@ export function TodaysGoalCard() {
           </div>
 
           {/* Progress bar */}
-          <div className="flex items-center gap-3">
-            <div className="flex-1 sm:w-44 sm:flex-none h-2.5 bg-blue-100/80 dark:bg-slate-800 rounded-full overflow-hidden">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <div className="flex-1 w-24 sm:w-32 xl:w-44 max-w-[176px] h-2.5 bg-blue-100/80 dark:bg-slate-800 rounded-full overflow-hidden shrink min-w-[50px]">
               <div
                 className="h-full bg-blue-600 dark:bg-blue-500 rounded-full transition-all duration-500"
                 style={{ width: `${percentage}%` }}
@@ -139,18 +139,18 @@ export function TodaysGoalCard() {
         <button
           type="button"
           onClick={() => setIsAuthModalOpen(true)}
-          className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-2xl flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 transition-all hover:gap-3 shrink-0 cursor-pointer"
+          className="w-full sm:w-auto px-4 py-2.5 sm:px-5 sm:py-3 xl:px-6 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold text-xs sm:text-sm rounded-2xl flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 transition-all hover:gap-3 shrink-0 cursor-pointer whitespace-nowrap"
         >
-          <Sparkles className="w-4 h-4" />
+          <Sparkles className="w-4 h-4 shrink-0" />
           <span>{buttonLabel}</span>
         </button>
       ) : (
         <Link
           to={targetRoute}
-          className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm rounded-2xl flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 transition-all hover:gap-3 shrink-0 cursor-pointer"
+          className="w-full sm:w-auto px-4 py-2.5 sm:px-5 sm:py-3 xl:px-6 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white font-semibold text-xs sm:text-sm rounded-2xl flex items-center justify-center gap-2 shadow-md shadow-blue-500/25 transition-all hover:gap-3 shrink-0 cursor-pointer whitespace-nowrap"
         >
           <span>{buttonLabel}</span>
-          <ArrowRight className="w-4 h-4" />
+          <ArrowRight className="w-4 h-4 shrink-0" />
         </Link>
       )}
 

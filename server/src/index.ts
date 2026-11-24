@@ -11,6 +11,7 @@ import conversationsRouter from './routes/conversations';
 import leaderboardRouter from './routes/leaderboard';
 import profileRouter from './routes/profile';
 import collectionsRouter from './routes/collections';
+import feedbackRouter from './routes/feedback';
 import { errorHandler } from './middlewares/errorHandler';
 import { sendSuccess } from './utils/response';
 
@@ -84,6 +85,7 @@ app.use('/api/conversations', conversationsRouter);
 app.use('/api/leaderboard', leaderboardRouter);
 app.use('/api/profile', profileRouter);
 app.use('/api/collections', collectionsRouter);
+app.use('/api/feedback', feedbackRouter);
 
 // Global Error Handler Middleware
 app.use(errorHandler);

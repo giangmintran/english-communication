@@ -12,7 +12,10 @@ import {
   Sparkles,
   CheckCircle2,
   Info,
+  MessageSquareHeart,
+  History,
 } from 'lucide-react';
+import { useFeedbackModal } from '@/context/FeedbackModalContext';
 import { useLearningStore } from '@/lib/store';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme, Theme } from '@/context/ThemeContext';
@@ -27,6 +30,7 @@ export default function SettingsPage() {
   const { user, signInWithGoogle, signOut } = useAuth();
   const { theme, resolvedTheme, setTheme } = useTheme();
   const { t, language, setLanguage } = useTranslation();
+  const { openFeedback } = useFeedbackModal();
 
   const todayStr = React.useMemo(() => new Date().toISOString().split('T')[0], []);
   const todayReview = dailyReviewProgress[todayStr];
@@ -340,6 +344,48 @@ export default function SettingsPage() {
                 </button>
               );
             })}
+          </div>
+        </div>
+      </div>
+
+      {/* NEW: Feedback & Bug Report Card */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-card transition-colors">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 dark:from-blue-500/20 dark:to-indigo-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+              <MessageSquareHeart className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+                {t('feedback.settingsCardTitle') || 'Đóng góp ý kiến & Báo lỗi'}
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl leading-relaxed">
+                {t('feedback.settingsCardDesc') ||
+                  'Bạn gặp trục trặc kỹ thuật hoặc có ý tưởng mới giúp việc học tiếng Anh hiệu quả hơn? Hãy gửi ngay cho chúng tôi!'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 w-full sm:w-auto shrink-0">
+            {user && (
+              <button
+                type="button"
+                onClick={() => openFeedback({ activeTab: 'history' })}
+                className="flex-1 sm:flex-none px-3.5 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <History className="w-3.5 h-3.5" />
+                <span>{t('feedback.tabHistory') || 'Lịch sử'}</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => openFeedback()}
+              className="flex-1 sm:flex-none px-4 py-2.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl flex items-center justify-center gap-1.5 transition-colors shadow-sm shadow-blue-500/25 cursor-pointer"
+            >
+              <MessageSquareHeart className="w-3.5 h-3.5" />
+              <span>{t('feedback.settingsOpenBtn') || 'Gửi phản hồi'}</span>
+            </button>
           </div>
         </div>
       </div>
