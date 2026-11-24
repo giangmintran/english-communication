@@ -282,7 +282,7 @@ export default function CollectionDetailPage() {
           {t('flashcards.noData')}
         </h2>
         <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
-          Không tìm thấy thông tin bộ sưu tập được yêu cầu.
+          {t('collectionDetail.notFoundDesc')}
         </p>
         <Link
           to="/collections"
@@ -307,14 +307,13 @@ export default function CollectionDetailPage() {
 
         <div>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 text-xs font-bold uppercase tracking-wider mb-2">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Chế độ khách bị giới hạn</span>
+            <span>{t('collectionDetail.guestLockedBadge')}</span>
           </span>
           <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
-            Bộ sưu tập này yêu cầu đăng nhập
+            {t('collectionDetail.guestLockedTitle')}
           </h3>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">
-            Bạn đang ở chế độ khách (chỉ được xem 5 bộ sưu tập mẫu). Vui lòng đăng nhập với tài khoản Google để mở khóa toàn bộ kho bộ sưu tập và lưu tiến trình ôn tập SRS.
+            {t('collectionDetail.guestLockedDesc')}
           </p>
         </div>
 
@@ -324,14 +323,14 @@ export default function CollectionDetailPage() {
             className="w-full py-3.5 px-5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm rounded-2xl flex items-center justify-center gap-2.5 transition-all shadow-md shadow-blue-500/20 cursor-pointer"
           >
             <GoogleIcon className="w-4 h-4" />
-            <span>Đăng nhập với Google để mở khóa</span>
+            <span>{t('collectionDetail.guestSignInBtn')}</span>
           </button>
 
           <Link
             to="/collections"
             className="w-full py-3 px-4 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs sm:text-sm rounded-2xl flex items-center justify-center gap-2 transition-colors block"
           >
-            <span>Quay lại trang Bộ sưu tập</span>
+            <span>{t('collectionDetail.backToCollections')}</span>
           </Link>
         </div>
       </div>
@@ -357,7 +356,7 @@ export default function CollectionDetailPage() {
 
         <div className="flex items-center gap-2">
           <span className="text-xs px-2.5 py-1 rounded-full font-bold bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/40">
-            {deck.category || 'Topic'}
+            {deck.category || t('collectionDetail.topicDefault')}
           </span>
         </div>
       </div>
@@ -571,7 +570,7 @@ export default function CollectionDetailPage() {
                     </p>
                   </div>
                 </div>
-                <Sparkles className="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-600 transition-colors" />
+                {/* <Sparkles className="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-600 transition-colors" /> */}
               </Link>
             </div>
           </div>
@@ -837,7 +836,7 @@ export default function CollectionDetailPage() {
                                   ? 'bg-blue-600 text-white animate-pulse'
                                   : 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white'
                               )}
-                              title="Nghe phát âm"
+                              title={t('collectionDetail.listenAudio')}
                             >
                               <Volume2 className="w-3.5 h-3.5" />
                             </button>
@@ -882,7 +881,7 @@ export default function CollectionDetailPage() {
                                   ? 'text-amber-500 hover:text-amber-600'
                                   : 'text-slate-300 dark:text-slate-600 hover:text-amber-400'
                               )}
-                              title={isStarred ? 'Bỏ lưu' : 'Lưu từ khó'}
+                              title={isStarred ? t('collectionDetail.unstar') : t('collectionDetail.star')}
                             >
                               <Star className={cn('w-4 h-4', isStarred && 'fill-current')} />
                             </button>

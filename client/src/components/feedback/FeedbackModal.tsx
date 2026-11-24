@@ -111,43 +111,43 @@ export function FeedbackModal() {
     bgColor: string;
     badgeBorder: string;
   }[] = [
-    {
-      id: 'general',
-      icon: Sparkles,
-      label: t('feedback.catGeneral') || 'Trải nghiệm chung',
-      description: t('feedback.catGeneralDesc') || 'Đánh giá & cảm nhận tổng quan',
-      color: 'text-amber-500 dark:text-amber-400',
-      bgColor: 'bg-amber-50 dark:bg-amber-950/40',
-      badgeBorder: 'border-amber-200 dark:border-amber-800',
-    },
-    {
-      id: 'bug',
-      icon: Bug,
-      label: t('feedback.catBug') || 'Báo lỗi kỹ thuật',
-      description: t('feedback.catBugDesc') || 'Âm thanh, giao diện, trang trắng',
-      color: 'text-rose-500 dark:text-rose-400',
-      bgColor: 'bg-rose-50 dark:bg-rose-950/40',
-      badgeBorder: 'border-rose-200 dark:border-rose-800',
-    },
-    {
-      id: 'feature',
-      icon: Lightbulb,
-      label: t('feedback.catFeature') || 'Góp ý tính năng',
-      description: t('feedback.catFeatureDesc') || 'Đề xuất cải tiến & ý tưởng mới',
-      color: 'text-blue-500 dark:text-blue-400',
-      bgColor: 'bg-blue-50 dark:bg-blue-950/40',
-      badgeBorder: 'border-blue-200 dark:border-blue-800',
-    },
-    {
-      id: 'content',
-      icon: BookOpen,
-      label: t('feedback.catContent') || 'Lỗi từ vựng / bài học',
-      description: t('feedback.catContentDesc') || 'Sai phiên âm, nghĩa tiếng Việt',
-      color: 'text-purple-500 dark:text-purple-400',
-      bgColor: 'bg-purple-50 dark:bg-purple-950/40',
-      badgeBorder: 'border-purple-200 dark:border-purple-800',
-    },
-  ];
+      {
+        id: 'general',
+        icon: Sparkles,
+        label: t('feedback.catGeneral') || 'Trải nghiệm chung',
+        description: t('feedback.catGeneralDesc') || 'Đánh giá & cảm nhận tổng quan',
+        color: 'text-amber-500 dark:text-amber-400',
+        bgColor: 'bg-amber-50 dark:bg-amber-950/40',
+        badgeBorder: 'border-amber-200 dark:border-amber-800',
+      },
+      {
+        id: 'bug',
+        icon: Bug,
+        label: t('feedback.catBug') || 'Báo lỗi kỹ thuật',
+        description: t('feedback.catBugDesc') || 'Âm thanh, giao diện, trang trắng',
+        color: 'text-rose-500 dark:text-rose-400',
+        bgColor: 'bg-rose-50 dark:bg-rose-950/40',
+        badgeBorder: 'border-rose-200 dark:border-rose-800',
+      },
+      {
+        id: 'feature',
+        icon: Lightbulb,
+        label: t('feedback.catFeature') || 'Góp ý tính năng',
+        description: t('feedback.catFeatureDesc') || 'Đề xuất cải tiến & ý tưởng mới',
+        color: 'text-blue-500 dark:text-blue-400',
+        bgColor: 'bg-blue-50 dark:bg-blue-950/40',
+        badgeBorder: 'border-blue-200 dark:border-blue-800',
+      },
+      {
+        id: 'content',
+        icon: BookOpen,
+        label: t('feedback.catContent') || 'Lỗi từ vựng / bài học',
+        description: t('feedback.catContentDesc') || 'Sai phiên âm, nghĩa tiếng Việt',
+        color: 'text-purple-500 dark:text-purple-400',
+        bgColor: 'bg-purple-50 dark:bg-purple-950/40',
+        badgeBorder: 'border-purple-200 dark:border-purple-800',
+      },
+    ];
 
   const ratingLabels: Record<number, string> = {
     1: t('feedback.rating1') || 'Rất tệ',
@@ -201,7 +201,7 @@ export function FeedbackModal() {
           origin: { y: 0.6 },
           zIndex: 9999,
         });
-      } catch (_) {}
+      } catch (_) { }
 
       setSubmitSuccess(true);
       setContent('');
@@ -321,11 +321,10 @@ export function FeedbackModal() {
             <button
               type="button"
               onClick={() => setActiveTab('form')}
-              className={`pb-3 px-3 text-sm font-semibold border-b-2 transition-all cursor-pointer ${
-                activeTab === 'form'
+              className={`pb-3 px-3 text-sm font-semibold border-b-2 transition-all cursor-pointer ${activeTab === 'form'
                   ? 'border-blue-600 text-blue-600 dark:text-blue-400'
                   : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-              }`}
+                }`}
             >
               {t('feedback.tabSend') || 'Gửi phản hồi'}
             </button>
@@ -334,11 +333,10 @@ export function FeedbackModal() {
               <button
                 type="button"
                 onClick={() => setActiveTab('history')}
-                className={`pb-3 px-3 text-sm font-semibold border-b-2 transition-all flex items-center gap-2 cursor-pointer ${
-                  activeTab === 'history'
+                className={`pb-3 px-3 text-sm font-semibold border-b-2 transition-all flex items-center gap-2 cursor-pointer ${activeTab === 'history'
                     ? 'border-blue-600 text-blue-600 dark:text-blue-400'
                     : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                }`}
+                  }`}
               >
                 <History className="w-4 h-4" />
                 <span>{t('feedback.tabHistory') || 'Lịch sử của bạn'}</span>
@@ -351,11 +349,11 @@ export function FeedbackModal() {
             )}
           </div>
 
-          {/* Modal Body */}
-          <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-5">
-            {activeTab === 'form' ? (
-              submitSuccess ? (
-                /* Success screen */
+          {/* Modal Content */}
+          {activeTab === 'form' ? (
+            submitSuccess ? (
+              /* Success screen */
+              <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-5">
                 <div className="py-8 text-center space-y-4 animate-in fade-in zoom-in-95 duration-200">
                   <div className="w-16 h-16 rounded-3xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto shadow-sm">
                     <CheckCircle2 className="w-9 h-9" />
@@ -387,9 +385,11 @@ export function FeedbackModal() {
                     </button>
                   </div>
                 </div>
-              ) : (
-                /* Form inputs */
-                <form onSubmit={handleSubmit} className="space-y-4">
+              </div>
+            ) : (
+              /* Form with Scrollable Inputs and Sticky Bottom Action Footer */
+              <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+                <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-4">
                   {/* Category Grid */}
                   <div>
                     <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2.5">
@@ -404,11 +404,10 @@ export function FeedbackModal() {
                             key={cat.id}
                             type="button"
                             onClick={() => setCategory(cat.id)}
-                            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                              isSelected
+                            className={`p-3 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${isSelected
                                 ? 'border-blue-500 bg-blue-50/70 dark:bg-blue-950/40 dark:border-blue-500 ring-2 ring-blue-500/20'
                                 : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/30 hover:border-slate-300 dark:hover:border-slate-700'
-                            }`}
+                              }`}
                           >
                             <div className="flex items-center justify-between w-full mb-1">
                               <span
@@ -458,11 +457,10 @@ export function FeedbackModal() {
                             aria-label={`${star} sao`}
                           >
                             <Star
-                              className={`w-6 h-6 transition-colors ${
-                                isFilled
+                              className={`w-6 h-6 transition-colors ${isFilled
                                   ? 'text-amber-400 fill-amber-400'
                                   : 'text-slate-300 dark:text-slate-600'
-                              }`}
+                                }`}
                             />
                           </button>
                         );
@@ -563,141 +561,141 @@ export function FeedbackModal() {
                       <span>{errorMessage}</span>
                     </div>
                   )}
-
-                  {/* Action Buttons */}
-                  <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-                    <button
-                      type="button"
-                      onClick={closeFeedback}
-                      className="px-4 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl transition-colors cursor-pointer"
-                    >
-                      {t('common.cancel') || 'Hủy'}
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting || !content.trim()}
-                      className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white text-sm font-semibold rounded-2xl shadow-sm shadow-blue-500/25 flex items-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>{t('feedback.submitting') || 'Đang gửi...'}</span>
-                        </>
-                      ) : (
-                        <>
-                          <Send className="w-4 h-4" />
-                          <span>{t('feedback.submitBtn') || 'Gửi góp ý'}</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
-              )
-            ) : (
-              /* History Tab */
-              <div className="space-y-3">
-                <div className="flex items-center justify-between pb-1">
-                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                    {t('feedback.historySubtitle') || 'Danh sách phản hồi bạn đã gửi:'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={fetchHistory}
-                    disabled={isLoadingHistory}
-                    className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                    title="Làm mới"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isLoadingHistory ? 'animate-spin' : ''}`} />
-                  </button>
                 </div>
 
-                {isLoadingHistory ? (
-                  <div className="py-12 flex flex-col items-center justify-center text-slate-400 gap-2">
-                    <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
-                    <span className="text-xs">{t('common.loading') || 'Đang tải...'}</span>
-                  </div>
-                ) : historyList.length === 0 ? (
-                  <div className="py-12 text-center space-y-2">
-                    <MessageSquareHeart className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
-                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                      {t('feedback.historyEmpty') || 'Bạn chưa gửi góp ý nào'}
-                    </p>
-                    <p className="text-xs text-slate-400 max-w-xs mx-auto">
-                      {t('feedback.historyEmptyDesc') ||
-                        'Hãy gửi phản hồi nếu bạn gặp lỗi hoặc có ý tưởng tính năng mới cho SpeakUp.'}
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('form')}
-                      className="mt-3 px-4 py-2 text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 rounded-xl hover:bg-blue-100 transition-colors"
-                    >
-                      {t('feedback.tabSend') || 'Gửi phản hồi ngay'}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {historyList.map((item) => (
-                      <div
-                        key={item.id}
-                        className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-800/30 space-y-2"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <span className="p-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                              {getCategoryIcon(item.category)}
-                            </span>
-                            <span className="text-xs font-bold text-slate-900 dark:text-white">
-                              {getCategoryLabel(item.category)}
-                            </span>
-                          </div>
-                          {getStatusBadge(item.status)}
-                        </div>
-
-                        {item.title && (
-                          <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                            {item.title}
-                          </div>
-                        )}
-
-                        <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
-                          {item.content}
-                        </p>
-
-                        {/* Admin note reply */}
-                        {item.admin_notes && (
-                          <div className="mt-2.5 p-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/50 text-xs text-blue-900 dark:text-blue-200 space-y-1">
-                            <div className="font-bold flex items-center gap-1.5 text-blue-700 dark:text-blue-300">
-                              <Sparkles className="w-3.5 h-3.5" />
-                              <span>{t('feedback.adminReply') || 'Phản hồi từ đội ngũ SpeakUp:'}</span>
-                            </div>
-                            <p className="leading-relaxed">{item.admin_notes}</p>
-                          </div>
-                        )}
-
-                        <div className="flex items-center justify-between pt-1 text-[11px] text-slate-400">
-                          <span>
-                            {new Date(item.created_at).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </span>
-                          {item.rating && (
-                            <span className="flex items-center gap-1 text-amber-500 font-semibold">
-                              <Star className="w-3 h-3 fill-amber-500" />
-                              {item.rating}/5
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                {/* Sticky Action Footer - Luôn hiển thị cố định ở chân modal */}
+                <div className="p-4 sm:px-6 border-t border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-[#111827]/95 backdrop-blur-md flex items-center justify-end gap-3 shrink-0 z-20 shadow-xs">
+                  <button
+                    type="button"
+                    onClick={closeFeedback}
+                    className="px-4 py-2.5 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-xl transition-colors cursor-pointer"
+                  >
+                    {t('common.cancel') || 'Hủy'}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || !content.trim()}
+                    className="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 text-white text-sm font-semibold rounded-2xl shadow-sm shadow-blue-500/25 flex items-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>{t('feedback.submitting') || 'Đang gửi...'}</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4" />
+                        <span>{t('feedback.submitBtn') || 'Gửi góp ý'}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            )
+          ) : (
+            /* History Tab */
+            <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-3">
+              <div className="flex items-center justify-between pb-1">
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  {t('feedback.historySubtitle') || 'Danh sách phản hồi bạn đã gửi:'}
+                </span>
+                <button
+                  type="button"
+                  onClick={fetchHistory}
+                  disabled={isLoadingHistory}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  title="Làm mới"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isLoadingHistory ? 'animate-spin' : ''}`} />
+                </button>
               </div>
-            )}
-          </div>
+
+              {isLoadingHistory ? (
+                <div className="py-12 flex flex-col items-center justify-center text-slate-400 gap-2">
+                  <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+                  <span className="text-xs">{t('common.loading') || 'Đang tải...'}</span>
+                </div>
+              ) : historyList.length === 0 ? (
+                <div className="py-12 text-center space-y-2">
+                  <MessageSquareHeart className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
+                  <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    {t('feedback.historyEmpty') || 'Bạn chưa gửi góp ý nào'}
+                  </p>
+                  <p className="text-xs text-slate-400 max-w-xs mx-auto">
+                    {t('feedback.historyEmptyDesc') ||
+                      'Hãy gửi phản hồi nếu bạn gặp lỗi hoặc có ý tưởng tính năng mới cho SpeakUp.'}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('form')}
+                    className="mt-3 px-4 py-2 text-xs font-semibold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 rounded-xl hover:bg-blue-100 transition-colors"
+                  >
+                    {t('feedback.tabSend') || 'Gửi phản hồi ngay'}
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {historyList.map((item) => (
+                    <div
+                      key={item.id}
+                      className="p-4 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-800/30 space-y-2"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="p-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                            {getCategoryIcon(item.category)}
+                          </span>
+                          <span className="text-xs font-bold text-slate-900 dark:text-white">
+                            {getCategoryLabel(item.category)}
+                          </span>
+                        </div>
+                        {getStatusBadge(item.status)}
+                      </div>
+
+                      {item.title && (
+                        <div className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                          {item.title}
+                        </div>
+                      )}
+
+                      <p className="text-xs text-slate-600 dark:text-slate-300 whitespace-pre-wrap leading-relaxed">
+                        {item.content}
+                      </p>
+
+                      {/* Admin note reply */}
+                      {item.admin_notes && (
+                        <div className="mt-2.5 p-3 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/50 text-xs text-blue-900 dark:text-blue-200 space-y-1">
+                          <div className="font-bold flex items-center gap-1.5 text-blue-700 dark:text-blue-300">
+                            {/* <Sparkles className="w-3.5 h-3.5" /> */}
+                            <span>{t('feedback.adminReply') || 'Phản hồi từ đội ngũ SpeakUp:'}</span>
+                          </div>
+                          <p className="leading-relaxed">{item.admin_notes}</p>
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between pt-1 text-[11px] text-slate-400">
+                        <span>
+                          {new Date(item.created_at).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                        {item.rating && (
+                          <span className="flex items-center gap-1 text-amber-500 font-semibold">
+                            <Star className="w-3 h-3 fill-amber-500" />
+                            {item.rating}/5
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </motion.div>
       </div>
     </AnimatePresence>

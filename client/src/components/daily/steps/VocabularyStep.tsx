@@ -254,7 +254,7 @@ export function VocabularyStep({ vocabulary }: VocabularyStepProps) {
                     </span>
                     {currentItem.is_review ? (
                       <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200/80 dark:border-amber-800/80">
-                        <Sparkles className="w-3 h-3 text-amber-500 fill-amber-500" />
+                        {/* <Sparkles className="w-3 h-3 text-amber-500 fill-amber-500" /> */}
                         <span>Ôn tập 70/30</span>
                       </span>
                     ) : (
@@ -489,7 +489,7 @@ export function VocabularyStep({ vocabulary }: VocabularyStepProps) {
                         </span>
                         {item.is_review ? (
                           <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200/70 dark:border-amber-800/70">
-                            <Sparkles className="w-2.5 h-2.5 text-amber-500" />
+                            {/* <Sparkles className="w-2.5 h-2.5 text-amber-500" /> */}
                             <span>Ôn tập 70/30</span>
                           </span>
                         ) : (

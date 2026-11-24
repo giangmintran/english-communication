@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
+import { Footer } from '@/components/layout/Footer';
 import { MobileDrawer } from '@/components/layout/MobileDrawer';
 import { DailyReminderModal } from '@/components/daily/DailyReminderModal';
 import { FeedbackModal } from '@/components/feedback/FeedbackModal';
@@ -56,6 +57,7 @@ export function Layout() {
           <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto pb-8 sm:pb-8 transition-all">
             <Outlet />
           </main>
+          <Footer />
         </div>
       </div>
 

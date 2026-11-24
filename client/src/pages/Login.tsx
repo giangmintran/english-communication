@@ -61,7 +61,7 @@ export default function LoginPage() {
     <div className="max-w-md mx-auto my-4 sm:my-8 px-1 sm:px-0 space-y-5 sm:space-y-6">
       <div className="text-center space-y-1.5 sm:space-y-2">
         <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-900/40 rounded-full text-xs font-semibold mb-1">
-          <Sparkles className="w-3.5 h-3.5" />
+          {/* <Sparkles className="w-3.5 h-3.5" /> */}
           <span>{t('login.badge')}</span>
         </div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
@@ -122,7 +122,7 @@ export default function LoginPage() {
 
           <div className="flex items-start gap-3">
             <div className="p-1 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5">
-              <Sparkles className="w-4 h-4" />
+              {/* <Sparkles className="w-4 h-4" /> */}
             </div>
             <div>
               <p className="font-bold text-slate-800 dark:text-slate-200">

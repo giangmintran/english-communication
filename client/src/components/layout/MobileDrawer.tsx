@@ -17,6 +17,8 @@ import {
   Sun,
   Moon,
   LogOut,
+  Star,
+  User,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation, Language } from '@/context/LanguageContext';
@@ -71,7 +73,9 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
     { name: t('nav.conversations'), href: '/conversations', icon: MessageSquare },
     { name: t('nav.speaking'), href: '/speaking', icon: Mic },
     { name: t('nav.dictionary'), href: '/dictionary', icon: BookOpen },
+    { name: t('nav.saved'), href: '/saved', icon: Star },
     { name: t('nav.leaderboard'), href: '/leaderboard', icon: Trophy },
+    { name: t('nav.profile'), href: '/profile', icon: User },
     { name: t('nav.settings'), href: '/settings', icon: Settings },
   ];
 
@@ -262,13 +266,14 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                 {t('nav.upgradePro')}
               </h4>
             </div>
-            <button
-              onClick={() => alert(t('nav.upgradeAlert'))}
+            <Link
+              to="/pricing"
+              onClick={onClose}
               className="w-full mt-2 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 shadow-sm shadow-blue-500/25 transition-colors cursor-pointer"
             >
               <span>{t('nav.upgradeBtn')}</span>
               <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            </Link>
           </div>
 
           {user && (

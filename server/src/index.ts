@@ -12,6 +12,7 @@ import leaderboardRouter from './routes/leaderboard';
 import profileRouter from './routes/profile';
 import collectionsRouter from './routes/collections';
 import feedbackRouter from './routes/feedback';
+import placementTestRouter from './routes/placementTest';
 import { errorHandler } from './middlewares/errorHandler';
 import { sendSuccess } from './utils/response';
 
@@ -86,6 +87,7 @@ app.use('/api/leaderboard', leaderboardRouter);
 app.use('/api/profile', profileRouter);
 app.use('/api/collections', collectionsRouter);
 app.use('/api/feedback', feedbackRouter);
+app.use('/api/placement-test', placementTestRouter);
 
 // Global Error Handler Middleware
 app.use(errorHandler);

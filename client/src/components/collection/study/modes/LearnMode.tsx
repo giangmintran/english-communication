@@ -662,7 +662,7 @@ export function LearnMode({
                   onClick={() => setStage('quiz')}
                   className="flex items-center gap-1.5 py-2.5 px-5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 cursor-pointer"
                 >
-                  <Sparkles className="w-4 h-4" />
+                  {/* <Sparkles className="w-4 h-4" /> */}
                   <span>{t('collectionStudy.startQuizQuickBtn')}</span>
                 </button>
               )}
@@ -723,7 +723,7 @@ export function LearnMode({
                 onClick={() => setStage('quiz')}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md shadow-blue-500/20 cursor-pointer"
               >
-                <Sparkles className="w-4 h-4" />
+                {/* <Sparkles className="w-4 h-4" /> */}
                 <span>{t('collectionStudy.startQuizBtn', { count: targetBatch.length })}</span>
               </button>
             </div>

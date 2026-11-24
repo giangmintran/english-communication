@@ -269,7 +269,7 @@ export function ActivityHistoryModal({ isOpen, onClose }: ActivityHistoryModalPr
         {/* Controls Bar: Range Toggle */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-0.5 sm:pt-1">
           <div className="flex items-center gap-1.5 sm:gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
-            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 shrink-0" />
+            {/* <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-500 shrink-0" /> */}
             <span>{t('home.githubContributionChart')}</span>
           </div>
 
@@ -469,7 +469,7 @@ export function ActivityHistoryModal({ isOpen, onClose }: ActivityHistoryModalPr
 
           <div className="p-2.5 sm:p-3.5 rounded-xl sm:rounded-2xl bg-purple-50/70 dark:bg-purple-950/20 border border-purple-100/80 dark:border-purple-900/40 flex items-center gap-2.5 sm:gap-3 min-w-0">
             <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl bg-purple-500/10 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
-              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
+              {/* <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" /> */}
             </div>
             <div className="min-w-0">
               <div className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">
