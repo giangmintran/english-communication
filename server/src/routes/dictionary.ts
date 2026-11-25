@@ -19,8 +19,11 @@ const sampleFallbackWords: DictionaryItem[] = [
 // GET /api/dictionary - Tìm kiếm từ vựng, collocation từ bảng items (Edge Cache: 3 phút)
 router.get('/', edgeCache(180), async (req: Request, res: Response) => {
   try {
-    const q = (req.query.q as string || '').trim();
-    const limit = parseInt(req.query.limit as string, 10) || 30;
+    const rawQ = (req.query.q as string || '').trim();
+    // Giới hạn độ dài từ khoá tối đa 50 ký tự (chống spam chuỗi siêu dài làm quá tải CPU/RAM database)
+    const q = rawQ.slice(0, 50).trim();
+    const rawLimit = parseInt(req.query.limit as string, 10);
+    const limit = isNaN(rawLimit) || rawLimit < 1 ? 30 : Math.min(rawLimit, 100);
 
     let query = supabase
       .from('items')
@@ -29,8 +32,13 @@ router.get('/', edgeCache(180), async (req: Request, res: Response) => {
 
     const cleanQ = sanitizePostgrestParam(q);
     if (cleanQ) {
-      // Tìm kiếm theo từ tiếng Anh hoặc nghĩa tiếng Việt (đã làm sạch tham số)
-      query = query.or(`english_text.ilike.%${cleanQ}%,vietnamese_meaning.ilike.%${cleanQ}%`);
+      if (cleanQ.length === 1) {
+        // Với từ khoá 1 ký tự, tìm kiếm theo tiền tố (prefix) để tránh full table scan với `%a%`
+        query = query.or(`english_text.ilike.${cleanQ}%,vietnamese_meaning.ilike.${cleanQ}%`);
+      } else {
+        // Tìm kiếm theo từ tiếng Anh hoặc nghĩa tiếng Việt (đã làm sạch tham số)
+        query = query.or(`english_text.ilike.%${cleanQ}%,vietnamese_meaning.ilike.%${cleanQ}%`);
+      }
     }
 
     const { data, error } = await query.limit(limit);

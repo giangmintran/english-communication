@@ -43,10 +43,6 @@ export function PlacementBanner() {
               <span className="text-sm sm:text-base font-extrabold tracking-tight">
                 {t('placementTest.bannerTitle')}
               </span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-bold tracking-wide">
-                <Sparkles className="w-3 h-3 text-amber-300" />
-                {t('placementTest.bannerBadge')}
-              </span>
             </div>
             <p className="text-xs text-blue-100 max-w-xl leading-relaxed">
               {t('placementTest.bannerDesc')}

@@ -39,6 +39,7 @@ export function FeedbackModal() {
   const [content, setContent] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
   const [guestName, setGuestName] = useState('');
+  const [honeypot, setHoneypot] = useState('');
   const [showContextDetails, setShowContextDetails] = useState(false);
 
   // Submission state
@@ -191,6 +192,7 @@ export function FeedbackModal() {
         user_name: user?.user_metadata?.full_name || (guestName.trim() ? guestName.trim() : undefined),
         page_url: contextData.pathname,
         device_info: contextData,
+        website: honeypot || undefined,
       });
 
       // Confetti celebration
@@ -389,6 +391,19 @@ export function FeedbackModal() {
             ) : (
               /* Form with Scrollable Inputs and Sticky Bottom Action Footer */
               <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+                {/* Honeypot field - Ẩn hoàn toàn với người dùng thật, bẫy spam bot */}
+                <div style={{ position: 'absolute', left: '-9999px', top: '-9999px', opacity: 0, height: 0, width: 0, overflow: 'hidden' }} aria-hidden="true">
+                  <label htmlFor="fb-website-hp">Website</label>
+                  <input
+                    id="fb-website-hp"
+                    type="text"
+                    name="website"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
+                </div>
                 <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-4">
                   {/* Category Grid */}
                   <div>

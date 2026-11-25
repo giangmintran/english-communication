@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Crown,
   Check,
@@ -390,6 +390,16 @@ export default function PricingPage() {
             )}
           </div>
         ))}
+
+        <div className="pt-2 text-center">
+          <Link
+            to="/faq"
+            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            <span>{t('about.quickFaqLink')}</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
       </div>
     </div>
   );

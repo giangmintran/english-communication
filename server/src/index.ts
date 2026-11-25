@@ -22,6 +22,9 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || 'http://localhost:5173';
 
+// Tin tưởng proxy (Reverse proxy của Render / Vercel Edge) để express-rate-limit lấy đúng client IP
+app.set('trust proxy', 1);
+
 // 1. Bảo mật HTTP Headers với Helmet
 app.use(
   helmet({
@@ -30,21 +33,24 @@ app.use(
   })
 );
 
-// 2. CORS an toàn hỗ trợ cả Localhost và Vercel Production
+// 2. CORS an toàn hỗ trợ Localhost và Vercel Production / Preview của dự án
 const allowedOrigins = [
   CLIENT_ORIGIN,
   'https://speakup-englsih.vercel.app',
-  'https://speakup-english.vercel.app',
   'http://localhost:5173',
   'http://localhost:3000',
   'http://127.0.0.1:5173',
 ].filter(Boolean);
 
+// Regex chỉ cho phép các deployment preview thuộc dự án SpeakUp trên Vercel
+const vercelPreviewRegex = /^https:\/\/speakup-english(?:-[a-zA-Z0-9_-]+)?\.vercel\.app$/;
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Cho phép requests không có origin (server-to-server, curl) hoặc origin nằm trong danh sách whitelist hoặc mọi domain Vercel preview/production
-      if (!origin || allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin)) {
+      // Cho phép requests cùng origin / server-to-server không có header origin,
+      // hoặc origin nằm trong danh sách whitelist hoặc preview deploy của đúng project
+      if (!origin || allowedOrigins.includes(origin) || vercelPreviewRegex.test(origin)) {
         callback(null, true);
       } else {
         callback(null, false);

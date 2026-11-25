@@ -91,6 +91,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link to="/about" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  {t('footer.about')}
+                </Link>
+              </li>
+              <li>
                 <Link to="/privacy" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
                   {t('footer.privacy')}
                 </Link>
@@ -109,6 +114,16 @@ export function Footer() {
               {t('footer.support')}
             </h4>
             <ul className="space-y-2 text-xs text-slate-500 dark:text-slate-400">
+              <li>
+                <Link to="/faq" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  {t('footer.faq')}
+                </Link>
+              </li>
+              <li>
+                <Link to="/contact" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  {t('footer.contact')}
+                </Link>
+              </li>
               <li>
                 <button
                   type="button"

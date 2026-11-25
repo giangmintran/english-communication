@@ -14,31 +14,43 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 const supabaseUrl = process.env.SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-if (!supabaseUrl || !supabaseKey) {
-  console.warn('⚠️ Cảnh báo: SUPABASE_URL hoặc SUPABASE_KEY chưa được cấu hình đầy đủ trong server/.env');
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn('⚠️ Cảnh báo: SUPABASE_URL hoặc SUPABASE_ANON_KEY chưa được cấu hình đầy đủ trong server/.env');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseKey, {
+/**
+ * Standard Supabase client (sử dụng ANON_KEY, tuân thủ Row Level Security - RLS).
+ * Mọi truy vấn mặc định chạy dưới quyền của anon / public role.
+ */
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   realtime: {
     transport: WebSocket as any,
   },
 });
 
 /**
- * Trả về Supabase client có quyền truy cập phù hợp.
- * Nếu đã cấu hình SUPABASE_SERVICE_ROLE_KEY, client mặc định sẽ có quyền bypass RLS.
- * Nếu dùng SUPABASE_ANON_KEY và có Bearer token của user, tạo client scoped truyền Authorization header
+ * Admin client có quyền bypass RLS (Service Role).
+ * Chỉ sử dụng cho các tác vụ quản trị máy chủ đặc biệt, KHÔNG dùng làm client mặc định cho API routes.
+ */
+export const supabaseAdmin: SupabaseClient | null = supabaseServiceKey
+  ? createClient(supabaseUrl, supabaseServiceKey, {
+      realtime: {
+        transport: WebSocket as any,
+      },
+    })
+  : null;
+
+/**
+ * Trả về Supabase client có quyền truy cập phù hợp theo ngữ cảnh người dùng.
+ * Nếu có Bearer token của user, tạo client scoped truyền Authorization header
  * để Supabase PostgREST xác thực đúng auth.uid() theo cơ chế Row Level Security (RLS).
  */
 export function getScopedSupabaseClient(token?: string): SupabaseClient {
-  if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    return supabase;
-  }
-
   if (token) {
-    return createClient(supabaseUrl, supabaseKey, {
+    return createClient(supabaseUrl, supabaseAnonKey, {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
