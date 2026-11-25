@@ -17,6 +17,10 @@ import {
   Sun,
   Moon,
   LogOut,
+  Star,
+  User,
+  HelpCircle,
+  Info,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation, Language } from '@/context/LanguageContext';
@@ -71,7 +75,9 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
     { name: t('nav.conversations'), href: '/conversations', icon: MessageSquare },
     { name: t('nav.speaking'), href: '/speaking', icon: Mic },
     { name: t('nav.dictionary'), href: '/dictionary', icon: BookOpen },
+    { name: t('nav.saved'), href: '/saved', icon: Star },
     { name: t('nav.leaderboard'), href: '/leaderboard', icon: Trophy },
+    { name: t('nav.profile'), href: '/profile', icon: User },
     { name: t('nav.settings'), href: '/settings', icon: Settings },
   ];
 
@@ -241,6 +247,26 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
             </button>
           </div>
 
+          {/* FAQ & About Quick Links */}
+          <div className="grid grid-cols-2 gap-2">
+            <Link
+              to="/faq"
+              onClick={onClose}
+              className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-200/70 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            >
+              <HelpCircle className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+              <span className="truncate">{t('nav.faq')}</span>
+            </Link>
+            <Link
+              to="/about"
+              onClick={onClose}
+              className="flex items-center justify-center gap-1.5 py-2 px-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-200/70 dark:border-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+            >
+              <Info className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+              <span className="truncate">{t('nav.about')}</span>
+            </Link>
+          </div>
+
           {/* Quick Feedback & Bug Report Button */}
           <button
             type="button"
@@ -262,13 +288,14 @@ export function MobileDrawer({ isOpen, onClose }: MobileDrawerProps) {
                 {t('nav.upgradePro')}
               </h4>
             </div>
-            <button
-              onClick={() => alert(t('nav.upgradeAlert'))}
+            <Link
+              to="/pricing"
+              onClick={onClose}
               className="w-full mt-2 py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 shadow-sm shadow-blue-500/25 transition-colors cursor-pointer"
             >
               <span>{t('nav.upgradeBtn')}</span>
               <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            </Link>
           </div>
 
           {user && (

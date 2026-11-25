@@ -58,9 +58,9 @@ export function SessionSummary({
         <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto shadow-sm">
           <Trophy className="w-8 h-8 sm:w-10 sm:h-10" />
         </div>
-        <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-amber-400 text-white flex items-center justify-center shadow-xs">
+        {/* <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-amber-400 text-white flex items-center justify-center shadow-xs">
           <Sparkles className="w-3.5 h-3.5" />
-        </div>
+        </div> */}
       </div>
 
       {/* Headings */}

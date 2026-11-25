@@ -20,6 +20,16 @@ import DailyReviewPage from '@/pages/DailyReview';
 import DictionaryPage from '@/pages/Dictionary';
 import LeaderboardPage from '@/pages/Leaderboard';
 import SettingsPage from '@/pages/Settings';
+import PricingPage from '@/pages/Pricing';
+import PrivacyPolicyPage from '@/pages/PrivacyPolicy';
+import TermsOfServicePage from '@/pages/TermsOfService';
+import FAQPage from '@/pages/FAQ';
+import AboutContactPage from '@/pages/AboutContact';
+import NotFoundPage from '@/pages/NotFound';
+import SavedWordsPage from '@/pages/SavedWords';
+import ConversationPracticePage from '@/pages/ConversationPractice';
+import PlacementTestPage from '@/pages/PlacementTest';
+import ProfilePage from '@/pages/Profile';
 
 export function App() {
   return (
@@ -38,13 +48,32 @@ export function App() {
                   <Route path="/learn/:deckId" element={<LearnDeckPage />} />
                   <Route path="/speaking" element={<SpeakingPracticePage />} />
                   <Route path="/conversations" element={<ConversationsPage />} />
+                  <Route path="/conversations/:conversationId" element={<ConversationPracticePage />} />
+                  <Route path="/saved" element={<SavedWordsPage />} />
+                  <Route path="/favorites" element={<SavedWordsPage />} />
+                  <Route path="/my-words" element={<SavedWordsPage />} />
+                  <Route path="/placement-test" element={<PlacementTestPage />} />
+                  <Route path="/level-test" element={<PlacementTestPage />} />
+                  <Route path="/profile" element={<ProfilePage />} />
                   <Route path="/daily" element={<DailyLearningPage />} />
                   <Route path="/daily/review" element={<DailyReviewPage />} />
                   <Route path="/daily/lesson/:lessonId" element={<DailyLessonPage />} />
                   <Route path="/dictionary" element={<DictionaryPage />} />
                   <Route path="/leaderboard" element={<LeaderboardPage />} />
                   <Route path="/settings" element={<SettingsPage />} />
+                  <Route path="/pricing" element={<PricingPage />} />
+                  <Route path="/pro" element={<PricingPage />} />
+                  <Route path="/privacy" element={<PrivacyPolicyPage />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+                  <Route path="/terms" element={<TermsOfServicePage />} />
+                  <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+                  <Route path="/faq" element={<FAQPage />} />
+                  <Route path="/about" element={<AboutContactPage />} />
+                  <Route path="/about-us" element={<AboutContactPage />} />
+                  <Route path="/contact" element={<AboutContactPage />} />
                   <Route path="/login" element={<LoginPage />} />
+                  {/* Fallback 404 Route */}
+                  <Route path="*" element={<NotFoundPage />} />
                 </Route>
                 {/* OAuth Callback route outside or inside layout */}
                 <Route path="/auth/callback" element={<AuthCallbackPage />} />

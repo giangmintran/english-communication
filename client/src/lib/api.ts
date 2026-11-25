@@ -405,5 +405,43 @@ export const api = {
       }
     },
   },
+
+  // Đánh giá trình độ đầu vào (Placement Test)
+  placementTest: {
+    // Nộp bài kiểm tra trình độ
+    submit: async (payload: any): Promise<import('@/types/database').PlacementTestResult> => {
+      try {
+        return await requestWithAuth<import('@/types/database').PlacementTestResult>('/placement-test/submit', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        });
+      } catch (err) {
+        // Fallback gọi request thông thường (cho khách chưa đăng nhập)
+        return await request<import('@/types/database').PlacementTestResult>('/placement-test/submit', {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        }, payload);
+      }
+    },
+
+    // Lấy kết quả kiểm tra gần nhất
+    getLatest: async (): Promise<import('@/types/database').PlacementTestResult | null> => {
+      try {
+        return await requestWithAuth<import('@/types/database').PlacementTestResult | null>('/placement-test/latest');
+      } catch {
+        return null;
+      }
+    },
+
+    // Lấy lịch sử tất cả các lần kiểm tra
+    getHistory: async (): Promise<import('@/types/database').PlacementTestResult[]> => {
+      try {
+        return await requestWithAuth<import('@/types/database').PlacementTestResult[]>('/placement-test/history');
+      } catch {
+        return [];
+      }
+    },
+  },
 };
+
 

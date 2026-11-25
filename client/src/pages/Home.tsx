@@ -4,6 +4,7 @@ import { ContinueLearningCard } from '@/components/dashboard/ContinueLearningCar
 import { ExploreCollections } from '@/components/dashboard/ExploreCollections';
 import { YourProgressCard } from '@/components/dashboard/YourProgressCard';
 import { ActivityHeatmapCard } from '@/components/dashboard/ActivityHeatmapCard';
+import { PlacementBanner } from '@/components/placement/PlacementBanner';
 import { useAuth } from '@/context/AuthContext';
 import { useLearningStore } from '@/lib/store';
 import { useTranslation } from '@/context/LanguageContext';
@@ -26,10 +27,10 @@ export default function HomePage() {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 sm:gap-6 items-center">
         {/* Welcome Text */}
         <div className="xl:col-span-5 min-w-0">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-2">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-1.5">
             {t('home.welcomeBack')}, {displayName}! 👋
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-base leading-relaxed">
+          <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm leading-relaxed">
             {t('home.welcomeDesc')}
           </p>
         </div>
@@ -44,6 +45,7 @@ export default function HomePage() {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 sm:gap-6 items-start">
         {/* Left Column: Activity Heatmap & Continue Learning & Explore Collections */}
         <div className="xl:col-span-9 space-y-6 sm:space-y-8">
+          <PlacementBanner />
           <ActivityHeatmapCard />
           <ContinueLearningCard />
 

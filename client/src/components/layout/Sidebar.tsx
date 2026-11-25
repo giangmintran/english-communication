@@ -8,17 +8,15 @@ import {
   Mic,
   BookOpen,
   Trophy,
-  Settings,
   Crown,
   ArrowRight,
   MessageCircle,
-  MessageSquareHeart,
   PanelLeftClose,
   PanelLeftOpen,
+  Star,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/context/LanguageContext';
-import { useFeedbackModal } from '@/context/FeedbackModalContext';
 
 export interface SidebarProps {
   isCollapsed?: boolean;
@@ -32,7 +30,6 @@ export function Sidebar({
   const location = useLocation();
   const pathname = location.pathname;
   const { t } = useTranslation();
-  const { openFeedback } = useFeedbackModal();
 
   // Kiểm tra xem trang hiện tại có phải là bài học / phiên học tập không
   const isLessonRoute = useMemo(() => {
@@ -70,8 +67,8 @@ export function Sidebar({
     { name: t('nav.conversations'), href: '/conversations', icon: MessageSquare },
     { name: t('nav.speaking'), href: '/speaking', icon: Mic },
     { name: t('nav.dictionary'), href: '/dictionary', icon: BookOpen },
+    { name: t('nav.saved'), href: '/saved', icon: Star },
     { name: t('nav.leaderboard'), href: '/leaderboard', icon: Trophy },
-    { name: t('nav.settings'), href: '/settings', icon: Settings },
   ];
 
   return (
@@ -164,34 +161,19 @@ export function Sidebar({
               </Link>
             );
           })}
-
-          {/* Quick Feedback button */}
-          <button
-            type="button"
-            onClick={() => openFeedback()}
-            title={t('feedback.sidebarBtn')}
-            className={cn(
-              'w-full flex items-center gap-3.5 px-3 py-3 rounded-2xl text-[15px] font-medium transition-all duration-200 text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/60 dark:hover:bg-blue-950/30 cursor-pointer group',
-              isCollapsed ? 'justify-center' : 'justify-center lg:justify-start lg:px-4'
-            )}
-          >
-            <MessageSquareHeart className="w-5 h-5 text-slate-400 dark:text-slate-500 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors shrink-0" />
-            {!isCollapsed && <span className="hidden lg:inline">{t('feedback.sidebarBtn')}</span>}
-          </button>
         </nav>
       </div>
 
       {/* Upgrade to Pro */}
       {isCollapsed ? (
         /* Compact icon button when collapsed */
-        <button
-          type="button"
-          onClick={() => alert(t('nav.upgradeAlert'))}
+        <Link
+          to="/pricing"
           className="flex items-center justify-center p-3 rounded-2xl bg-gradient-to-b from-amber-50 to-amber-100/60 dark:from-slate-800 dark:to-slate-800/60 border border-amber-200/70 dark:border-slate-700 text-amber-600 dark:text-amber-400 shadow-xs hover:scale-105 transition-all mt-6 cursor-pointer mx-auto"
           title={t('nav.upgradePro')}
         >
           <Crown className="w-5 h-5 fill-amber-500" />
-        </button>
+        </Link>
       ) : (
         <>
           {/* Upgrade to Pro - Desktop full card */}
@@ -205,25 +187,23 @@ export function Sidebar({
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-3.5 leading-relaxed">
               {t('nav.upgradeDesc')}
             </p>
-            <button
-              type="button"
-              onClick={() => alert(t('nav.upgradeAlert'))}
+            <Link
+              to="/pricing"
               className="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 shadow-sm shadow-blue-500/25 transition-colors cursor-pointer"
             >
               <span>{t('nav.upgradeBtn')}</span>
               <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            </Link>
           </div>
 
           {/* Upgrade to Pro - Tablet icon button */}
-          <button
-            type="button"
-            onClick={() => alert(t('nav.upgradeAlert'))}
+          <Link
+            to="/pricing"
             className="lg:hidden flex items-center justify-center p-3 rounded-2xl bg-gradient-to-b from-amber-50 to-amber-100/60 dark:from-slate-800 dark:to-slate-800/60 border border-amber-200/70 dark:border-slate-700 text-amber-600 dark:text-amber-400 shadow-xs hover:scale-105 transition-all mt-6 cursor-pointer"
             title={t('nav.upgradePro')}
           >
             <Crown className="w-5 h-5 fill-amber-500" />
-          </button>
+          </Link>
         </>
       )}
     </aside>

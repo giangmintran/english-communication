@@ -432,7 +432,7 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
         <div className="mb-4 sm:mb-5 bg-gradient-to-r from-blue-50 via-sky-50 to-indigo-50 dark:from-slate-900 dark:via-blue-950/40 dark:to-slate-900 p-3.5 sm:p-4 rounded-2xl border border-blue-100/80 dark:border-blue-900/40 flex items-center justify-between gap-3 shadow-xs">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-sm shadow-blue-500/20">
-              <Sparkles className="w-4 h-4" />
+              {/* <Sparkles className="w-4 h-4" /> */}
             </div>
             <div className="min-w-0">
               <h3 className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white truncate">
@@ -903,7 +903,7 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
             className="inline-flex items-center gap-1.5 py-2 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all shadow-md shadow-blue-500/20 cursor-pointer"
           >
             <span>{t('collectionStudy.startQuizQuickBtn') || 'Làm bài tập'}</span>
-            <Sparkles className="w-3.5 h-3.5" />
+            {/* <Sparkles className="w-3.5 h-3.5" /> */}
           </button>
         )}
       </div>
@@ -967,7 +967,7 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
         >
           <div className="flex items-center gap-1">
             {currentRatedGrade === 3 && <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />}
-            <Sparkles className="w-3.5 h-3.5" />
+            {/* <Sparkles className="w-3.5 h-3.5" /> */}
             <span>{t('flashcards.rateEasy')}</span>
           </div>
           <span className="text-[11px] font-normal text-emerald-500 dark:text-emerald-300">

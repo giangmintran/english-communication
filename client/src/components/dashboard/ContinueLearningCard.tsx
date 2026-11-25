@@ -199,7 +199,7 @@ export function ContinueLearningCard() {
             {/* Meta Tags Row */}
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 text-xs font-bold border border-blue-100/60 dark:border-blue-900/40">
-                <Sparkles className="w-3.5 h-3.5" />
+                {/* <Sparkles className="w-3.5 h-3.5" /> */}
                 <span>{collection.category || 'General'}</span>
               </span>
 

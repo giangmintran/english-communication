@@ -37,19 +37,19 @@ export function AuthPromptModal({
     feature === 'daily_lesson'
       ? 'Mở khóa toàn bộ Bài học hàng ngày'
       : feature === 'vocab'
-      ? 'Mở khóa không giới hạn Từ vựng'
-      : feature === 'collection'
-      ? 'Mở khóa toàn bộ Bộ sưu tập'
-      : 'Đăng nhập để trải nghiệm đầy đủ';
+        ? 'Mở khóa không giới hạn Từ vựng'
+        : feature === 'collection'
+          ? 'Mở khóa toàn bộ Bộ sưu tập'
+          : 'Đăng nhập để trải nghiệm đầy đủ';
 
   const defaultDescription =
     feature === 'daily_lesson'
       ? 'Chế độ khách chỉ cho phép học thử 1 bài học mẫu. Hãy đăng nhập với Google để mở khóa toàn bộ lộ trình bài học từ cơ bản đến nâng cao và lưu kết quả học tập.'
       : feature === 'vocab'
-      ? 'Chế độ khách bị giới hạn học thử 5 từ mới. Đăng nhập ngay để học không giới hạn 20+ từ mỗi ngày và đồng bộ tiến trình lặp lại ngắt quãng (SRS).'
-      : feature === 'collection'
-      ? 'Chế độ khách chỉ hiển thị 5 bộ sưu tập cơ bản. Hãy đăng nhập với Google để mở khóa toàn bộ các bộ từ vựng theo chủ đề chuyên sâu và đồng bộ tiến trình học tập.'
-      : 'Đăng nhập bằng tài khoản Google miễn phí để mở khóa toàn bộ tính năng và đồng bộ trên mọi thiết bị.';
+        ? 'Chế độ khách bị giới hạn học thử 5 từ mới. Đăng nhập ngay để học không giới hạn 20+ từ mỗi ngày và đồng bộ tiến trình lặp lại ngắt quãng (SRS).'
+        : feature === 'collection'
+          ? 'Chế độ khách chỉ hiển thị 5 bộ sưu tập cơ bản. Hãy đăng nhập với Google để mở khóa toàn bộ các bộ từ vựng theo chủ đề chuyên sâu và đồng bộ tiến trình học tập.'
+          : 'Đăng nhập bằng tài khoản Google miễn phí để mở khóa toàn bộ tính năng và đồng bộ trên mọi thiết bị.';
 
   const handleLogin = async () => {
     try {
@@ -89,7 +89,6 @@ export function AuthPromptModal({
           </div>
 
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 text-xs font-bold uppercase tracking-wider mb-2">
-            <Sparkles className="w-3.5 h-3.5" />
             <span>Yêu cầu đăng nhập</span>
           </div>
 

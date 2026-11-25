@@ -45,7 +45,7 @@ export function SRSReviewCard({
 
         {repetitions >= 2 && (
           <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-900/40 flex items-center gap-1">
-            <Sparkles className="w-3 h-3" />
+            {/* <Sparkles className="w-3 h-3" /> */}
             <span>{t('collectionStudy.almostMastered')}</span>
           </span>
         )}

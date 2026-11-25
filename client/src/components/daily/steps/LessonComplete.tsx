@@ -133,7 +133,7 @@ export function LessonComplete({
       {!user && (
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-950/30 border border-blue-200/80 dark:border-blue-900/60 rounded-2xl p-4 sm:p-5 text-center space-y-3">
           <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider">
-            <Sparkles className="w-4 h-4" />
+            {/* <Sparkles className="w-4 h-4" /> */}
             <span>{t('dailyLesson.unlockAllLessons')}</span>
           </div>
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">

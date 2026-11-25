@@ -111,7 +111,7 @@ export function TodayLessonHeroCard({
         <div className="md:col-span-8 space-y-3.5">
           {lesson.stage_title && (
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-blue-100/70 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 text-xs font-bold border border-blue-200/50 dark:border-blue-800/50">
-              <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+              {/* <Sparkles className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" /> */}
               <span>{lesson.stage_title}</span>
             </div>
           )}

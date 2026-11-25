@@ -29,4 +29,5 @@ export interface SubmitFeedbackPayload {
   page_url?: string | null;
   device_info?: Record<string, any>;
   screenshot_url?: string | null;
+  website?: string; // Honeypot field bẫy spam bot
 }

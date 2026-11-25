@@ -92,7 +92,7 @@ export default function DailyLessonPage() {
 
         <div>
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 text-xs font-bold uppercase tracking-wider mb-2">
-            <Sparkles className="w-3.5 h-3.5" />
+            {/* <Sparkles className="w-3.5 h-3.5" /> */}
             <span>{t('dailyLesson.guestLimitedTag')}</span>
           </span>
           <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">

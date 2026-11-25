@@ -260,11 +260,10 @@ export default function SettingsPage() {
                   key={opt.id}
                   type="button"
                   onClick={() => setLanguage(opt.id)}
-                  className={`flex items-center justify-between p-4 rounded-2xl border text-left transition-all cursor-pointer ${
-                    isSelected
+                  className={`flex items-center justify-between p-4 rounded-2xl border text-left transition-all cursor-pointer ${isSelected
                       ? 'border-blue-500 bg-blue-50/70 dark:bg-blue-950/40 dark:border-blue-500/80 ring-2 ring-blue-500/20'
                       : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-2xl select-none" role="img" aria-label={opt.label}>
@@ -294,7 +293,7 @@ export default function SettingsPage() {
         {/* 2. Theme Selection */}
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-slate-800 dark:text-slate-200">
-            <Sparkles className="w-4 h-4 text-amber-500" />
+            {/* <Sparkles className="w-4 h-4 text-amber-500" /> */}
             <label className="text-xs font-bold uppercase tracking-wide">
               {t('settings.themeTitle')}
             </label>
@@ -312,19 +311,17 @@ export default function SettingsPage() {
                   key={opt.id}
                   type="button"
                   onClick={() => setTheme(opt.id)}
-                  className={`flex flex-col justify-between p-4 rounded-2xl border text-left transition-all cursor-pointer ${
-                    isSelected
+                  className={`flex flex-col justify-between p-4 rounded-2xl border text-left transition-all cursor-pointer ${isSelected
                       ? 'border-blue-500 bg-blue-50/70 dark:bg-blue-950/40 dark:border-blue-500/80 ring-2 ring-blue-500/20'
                       : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-slate-50 dark:hover:bg-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center justify-between w-full mb-3">
                     <div
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                        isSelected
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center ${isSelected
                           ? 'bg-blue-600 text-white shadow-xs'
                           : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
-                      }`}
+                        }`}
                     >
                       <Icon className="w-4 h-4" />
                     </div>

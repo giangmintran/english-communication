@@ -135,13 +135,13 @@ export default function DailyLearningPage() {
 
   const matchedCollectionForToday = todayLesson
     ? collections.find(
-        (c) =>
-          c.id === todayLesson.collection_id ||
-          c.slug === todayLesson.collection_id?.replace(/^col-/, '') ||
-          c.id === todayLesson.deck_id ||
-          c.slug === todayLesson.deck_id?.replace(/^deck-/, '') ||
-          c.id === `col-${todayLesson.deck_id?.replace(/^deck-/, '')}`
-      )
+      (c) =>
+        c.id === todayLesson.collection_id ||
+        c.slug === todayLesson.collection_id?.replace(/^col-/, '') ||
+        c.id === todayLesson.deck_id ||
+        c.slug === todayLesson.deck_id?.replace(/^deck-/, '') ||
+        c.id === `col-${todayLesson.deck_id?.replace(/^deck-/, '')}`
+    )
     : undefined;
 
   const todayLessonProgress = todayLesson ? lessonProgress[todayLesson.id] : undefined;
@@ -325,7 +325,7 @@ export default function DailyLearningPage() {
         {isAllCollectionsDone && (
           <div className="rounded-3xl p-5 sm:p-7 border-2 border-emerald-200/90 dark:border-emerald-800/80 bg-gradient-to-br from-emerald-50 via-teal-50/50 to-white dark:from-slate-900 dark:via-emerald-950/20 dark:to-slate-900 shadow-sm text-center space-y-3.5 animate-in fade-in zoom-in-95 duration-200">
             <div className="w-14 h-14 sm:w-16 sm:h-16 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto ring-8 ring-emerald-50/80 dark:ring-emerald-900/20 shadow-xs">
-              <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 text-emerald-600 fill-emerald-500" />
+              {/* <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 text-emerald-600 fill-emerald-500" /> */}
             </div>
             <div className="max-w-lg mx-auto space-y-1">
               <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-bold uppercase tracking-wider">
@@ -459,7 +459,7 @@ export default function DailyLearningPage() {
                         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                           {isTodayTopic && (
                             <span className="px-2.5 py-0.5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-[10px] font-extrabold flex items-center gap-1 shadow-2xs">
-                              <Sparkles className="w-3 h-3 text-amber-300 fill-amber-300" />
+                              {/* <Sparkles className="w-3 h-3 text-amber-300 fill-amber-300" /> */}
                               <span>{t('daily.todayTag')}</span>
                             </span>
                           )}
@@ -491,7 +491,7 @@ export default function DailyLearningPage() {
 
                           {isFreeTrial && (
                             <span className="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 text-[11px] font-bold flex items-center gap-1 border border-blue-200/50 dark:border-blue-900/40">
-                              <Sparkles className="w-3 h-3" />
+                              {/* <Sparkles className="w-3 h-3" /> */}
                               <span>{t('daily.freeTrialTag')}</span>
                             </span>
                           )}

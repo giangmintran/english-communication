@@ -321,4 +321,59 @@ export interface FeedbackItem {
   updated_at?: string;
 }
 
+// ==========================================
+// PLACEMENT TEST TYPES (Kiểm tra trình độ)
+// ==========================================
+export type CEFRLevel = 'A1' | 'A2' | 'B1' | 'B2';
+export type TestSkillType = 'listening' | 'vocabulary' | 'grammar' | 'speaking';
+
+export interface PlacementQuestion {
+  id: string;
+  skill: TestSkillType;
+  level: CEFRLevel;
+  prompt: string;
+  promptVi?: string;
+  hasAudio?: boolean;
+  audioText?: string;
+  targetSentence?: string; // Dành riêng cho Speaking
+  options?: string[];      // Dành cho Multiple Choice
+  correctIndex?: number;
+  explanation: string;
+  explanationVi: string;
+}
+
+export interface SkillScoreSummary {
+  score: number;
+  total: number;
+  percentage: number;
+  level: CEFRLevel;
+}
+
+export interface PlacementTestResult {
+  id: string;
+  user_id?: string;
+  is_guest?: boolean;
+  overall_level: CEFRLevel;
+  overall_score: number;
+  total_questions: number; // 30
+  percentage: number;
+  skill_scores: Record<TestSkillType, SkillScoreSummary>;
+  answers: Array<{
+    questionId: string;
+    skill: TestSkillType;
+    isCorrect: boolean;
+    userAnswer: string | number;
+    scoreEarned: number;
+  }>;
+  strengths: string[];
+  weaknesses: string[];
+  strengths_en?: string[];
+  weaknesses_en?: string[];
+  recommended_collection_id?: string;
+  recommended_daily_topic?: string;
+  recommended_daily_topic_en?: string;
+  created_at: string;
+}
+
+
 

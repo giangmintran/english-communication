@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, Flame, LogOut, Settings, Sun, Moon, Menu, MessageCircle, MessageSquareHeart } from 'lucide-react';
+import { Bell, Flame, LogOut, Settings, Sun, Moon, Menu, MessageCircle, MessageSquareHeart, User, Star } from 'lucide-react';
 import { useLearningStore } from '@/lib/store';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -233,6 +233,24 @@ export function Header({ onOpenMobileMenu, onOpenReminder }: HeaderProps) {
 
                 {/* Menu items */}
                 <div className="p-1.5 space-y-0.5">
+                  <Link
+                    to="/profile"
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors font-medium"
+                  >
+                    <User className="w-4 h-4 text-slate-400 dark:text-slate-500" />
+                    <span>{t('header.profile')}</span>
+                  </Link>
+
+                  <Link
+                    to="/saved"
+                    onClick={() => setDropdownOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-colors font-medium"
+                  >
+                    <Star className="w-4 h-4 text-slate-400 dark:text-slate-500" />
+                    <span>{t('header.savedWords')}</span>
+                  </Link>
+
                   <Link
                     to="/settings"
                     onClick={() => setDropdownOpen(false)}
