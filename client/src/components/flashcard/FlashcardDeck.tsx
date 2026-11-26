@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Volume2,
@@ -40,7 +40,8 @@ interface FlashcardDeckProps {
 
 export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDeckProps) {
   const { user } = useAuth();
-  const { recordReview, addSpeakingTime, saveDailyReviewProgress } = useLearningStore();
+  const { recordReview, addSpeakingTime, saveDailyReviewProgress, saveDailyReviewProgressLocal } =
+    useLearningStore();
   const { t, language } = useTranslation();
 
   // Các giai đoạn học:
@@ -72,6 +73,38 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
   const [isRetryingMistakes, setIsRetryingMistakes] = useState(false);
   const [retryQuestions, setRetryQuestions] = useState<ReviewQuestion[]>([]);
   const [retryIndex, setRetryIndex] = useState(0);
+
+  // Ref giữ kết quả mới nhất để tránh stale closure khi lưu tiến trình Daily
+  const practiceResultsRef = useRef<Record<string, ReviewAnswerResult>>({});
+  const pendingRetryProgressRef = useRef<DailyReviewProgress | null>(null);
+
+  const buildDailyProgress = useCallback(
+    (latestResults: Record<string, ReviewAnswerResult>): DailyReviewProgress => {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const totalQ = practiceQuestions.length;
+      const finalCorrect = Object.values(latestResults).filter((r) => r.isCorrect).length;
+      return {
+        date: todayStr,
+        deckId: 'daily',
+        wordIds: practiceWords.map((w) => w.id),
+        currentIndex: totalQ,
+        totalQuestions: totalQ,
+        answeredCount: Object.keys(latestResults).length,
+        correctCount: finalCorrect,
+        isCompleted: true,
+        results: latestResults,
+        lastUpdated: new Date().toISOString(),
+      };
+    },
+    [practiceQuestions.length, practiceWords]
+  );
+
+  const flushPendingRetrySync = useCallback(() => {
+    const pending = pendingRetryProgressRef.current;
+    if (!pending) return;
+    pendingRetryProgressRef.current = null;
+    saveDailyReviewProgress(pending, user?.id);
+  }, [saveDailyReviewProgress, user?.id]);
 
   const currentItem = items[currentIndex];
 
@@ -141,6 +174,8 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
     setPracticeWords(wordsForPractice);
     setPracticeQuestions(generatedQuestions);
     setPracticeIndex(0);
+    practiceResultsRef.current = {};
+    pendingRetryProgressRef.current = null;
     setPracticeResults({});
     setIsRetryingMistakes(false);
     setStep('practice');
@@ -222,12 +257,13 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [step, handlePrevWord, handleNextWord]);
 
-  // Dọn dẹp âm thanh khi unmount
+  // Dọn dẹp âm thanh và đồng bộ kết quả retry còn pending khi unmount
   useEffect(() => {
     return () => {
       stopSpeaking();
+      flushPendingRetrySync();
     };
-  }, []);
+  }, [flushPendingRetrySync]);
 
   // Câu hỏi bài tập hiện tại
   const activePracticeQuestion = isRetryingMistakes
@@ -246,10 +282,19 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
       question: activePracticeQuestion,
     };
 
-    setPracticeResults((prev) => ({
-      ...prev,
+    const nextResults = {
+      ...practiceResultsRef.current,
       [activePracticeQuestion.id]: answerRecord,
-    }));
+    };
+    practiceResultsRef.current = nextResults;
+    setPracticeResults(nextResults);
+
+    // Khi đang làm lại các câu sai ở Daily Routine, cập nhật ngay vào store để không bị mất khi quay lại trang chủ
+    if (isDaily && isRetryingMistakes) {
+      const updatedProgress = buildDailyProgress(nextResults);
+      saveDailyReviewProgressLocal(updatedProgress);
+      pendingRetryProgressRef.current = updatedProgress;
+    }
   };
 
   // Chuyển sang câu hỏi bài tập tiếp theo
@@ -259,7 +304,12 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
       if (retryIndex + 1 < retryQuestions.length) {
         setRetryIndex((prev) => prev + 1);
       } else {
-        // Đã hoàn thành ôn tập lại các câu sai -> Về màn hình tổng kết
+        // Đã hoàn thành ôn tập lại các câu sai -> Lưu kết quả đã cập nhật và về màn hình tổng kết
+        if (isDaily) {
+          const finalProgress = buildDailyProgress(practiceResultsRef.current);
+          pendingRetryProgressRef.current = null;
+          saveDailyReviewProgress(finalProgress, user?.id);
+        }
         setIsRetryingMistakes(false);
         setStep('summary');
       }
@@ -279,20 +329,7 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
 
       // Lưu kết quả hoàn thành bài tập vào database nếu là Daily Routine
       if (isDaily) {
-        const todayStr = new Date().toISOString().split('T')[0];
-        const finalCorrect = Object.values(practiceResults).filter((r) => r.isCorrect).length;
-        const progress: DailyReviewProgress = {
-          date: todayStr,
-          deckId: 'daily',
-          wordIds: practiceWords.map((w) => w.id),
-          currentIndex: practiceQuestions.length,
-          totalQuestions: practiceQuestions.length,
-          answeredCount: practiceQuestions.length,
-          correctCount: finalCorrect,
-          isCompleted: true,
-          results: practiceResults,
-          lastUpdated: new Date().toISOString(),
-        };
+        const progress = buildDailyProgress(practiceResultsRef.current);
         saveDailyReviewProgress(progress, user?.id);
       }
 
@@ -341,6 +378,8 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
     );
     setPracticeQuestions(freshQuestions);
     setPracticeIndex(0);
+    practiceResultsRef.current = {};
+    pendingRetryProgressRef.current = null;
     setPracticeResults({});
     setIsRetryingMistakes(false);
     setStep('practice');
@@ -359,6 +398,7 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
 
   // Quay lại lật thẻ Flashcard từ đầu
   const handleRestartFlashcards = () => {
+    flushPendingRetrySync();
     setCurrentIndex(0);
     setIsFlipped(false);
     setSpeechResult(null);
@@ -454,6 +494,7 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
           <div className="transition-all duration-200">
             {currentQ.type === 'listening_choice' && (
               <ListeningQuizCard
+                key={`${currentQ.id}-${isRetryingMistakes ? 'retry' : 'normal'}`}
                 question={currentQ}
                 onAnswer={handleAnswerQuestion}
                 onNext={handleNextQuestion}
@@ -463,6 +504,7 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
 
             {currentQ.type === 'writing_input' && (
               <WritingQuizCard
+                key={`${currentQ.id}-${isRetryingMistakes ? 'retry' : 'normal'}`}
                 question={currentQ}
                 onAnswer={handleAnswerQuestion}
                 onNext={handleNextQuestion}
@@ -472,6 +514,7 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
 
             {currentQ.type === 'translation_choice' && (
               <TranslationQuizCard
+                key={`${currentQ.id}-${isRetryingMistakes ? 'retry' : 'normal'}`}
                 question={currentQ}
                 onAnswer={handleAnswerQuestion}
                 onNext={handleNextQuestion}
