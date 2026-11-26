@@ -15,16 +15,18 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react';
-import { ReviewSessionSummary } from '@/types/quiz';
+import { ReviewSessionSummary, DailyWordReason } from '@/types/quiz';
 import { LearningItem } from '@/types/database';
 import { speakText } from '@/lib/speech';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/LanguageContext';
 import { GoogleIcon } from '@/components/auth/GoogleIcon';
+import { WordReasonBadge } from '@/components/daily/review/WordReasonBadge';
 
 interface ReviewSummaryProps {
   summary: ReviewSessionSummary;
   words?: LearningItem[];
+  wordReasons?: Record<string, DailyWordReason>;
   onRestartAll: () => void;
   onRetryMistakes: () => void;
 }
@@ -32,6 +34,7 @@ interface ReviewSummaryProps {
 export function ReviewSummary({
   summary,
   words = [],
+  wordReasons,
   onRestartAll,
   onRetryMistakes,
 }: ReviewSummaryProps) {
@@ -92,6 +95,7 @@ export function ReviewSummary({
                                 {w.type}
                               </span>
                             )}
+                            {wordReasons?.[w.id] && <WordReasonBadge reason={wordReasons[w.id]} />}
                           </div>
                           <p className="text-xs sm:text-sm font-semibold text-blue-600 dark:text-blue-400 mt-0.5">
                             {w.vietnamese_meaning}

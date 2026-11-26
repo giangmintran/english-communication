@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback, use
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { useLearningStore } from '@/lib/store';
+import { getLocalDateStr } from '@/lib/srs';
 import { api } from '@/lib/api';
 import type { DailyReviewProgress } from '@/types/quiz';
 
@@ -103,11 +104,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         meta.picture ||
         `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=2563eb&color=fff&bold=true`;
 
-      // 3. Query tiến trình học thực tế từ bảng collection_reviews (chỉ dành riêng cho Collections, loại trừ col-daily)
+      // 3. Query tiến trình học thực tế từ bảng collection_reviews (tách riêng col-daily cho Daily SRS và các bộ sưu tập)
       const reviewsMap: Record<string, any> = {};
       const collectionReviewsMap: Record<string, any> = {};
       const collectionProgressMap: Record<string, any> = {};
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getLocalDateStr();
 
       try {
         const { data: colData, error: colError } = await supabase
@@ -117,10 +118,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (!colError && colData && colData.length > 0) {
           colData.forEach((rev) => {
-            // Loại bỏ hoàn toàn bản ghi col-daily để không làm lẫn lộn với Daily Routine
-            if (rev.collection_id === 'col-daily') return;
             const key = rev.phrase_id || rev.item_id;
             const colId = rev.collection_id || rev.deck_id;
+
+            // Tách riêng dữ liệu SRS của Daily Routine (col-daily) vào reviewsMap
+            if (colId === 'col-daily') {
+              if (key) {
+                reviewsMap[key] = {
+                  repetitions: rev.repetitions ?? 0,
+                  interval_days: rev.interval_days ?? 1,
+                  ease_factor: rev.ease_factor ?? 2.5,
+                  next_review_at: rev.next_review_at,
+                  last_quality: rev.last_quality ?? 0,
+                };
+              }
+              return;
+            }
+
             if (key) {
               const itemSRS = {
                 repetitions: rev.repetitions,
@@ -220,6 +234,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
+      // Hợp nhất reviewsMap từ server với local reviews nếu cùng 1 user (tránh mất đánh giá local chưa kịp sync)
+      const mergedReviewsMap: Record<string, any> = { ...reviewsMap };
+      if (isSameUser && storeState.reviews) {
+        Object.entries(storeState.reviews).forEach(([wordId, localRev]) => {
+          const serverRev = mergedReviewsMap[wordId];
+          if (!serverRev) {
+            mergedReviewsMap[wordId] = localRev;
+          } else {
+            const localNext = localRev?.next_review_at ? new Date(localRev.next_review_at).getTime() : 0;
+            const serverNext = serverRev?.next_review_at ? new Date(serverRev.next_review_at).getTime() : 0;
+            if (localNext > serverNext) {
+              mergedReviewsMap[wordId] = localRev;
+            }
+          }
+        });
+      }
+
       // Tính số từ vựng duy nhất đã học hôm nay của Daily Routine
       let initialDailyLearned = 0;
       if (activeDailyProgress) {
@@ -238,8 +269,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // Tổng hợp từ vựng đã học
-      const totalWordsLearned = Object.keys(collectionReviewsMap).length + initialDailyLearned;
+      // Tổng hợp từ vựng đã học (tổng từ Collection + Daily SRS)
+      const dailyLearnedTotal = Math.max(Object.keys(mergedReviewsMap).length, initialDailyLearned);
+      const totalWordsLearned = Object.keys(collectionReviewsMap).length + dailyLearnedTotal;
       const streakCount = dbProfile?.streak_count ?? 1;
       const dailyGoal = dbProfile?.daily_goal_words ?? 20;
       const progressPercent = totalWordsLearned > 0 ? Math.min(100, Math.round((totalWordsLearned / 700) * 100)) : 0;
@@ -272,7 +304,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         todayLearned: Math.min(resolvedTodayGoal, initialDailyLearned),
         totalWordsLearned: totalWordsLearned,
         overallProgressPercent: progressPercent,
-        reviews: reviewsMap,
+        reviews: mergedReviewsMap,
         collectionReviews: collectionReviewsMap,
         collectionProgress: collectionProgressMap,
         dailyReviewProgress: userDailyProgressMap,
