@@ -4,6 +4,7 @@ import { Target, ArrowRight, Lock, Sparkles } from 'lucide-react';
 import { useLearningStore } from '@/lib/store';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/LanguageContext';
+import { getLocalDateStr, isItemDueByDay } from '@/lib/srs';
 import { AuthPromptModal } from '@/components/auth/AuthPromptModal';
 
 export function TodaysGoalCard() {
@@ -13,6 +14,7 @@ export function TodaysGoalCard() {
     todayLearned,
     lastLearnedDate,
     todayGoal,
+    reviews,
     getTodayReviewProgress,
     setTodayLearned,
     checkAndResetNewDay,
@@ -28,8 +30,22 @@ export function TodaysGoalCard() {
   // Đối với khách chưa đăng nhập: giới hạn mục tiêu dùng thử là 5 từ. Người dùng đã đăng nhập: lấy theo setting
   const effectiveGoal = !user ? 5 : (profile?.daily_goal_words || todayGoal || 20);
 
-  const todayStr = React.useMemo(() => new Date().toISOString().split('T')[0], []);
+  const todayStr = React.useMemo(() => getLocalDateStr(), []);
   const reviewProgress = getTodayReviewProgress(todayStr);
+
+  // Tính số từ cần ôn hôm nay (từ Quên/Mơ hồ/Đến hạn) và từ mới trong mục tiêu hôm nay
+  const dailyMixStats = React.useMemo(() => {
+    if (reviewProgress?.wordReasons && Object.keys(reviewProgress.wordReasons).length > 0) {
+      const reasons = Object.values(reviewProgress.wordReasons);
+      const reviewCount = reasons.filter((r) => r !== 'new').length;
+      const newCount = reasons.length - reviewCount;
+      return { reviewCount, newCount };
+    }
+    const dueCount = Object.values(reviews || {}).filter((r) => isItemDueByDay(r, todayStr)).length;
+    const reviewCount = Math.min(dueCount, Math.floor(effectiveGoal * 0.7));
+    const newCount = Math.max(0, effectiveGoal - reviewCount);
+    return { reviewCount, newCount };
+  }, [reviewProgress, reviews, todayStr, effectiveGoal]);
 
   // Tính số từ thực tế của Daily Routine hôm nay dựa trên kết quả bài làm thực tế
   const currentLearned = React.useMemo(() => {
@@ -112,6 +128,16 @@ export function TodaysGoalCard() {
             <div className="text-lg sm:text-xl xl:text-2xl font-bold text-slate-900 dark:text-white truncate">
               {effectiveGoal} {t('home.newWords')}
             </div>
+            {dailyMixStats.reviewCount > 0 && (
+              <span className="px-2.5 py-0.5 rounded-full bg-amber-100/90 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 text-[11px] font-semibold">
+                {dailyMixStats.newCount > 0
+                  ? t('home.dueWordsSummary', {
+                      review: dailyMixStats.reviewCount,
+                      newCount: dailyMixStats.newCount,
+                    })
+                  : t('home.dueWordsOnlySummary', { review: dailyMixStats.reviewCount })}
+              </span>
+            )}
             {user && (isGoalReached || isReviewDone) && profile?.daily_goal_words && profile.daily_goal_words !== effectiveGoal && (
               <span className="px-2.5 py-0.5 rounded-full bg-blue-100/90 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 text-xs font-semibold flex items-center gap-1 shadow-2xs">
                 <Sparkles className="w-3 h-3 text-blue-600 dark:text-blue-400" />

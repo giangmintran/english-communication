@@ -4,24 +4,28 @@ import { Lock } from 'lucide-react';
 import { FlashcardDeck } from '@/components/flashcard/FlashcardDeck';
 import { AuthPromptModal } from '@/components/auth/AuthPromptModal';
 import { LearningItem, DeckWithItems } from '@/types/database';
+import { DailyWordReason } from '@/types/quiz';
 import { useLearningStore } from '@/lib/store';
 import { useTranslation } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
 import { api } from '@/lib/api';
-import { selectDailyWords, loadDailyWordsFromCollectionItems } from '@/lib/dailyWordSelector';
+import { getLocalDateStr } from '@/lib/srs';
+import { selectDailyWordsWithReasons, loadDailyWordsFromCollectionItems } from '@/lib/dailyWordSelector';
 
 export default function LearnDeckPage() {
   const { deckId } = useParams<{ deckId: string }>();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { profile, todayGoal } = useLearningStore();
   const { t } = useTranslation();
   const [deck, setDeck] = useState<DeckWithItems | null>(null);
   const [items, setItems] = useState<LearningItem[]>([]);
+  const [wordReasons, setWordReasons] = useState<Record<string, DailyWordReason>>({});
   const [loading, setLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
+    if (authLoading) return;
 
     async function loadDeckData() {
       if (!deckId) return;
@@ -32,29 +36,39 @@ export default function LearnDeckPage() {
         const deckData = await api.decks.getById(targetDeckId);
         if (mounted && deckData) {
           let loadedItems: LearningItem[] = deckData.flashcards || deckData.items || [];
+          let loadedReasons: Record<string, DailyWordReason> = {};
           let formattedDeck = { ...deckData };
 
           if (isDaily) {
             const targetCount = !user ? Math.min(5, todayGoal || 5) : (profile?.daily_goal_words || todayGoal || 20);
-            const todayStr = new Date().toISOString().split('T')[0];
+            const todayStr = getLocalDateStr();
             const colSourceItems = await loadDailyWordsFromCollectionItems();
-            loadedItems = selectDailyWords({
+            const selection = selectDailyWordsWithReasons({
               dateStr: todayStr,
               targetCount,
               sourceItems: colSourceItems,
               user,
             });
+            loadedItems = selection.words;
+            loadedReasons = selection.reasons;
 
-            // Đồng bộ wordIds của ngày hôm nay vào dailyReviewProgress để các trang luôn dùng chung danh sách từ
+            // Đồng bộ wordIds và wordReasons của ngày hôm nay vào dailyReviewProgress nếu chưa bắt đầu làm bài
             const storeState = useLearningStore.getState();
             const currentDaily = storeState.dailyReviewProgress[todayStr];
-            if (!currentDaily?.wordIds || currentDaily.wordIds.length === 0) {
+            const hasStarted = Boolean(
+              currentDaily &&
+                (currentDaily.answeredCount > 0 ||
+                  currentDaily.isCompleted ||
+                  (currentDaily.flashcardGrades && Object.keys(currentDaily.flashcardGrades).length > 0))
+            );
+            if (!hasStarted) {
               storeState.saveDailyReviewProgressLocal({
                 date: todayStr,
                 deckId: 'daily',
                 wordIds: loadedItems.map((w) => w.id),
+                wordReasons: loadedReasons,
                 currentIndex: 0,
-                totalQuestions: loadedItems.length,
+                totalQuestions: loadedItems.length * 3,
                 answeredCount: 0,
                 correctCount: 0,
                 isCompleted: false,
@@ -78,6 +92,7 @@ export default function LearnDeckPage() {
 
           setDeck(formattedDeck);
           setItems(loadedItems);
+          setWordReasons(loadedReasons);
         }
       } catch (err) {
         console.warn('Lỗi khi tải thông tin deck:', err);
@@ -90,7 +105,7 @@ export default function LearnDeckPage() {
     return () => {
       mounted = false;
     };
-  }, [deckId, todayGoal, t, user]);
+  }, [deckId, todayGoal, profile?.daily_goal_words, t, user?.id, authLoading]);
 
   if (loading) {
     return (
@@ -135,7 +150,12 @@ export default function LearnDeckPage() {
         </div>
       )}
 
-      <FlashcardDeck deckTitle={deck.title} items={items} isDaily={isDaily} />
+      <FlashcardDeck
+        deckTitle={deck.title}
+        items={items}
+        isDaily={isDaily}
+        wordReasons={wordReasons}
+      />
 
       <AuthPromptModal
         isOpen={isAuthModalOpen}

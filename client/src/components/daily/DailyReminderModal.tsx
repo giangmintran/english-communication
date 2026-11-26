@@ -17,6 +17,7 @@ import {
 import { useLearningStore } from '@/lib/store';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/LanguageContext';
+import { getLocalDateStr, isItemDueByDay } from '@/lib/srs';
 import { cn } from '@/lib/utils';
 
 interface DailyReminderModalProps {
@@ -43,7 +44,7 @@ export function DailyReminderModal({ isOpen, onClose }: DailyReminderModalProps)
     checkAndResetNewDay();
   }, [checkAndResetNewDay]);
 
-  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const todayStr = useMemo(() => getLocalDateStr(), []);
   const reviewProgress = getTodayReviewProgress(todayStr);
 
   // 1. Lời chào theo buổi trong ngày
@@ -105,21 +106,20 @@ export function DailyReminderModal({ isOpen, onClose }: DailyReminderModalProps)
   const wordsToLearn = Math.max(0, todayGoal - actualLearned);
   const isGoalReached = actualLearned >= todayGoal && actualLearned > 0;
 
-  // 3. Đếm số từ đến hạn ôn tập theo thuật toán Spaced Repetition (SRS)
+  // 3. Đếm số từ đến hạn ôn tập theo thuật toán Spaced Repetition (SRS) theo ngày lịch
   const dueReviewsCount = useMemo(() => {
-    const now = new Date();
     let count = 0;
 
     // A. Kiểm tra từ đến hạn trong reviews Daily
     Object.values(reviews).forEach((rev) => {
-      if (rev.next_review_at && new Date(rev.next_review_at) <= now) {
+      if (isItemDueByDay(rev, todayStr)) {
         count++;
       }
     });
 
     // B. Kiểm tra từ đến hạn trong collectionReviews
     Object.values(collectionReviews).forEach((rev) => {
-      if (rev.next_review_at && new Date(rev.next_review_at) <= now) {
+      if (isItemDueByDay(rev, todayStr)) {
         count++;
       }
     });
@@ -132,7 +132,7 @@ export function DailyReminderModal({ isOpen, onClose }: DailyReminderModalProps)
     }
 
     return count;
-  }, [reviews, collectionReviews, reviewProgress]);
+  }, [reviews, collectionReviews, reviewProgress, todayStr]);
 
   if (!isOpen || !user) return null;
 

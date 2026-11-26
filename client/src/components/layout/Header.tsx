@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, Flame, LogOut, Settings, Sun, Moon, Menu, MessageCircle, MessageSquareHeart, User, Star } from 'lucide-react';
 import { useLearningStore } from '@/lib/store';
+import { getLocalDateStr, isItemDueByDay } from '@/lib/srs';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { useTranslation, Language } from '@/context/LanguageContext';
@@ -26,15 +27,11 @@ export function Header({ onOpenMobileMenu, onOpenReminder }: HeaderProps) {
     const wordsRemaining = (todayGoal || 20) - (todayLearned || 0);
     if (wordsRemaining > 0) return true;
 
-    const now = new Date();
-    const hasDueDaily = Object.values(reviews).some(
-      (r) => r.next_review_at && new Date(r.next_review_at) <= now
-    );
+    const todayStr = getLocalDateStr();
+    const hasDueDaily = Object.values(reviews).some((r) => isItemDueByDay(r, todayStr));
     if (hasDueDaily) return true;
 
-    const hasDueCol = Object.values(collectionReviews).some(
-      (r) => r.next_review_at && new Date(r.next_review_at) <= now
-    );
+    const hasDueCol = Object.values(collectionReviews).some((r) => isItemDueByDay(r, todayStr));
     return hasDueCol;
   }, [todayGoal, todayLearned, reviews, collectionReviews]);
 

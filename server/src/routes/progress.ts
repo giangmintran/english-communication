@@ -171,18 +171,54 @@ async function saveServerReviewProgress(db: any, scopedClient: any, user: any, p
     console.warn('Exception khi lưu user_metadata daily_review_progress:', err.message);
   }
 
-  // Cập nhật hàng loạt (Batch) SRS cho các từ vựng trong bài ôn tập
-  if (progress.results && Object.keys(progress.results).length > 0) {
-    await batchUpdateWordReviews(db, user.id, progress.results);
-  } else if (progress.wordIds && progress.wordIds.length > 0) {
+  // Cập nhật hàng loạt (Batch) SRS cho các từ vựng khi phiên ôn tập hoàn tất
+  if (progress.isCompleted && progress.results && Object.keys(progress.results).length > 0) {
+    await batchUpdateWordReviews(
+      db,
+      user.id,
+      progress.results,
+      progress.flashcardGrades,
+      progress.date
+    );
+  } else if (progress.isCompleted && progress.wordIds && progress.wordIds.length > 0) {
     await batchUpdateWordIdsReviews(db, user.id, progress.wordIds);
   }
 
   return { ...progress, lastUpdated: now };
 }
 
+function computeServerDailyGrade(
+  flashcardGrade: number | undefined,
+  totalQuestions: number,
+  correctCount: number
+): number {
+  let quizGrade: number;
+  if (totalQuestions <= 0) {
+    quizGrade = flashcardGrade ?? 2;
+  } else if (correctCount >= totalQuestions) {
+    quizGrade = flashcardGrade === 2 ? 2 : 3;
+  } else if (correctCount > Math.floor(totalQuestions / 3)) {
+    quizGrade = 1;
+  } else {
+    quizGrade = 0;
+  }
+
+  // Nếu ở Flashcard đã chọn Quên (0) hoặc Mơ hồ (1), giới hạn tối đa là 1 trong phiên hôm nay
+  if (flashcardGrade !== undefined && flashcardGrade < 2) {
+    return quizGrade === 0 ? 0 : 1;
+  }
+
+  return quizGrade;
+}
+
 // Helper cập nhật hàng loạt SRS cho các từ vựng khi có kết quả câu hỏi chi tiết
-async function batchUpdateWordReviews(db: any, userId: string, results: Record<string, any>) {
+async function batchUpdateWordReviews(
+  db: any,
+  userId: string,
+  results: Record<string, any>,
+  flashcardGrades: Record<string, number> = {},
+  reviewDateStr?: string
+) {
   if (!results || Object.keys(results).length === 0) return;
 
   const wordStats: Record<string, { total: number; correct: number }> = {};
@@ -194,25 +230,51 @@ async function batchUpdateWordReviews(db: any, userId: string, results: Record<s
     if (r.isCorrect) wordStats[wordId].correct++;
   }
 
-  const now = new Date().toISOString();
+  const nowDate = new Date();
+  const now = nowDate.toISOString();
+  const targetDateStr = reviewDateStr || now.split('T')[0];
+
   for (const [wordId, stat] of Object.entries(wordStats)) {
-    const grade = stat.correct === stat.total ? 3 : stat.correct > 0 ? 2 : 0;
+    const fcGrade = flashcardGrades?.[wordId];
+    const grade = computeServerDailyGrade(fcGrade, stat.total, stat.correct);
+
     try {
       const cleanWordId = sanitizePostgrestParam(wordId);
       const { data: existing } = await db
         .from('collection_reviews')
-        .select('id, repetitions, interval_days, ease_factor')
+        .select('id, repetitions, interval_days, ease_factor, last_reviewed_at')
         .eq('user_id', userId)
+        .eq('collection_id', 'col-daily')
         .eq('phrase_id', cleanWordId)
         .maybeSingle();
+
+      // Tránh cộng dồn repetitions nhiều lần trong cùng 1 ngày (khi user làm lại câu sai hoặc lưu nhiều lần)
+      const lastReviewedDay = existing?.last_reviewed_at
+        ? String(existing.last_reviewed_at).split('T')[0]
+        : null;
+      const alreadyReviewedToday = lastReviewedDay === targetDateStr;
 
       const currentReps = existing?.repetitions || 0;
       const currentInterval = existing?.interval_days || 1;
       const currentEase = existing?.ease_factor || 2.5;
 
-      const newReps = grade >= 2 ? currentReps + 1 : 0;
-      const newInterval = newReps <= 1 ? 1 : newReps === 2 ? 6 : Math.round(currentInterval * currentEase);
-      const newEase = Math.max(1.3, currentEase + (0.1 - (3 - grade) * (0.08 + (3 - grade) * 0.02)));
+      let newReps: number;
+      let newInterval: number;
+      if (grade < 2) {
+        newReps = 0;
+        newInterval = 1;
+      } else if (alreadyReviewedToday && currentReps > 0) {
+        newReps = currentReps;
+        newInterval = currentInterval;
+      } else {
+        newInterval =
+          currentReps === 0 ? 1 : currentReps === 1 ? 3 : Math.round(currentInterval * currentEase);
+        newReps = currentReps + 1;
+      }
+
+      const qMap: Record<number, number> = { 0: 1, 1: 3, 2: 4, 3: 5 };
+      const q = qMap[grade] ?? 3;
+      const newEase = Math.max(1.3, Number((currentEase + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02))).toFixed(2)));
       const isMastered = newReps >= 3 || newInterval >= 7;
 
       const payload = {
@@ -222,7 +284,7 @@ async function batchUpdateWordReviews(db: any, userId: string, results: Record<s
         repetitions: newReps,
         interval_days: newInterval,
         ease_factor: newEase,
-        next_review_at: new Date(Date.now() + newInterval * 86400000).toISOString(),
+        next_review_at: new Date(nowDate.getTime() + newInterval * 86400000).toISOString(),
         last_reviewed_at: now,
         last_quality: grade,
         is_mastered: isMastered,
@@ -260,6 +322,7 @@ async function batchUpdateWordIdsReviews(db: any, userId: string, wordIds: strin
         .from('collection_reviews')
         .select('id, repetitions, interval_days, ease_factor')
         .eq('user_id', userId)
+        .eq('collection_id', 'col-daily')
         .eq('phrase_id', cleanWordId)
         .maybeSingle();
 
@@ -268,7 +331,8 @@ async function batchUpdateWordIdsReviews(db: any, userId: string, wordIds: strin
       const currentEase = existing?.ease_factor || 2.5;
 
       const newReps = currentReps + 1;
-      const newInterval = newReps <= 1 ? 1 : newReps === 2 ? 6 : Math.round(currentInterval * currentEase);
+      const newInterval =
+        currentReps === 0 ? 1 : currentReps === 1 ? 3 : Math.round(currentInterval * currentEase);
       const isMastered = newReps >= 3 || newInterval >= 7;
 
       const payload = {

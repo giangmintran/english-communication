@@ -20,6 +20,7 @@ import {
   ReviewAnswerResult,
   ReviewSessionSummary,
   DailyReviewProgress,
+  DailyWordReason,
 } from '@/types/quiz';
 import { generateDailyReviewQuestions } from '@/lib/quizGenerator';
 import { ListeningQuizCard } from '@/components/daily/review/ListeningQuizCard';
@@ -32,17 +33,17 @@ import { useLearningStore } from '@/lib/store';
 import { useAuth } from '@/context/AuthContext';
 import { useTranslation } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
-import dailyItemsJson from '@/data/dailyItems.json';
-import { selectDailyWords, loadDailyWordsFromCollectionItems } from '@/lib/dailyWordSelector';
+import { computeDailySrsBatchFromResults, getLocalDateStr, SRSItemState } from '@/lib/srs';
+import { selectDailyWordsWithReasons, loadDailyWordsFromCollectionItems } from '@/lib/dailyWordSelector';
 
 export default function DailyReviewPage() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const { t } = useTranslation();
   const {
     profile,
     todayGoal,
-    recordReviewLocal,
+    applyDailySrsBatch,
     setTodayLearned,
     getTodayReviewProgress,
     saveDailyReviewProgressLocal,
@@ -50,10 +51,11 @@ export default function DailyReviewPage() {
     resetDailyReviewProgress,
   } = useLearningStore();
 
-  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const todayStr = useMemo(() => getLocalDateStr(), []);
 
   const [loading, setLoading] = useState(true);
   const [words, setWords] = useState<LearningItem[]>([]);
+  const [wordReasons, setWordReasons] = useState<Record<string, DailyWordReason>>({});
   const [questions, setQuestions] = useState<ReviewQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [results, setResults] = useState<Record<string, ReviewAnswerResult>>({});
@@ -69,6 +71,10 @@ export default function DailyReviewPage() {
 
   // Ref quản lý gom đệm đồng bộ server (Local-first & Batch Sync)
   const resultsRef = useRef<Record<string, ReviewAnswerResult>>({});
+  const preSessionReviewsRef = useRef<Record<string, SRSItemState>>({
+    ...useLearningStore.getState().reviews,
+  });
+  const flashcardGradesRef = useRef<Record<string, 0 | 1 | 2 | 3>>({});
   const pendingSyncProgressRef = useRef<DailyReviewProgress | null>(null);
   const questionsSinceLastSyncRef = useRef<number>(0);
   const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -138,13 +144,15 @@ export default function DailyReviewPage() {
     };
   }, [flushServerSync]);
 
-  // 1. Tải danh sách 20 từ vựng và khôi phục tiến trình (từ client store hoặc server)
+  // 1. Tải danh sách từ vựng dựa trên mức độ nhớ và khôi phục tiến trình
   useEffect(() => {
     let mounted = true;
+    if (authLoading) return;
 
     async function initializeSession() {
       try {
         setLoading(true);
+        preSessionReviewsRef.current = { ...useLearningStore.getState().reviews };
 
         // A. Tải toàn bộ kho từ vựng từ bảng collection_items trên database (kèm fallback đầy đủ)
         const sourceItems = await loadDailyWordsFromCollectionItems();
@@ -195,21 +203,35 @@ export default function DailyReviewPage() {
           }
         }
 
-        // C. Chọn danh sách từ vựng thông minh cho ngày hôm nay (không trùng từ hôm qua)
-        const selectedWords = selectDailyWords({
+        if (savedProgress?.flashcardGrades) {
+          flashcardGradesRef.current = { ...savedProgress.flashcardGrades };
+        }
+
+        // C. Chọn danh sách từ vựng thông minh cho ngày hôm nay dựa trên mức độ nhớ
+        const selection = selectDailyWordsWithReasons({
           dateStr: todayStr,
           targetCount,
           sourceItems,
           user,
         });
+        const selectedWords = selection.words;
+        const selectedReasons = savedProgress?.wordReasons || selection.reasons;
 
-        // Đảm bảo lưu wordIds của phiên hôm nay vào store nếu chưa có để đồng bộ xuyên suốt
+        // Đảm bảo lưu wordIds của phiên hôm nay vào store nếu chưa bắt đầu để đồng bộ xuyên suốt
         const currentDailyReview = useLearningStore.getState().dailyReviewProgress[todayStr];
-        if (!currentDailyReview?.wordIds || currentDailyReview.wordIds.length === 0) {
+        const hasStarted = Boolean(
+          currentDailyReview &&
+            (currentDailyReview.answeredCount > 0 ||
+              currentDailyReview.isCompleted ||
+              (currentDailyReview.flashcardGrades &&
+                Object.keys(currentDailyReview.flashcardGrades).length > 0))
+        );
+        if (!hasStarted) {
           useLearningStore.getState().saveDailyReviewProgressLocal({
             date: todayStr,
             deckId: 'daily',
             wordIds: selectedWords.map((w) => w.id),
+            wordReasons: selectedReasons,
             currentIndex: 0,
             totalQuestions: selectedWords.length * 3,
             answeredCount: 0,
@@ -225,6 +247,7 @@ export default function DailyReviewPage() {
 
         if (mounted) {
           setWords(selectedWords);
+          setWordReasons(selectedReasons);
           setQuestions(generated);
 
           // D. Khôi phục trạng thái làm bài dở hoặc đã hoàn thành
@@ -268,14 +291,15 @@ export default function DailyReviewPage() {
         if (mounted) {
           const fallbackCount = !user ? Math.min(5, todayGoal || 5) : (todayGoal || 20);
           const fallbackSource = await loadDailyWordsFromCollectionItems();
-          const fallback = selectDailyWords({
+          const fallback = selectDailyWordsWithReasons({
             dateStr: todayStr,
             targetCount: fallbackCount,
             sourceItems: fallbackSource,
             user,
           });
-          setWords(fallback);
-          setQuestions(generateDailyReviewQuestions(fallback, fallbackCount, 'shuffled'));
+          setWords(fallback.words);
+          setWordReasons(fallback.reasons);
+          setQuestions(generateDailyReviewQuestions(fallback.words, fallbackCount, 'shuffled'));
         }
       } finally {
         if (mounted) setLoading(false);
@@ -286,7 +310,7 @@ export default function DailyReviewPage() {
     return () => {
       mounted = false;
     };
-  }, [todayGoal, todayStr, user?.id]);
+  }, [todayGoal, profile?.daily_goal_words, todayStr, user?.id, authLoading]);
 
   // Câu hỏi hiện tại (nếu đang ở chế độ làm lại câu sai thì lấy từ retryQuestions)
   const activeQuestion = isRetryingMistakes
@@ -318,9 +342,6 @@ export default function DailyReviewPage() {
     resultsRef.current = newResults;
     setResults(newResults);
 
-    // Cập nhật SRS review cho từ này ở LocalStore (isDaily = true)
-    recordReviewLocal(activeQuestion.wordId, isCorrect ? 2 : 0, true);
-
     // Điểm số mới trong toàn bộ 60 câu
     const newCorrectCount = Object.values(newResults).filter((r) => r.isCorrect).length;
     const newAnsweredCount = Object.keys(newResults).length;
@@ -343,6 +364,8 @@ export default function DailyReviewPage() {
       date: todayStr,
       deckId: 'daily',
       wordIds: words.map((w) => w.id),
+      wordReasons,
+      flashcardGrades: { ...flashcardGradesRef.current },
       // Nếu đang retry câu sai thì giữ currentIndex ở 60, nếu bình thường thì lưu vị trí câu hiện tại
       currentIndex: isRetryingMistakes ? totalQuestions : currentIndex,
       totalQuestions: totalQuestions, // Luôn luôn là 60 câu
@@ -352,6 +375,14 @@ export default function DailyReviewPage() {
       results: newResults, // Chứa đầy đủ 60 câu với câu vừa sửa
       lastUpdated: new Date().toISOString(),
     };
+
+    // Cập nhật SRS theo từ dựa trên baseline trước phiên (không cộng dồn nhiều lần trong 1 ngày)
+    const srsUpdates = computeDailySrsBatchFromResults({
+      results: newResults,
+      flashcardGrades: flashcardGradesRef.current,
+      baselineReviews: preSessionReviewsRef.current,
+    });
+    applyDailySrsBatch(srsUpdates);
 
     // A. LƯU NGAY VÀO LOCALSTORAGE QUA ZUSTAND (0ms, offline-first)
     saveDailyReviewProgressLocal(updatedProgress);
@@ -391,6 +422,8 @@ export default function DailyReviewPage() {
           date: todayStr,
           deckId: 'daily',
           wordIds: words.map((w) => w.id),
+          wordReasons,
+          flashcardGrades: { ...flashcardGradesRef.current },
           currentIndex: totalQuestions,
           totalQuestions: totalQuestions,
           answeredCount: Math.max(Object.keys(latestResults).length, totalQuestions),
@@ -418,6 +451,8 @@ export default function DailyReviewPage() {
         date: todayStr,
         deckId: 'daily',
         wordIds: words.map((w) => w.id),
+        wordReasons,
+        flashcardGrades: { ...flashcardGradesRef.current },
         currentIndex: nextIdx,
         totalQuestions: totalQuestions,
         answeredCount: Object.keys(latestResults).length,
@@ -441,6 +476,8 @@ export default function DailyReviewPage() {
         date: todayStr,
         deckId: 'daily',
         wordIds: words.map((w) => w.id),
+        wordReasons,
+        flashcardGrades: { ...flashcardGradesRef.current },
         currentIndex: totalQuestions,
         totalQuestions: totalQuestions,
         answeredCount: totalQuestions,
@@ -610,6 +647,7 @@ export default function DailyReviewPage() {
         <ReviewSummary
           summary={sessionSummary}
           words={words}
+          wordReasons={wordReasons}
           onRestartAll={handleRestartAll}
           onRetryMistakes={handleRetryMistakes}
         />
@@ -769,6 +807,20 @@ export default function DailyReviewPage() {
           </button>
         </div>
       )}
+
+      {/* Banner thông báo tỷ lệ từ ôn & từ mới trong phiên hôm nay */}
+      {!isRetryingMistakes &&
+        words.some((w) => wordReasons[w.id] && wordReasons[w.id] !== 'new') && (
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-indigo-50/80 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40 flex items-center gap-2 text-xs text-indigo-800 dark:text-indigo-200">
+            <Sparkles className="w-4 h-4 text-indigo-500 shrink-0" />
+            <span>
+              {t('dailyReview.dailyMixBanner', {
+                review: words.filter((w) => wordReasons[w.id] && wordReasons[w.id] !== 'new').length,
+                newCount: words.filter((w) => !wordReasons[w.id] || wordReasons[w.id] === 'new').length,
+              })}
+            </span>
+          </div>
+        )}
 
       {/* Part Navigation Pills (Nghe / Viết / Dịch) */}
       {!isRetryingMistakes && (

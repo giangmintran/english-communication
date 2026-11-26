@@ -3,6 +3,16 @@ import { useLearningStore } from '@/lib/store';
 import { supabase } from '@/lib/supabaseClient';
 import { sampleCollectionItems } from '@/data/mockData';
 import dailyItemsJson from '@/data/dailyItems.json';
+import { getLocalDateStr } from '@/lib/srs';
+import {
+  selectDailyWordsCore,
+  SelectedDailyWordsResult,
+  SelectDailyWordsCoreInput,
+  shuffleArray,
+} from '@/lib/dailyWordSelectorCore';
+
+export type { SelectedDailyWordsResult, SelectDailyWordsCoreInput };
+export { selectDailyWordsCore, shuffleArray };
 
 export interface SelectDailyWordsOptions {
   dateStr?: string;
@@ -10,18 +20,6 @@ export interface SelectDailyWordsOptions {
   sourceItems: LearningItem[];
   user?: any;
   forceNew?: boolean;
-}
-
-/**
- * Hàm xáo trộn mảng ngẫu nhiên theo thuật toán Fisher-Yates Shuffle
- */
-export function shuffleArray<T>(items: T[]): T[] {
-  const result = [...items];
-  for (let i = result.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [result[i], result[j]] = [result[j], result[i]];
-  }
-  return result;
 }
 
 /**
@@ -73,7 +71,6 @@ export async function loadDailyWordsFromCollectionItems(): Promise<LearningItem[
       });
     });
 
-    // Bổ sung thêm từ dailyItemsJson nếu cần thêm kho từ
     (dailyItemsJson as LearningItem[]).forEach((item) => {
       if (!uniqueMap.has(item.id)) {
         uniqueMap.set(item.id, item);
@@ -83,80 +80,32 @@ export async function loadDailyWordsFromCollectionItems(): Promise<LearningItem[
     return Array.from(uniqueMap.values());
   }
 
-  // Fallback 2: JSON dự phòng
   return dailyItemsJson as LearningItem[];
 }
 
 /**
- * Thuật toán chọn RANDOM số lượng từ trong cài đặt từ kho `collection_items`:
- * 1. Nếu ngày hôm nay ĐÃ CÓ phiên học lưu trong store và không forceNew: giữ nguyên để tránh bị nhảy từ khi F5.
- * 2. Lấy danh sách từ chưa từng học trong Daily ở các ngày trước (riêng biệt, không đụng tới collection).
- * 3. Dùng Fisher-Yates shuffle để bốc RANDOM đúng targetCount từ (ví dụ: 5, 10, 15, 20 từ theo cài đặt).
- * 4. Nếu kho từ chưa học ít hơn targetCount, bù thêm các từ ngẫu nhiên khác từ kho từ.
+ * Chọn từ vựng hàng ngày kèm thông tin lý do (Quên, Mơ hồ, Đến hạn, Từ mới)
  */
-export function selectDailyWords({
-  dateStr = new Date().toISOString().split('T')[0],
+export function selectDailyWordsWithReasons({
+  dateStr = getLocalDateStr(),
   targetCount,
   sourceItems,
   forceNew = false,
-}: SelectDailyWordsOptions): LearningItem[] {
-  if (!sourceItems || sourceItems.length === 0) return [];
-
+}: SelectDailyWordsOptions): SelectedDailyWordsResult {
   const store = useLearningStore.getState();
-  const effectiveTarget = Math.max(1, Math.min(targetCount, sourceItems.length));
-
-  // 1. Nếu ngày hôm nay ĐÃ CÓ session được lưu với wordIds (và không yêu cầu forceNew):
-  // Giữ nguyên chính xác danh sách đó để trải nghiệm học trong ngày nhất quán
-  const todayProgress = store.dailyReviewProgress[dateStr];
-  if (!forceNew && todayProgress?.wordIds && todayProgress.wordIds.length > 0) {
-    const itemMap = new Map<string, LearningItem>();
-    sourceItems.forEach((item) => itemMap.set(item.id, item));
-    const matched = todayProgress.wordIds
-      .map((id) => itemMap.get(id))
-      .filter(Boolean) as LearningItem[];
-
-    if (matched.length >= effectiveTarget) {
-      return matched.slice(0, effectiveTarget);
-    } else if (matched.length > 0) {
-      // Nếu số từ trong cài đặt tăng lên: giữ lại các từ cũ và bốc random thêm từ mới cho đủ target
-      const matchedIds = new Set(matched.map((m) => m.id));
-      const remainingPool = shuffleArray(sourceItems.filter((item) => !matchedIds.has(item.id)));
-      const needed = effectiveTarget - matched.length;
-      return [...matched, ...remainingPool.slice(0, needed)];
-    }
-  }
-
-  // 2. Thu thập danh sách ID các từ đã học ở các ngày TRƯỚC của Daily Routine
-  // LƯU Ý: Phần mục tiêu học Daily hoàn toàn RIÊNG BIỆT với tiến độ của Collection (không lấy từ collectionReviews)
-  const learnedDailyWordIds = new Set<string>();
-
-  // A. Từ reviews (SRS của riêng Daily)
-  Object.keys(store.reviews || {}).forEach((id) => learnedDailyWordIds.add(id));
-
-  // B. Từ các ngày trước trong dailyReviewProgress
-  Object.entries(store.dailyReviewProgress || {}).forEach(([d, prog]) => {
-    if (d !== dateStr && prog?.wordIds) {
-      prog.wordIds.forEach((id) => learnedDailyWordIds.add(id));
-    }
+  return selectDailyWordsCore({
+    dateStr,
+    targetCount,
+    sourceItems,
+    reviews: store.reviews || {},
+    dailyReviewProgress: store.dailyReviewProgress || {},
+    forceNew,
   });
+}
 
-  // 3. Lọc danh sách từ vựng chưa học
-  const unlearnedWords = sourceItems.filter((item) => !learnedDailyWordIds.has(item.id));
-
-  // 4. Bốc RANDOM bằng Fisher-Yates Shuffle
-  const shuffledUnlearned = shuffleArray(unlearnedWords);
-
-  if (shuffledUnlearned.length >= effectiveTarget) {
-    return shuffledUnlearned.slice(0, effectiveTarget);
-  }
-
-  // 5. Nếu kho từ chưa học còn ít hơn targetCount:
-  // Lấy toàn bộ từ chưa học + bốc ngẫu nhiên thêm các từ khác trong kho để đủ số lượng cài đặt
-  const candidates: LearningItem[] = [...shuffledUnlearned];
-  const remainingNeeded = effectiveTarget - candidates.length;
-  const candidateIds = new Set(candidates.map((c) => c.id));
-  const otherItems = shuffleArray(sourceItems.filter((item) => !candidateIds.has(item.id)));
-
-  candidates.push(...otherItems.slice(0, remainingNeeded));
-  return candidates.slice(0, effectiveTarget);
+/**
+ * Thuật toán chọn từ hàng ngày dựa trên mức độ nhớ của từng từ trong kho `collection_items`
+ */
+export function selectDailyWords(options: SelectDailyWordsOptions): LearningItem[] {
+  return selectDailyWordsWithReasons(options).words;
 }

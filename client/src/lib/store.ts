@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Profile, ReviewGrade, CollectionProgress, PhraseProgressState } from '@/types/database';
 import { mockProfile } from '@/data/mockData';
-import { calculateSM2, SRSItemState } from './srs';
+import { calculateSM2, getLocalDateStr, SRSItemState } from './srs';
 import { supabase } from './supabaseClient';
 import { DailyReviewProgress } from '@/types/quiz';
 import { api } from '@/lib/api';
@@ -59,6 +59,7 @@ export interface LearningState {
   checkAndResetNewDay: () => void;
   recordReview: (itemId: string, grade: ReviewGrade, userId?: string, isDaily?: boolean) => Promise<void>;
   recordReviewLocal: (itemId: string, grade: ReviewGrade, isDaily?: boolean) => void;
+  applyDailySrsBatch: (updates: Record<string, SRSItemState>) => void;
   recordCollectionReview: (deckId: string, itemId: string, grade: ReviewGrade, userId?: string) => Promise<void>;
   recordCollectionPhraseProgress: (
     collectionId: string,
@@ -475,7 +476,7 @@ export const useLearningStore = create<LearningState>()(
 
       // Tự động kiểm tra sang ngày mới để reset todayLearned về 0 nếu chưa học hôm nay
       checkAndResetNewDay: () => {
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStr = getLocalDateStr();
         const state = get();
         const todayReview = state.dailyReviewProgress[todayStr];
         let countToday = 0;
@@ -513,14 +514,32 @@ export const useLearningStore = create<LearningState>()(
 
       setTodayLearned: (count: number) => {
         const goal = get().todayGoal || 20;
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStr = getLocalDateStr();
         set({
           todayLearned: Math.min(goal, Math.max(0, count)),
           lastLearnedDate: todayStr,
         });
       },
 
-      recordReviewLocal: (itemId: string, grade: ReviewGrade, isDaily?: boolean) => {
+      applyDailySrsBatch: (updates: Record<string, SRSItemState>) => {
+        if (!updates || Object.keys(updates).length === 0) return;
+        const state = get();
+        const nextReviews = {
+          ...state.reviews,
+          ...updates,
+        };
+        const newWordsCount = Object.keys(updates).filter((id) => !state.reviews[id]).length;
+        const newTotal = state.totalWordsLearned + newWordsCount;
+        const newOverallPercent = Math.min(100, Math.round((newTotal / 700) * 100));
+
+        set({
+          reviews: nextReviews,
+          totalWordsLearned: newTotal,
+          overallProgressPercent: newOverallPercent,
+        });
+      },
+
+      recordReviewLocal: (itemId: string, grade: ReviewGrade, _isDaily?: boolean) => {
         const state = get();
         const currentSRS = state.reviews[itemId] || {
           repetitions: 0,
@@ -532,11 +551,7 @@ export const useLearningStore = create<LearningState>()(
 
         const updatedSRS = calculateSM2(grade, currentSRS);
         const isFirstReview = !state.reviews[itemId];
-        const todayStr = new Date().toISOString().split('T')[0];
-        const baseToday = state.lastLearnedDate === todayStr ? state.todayLearned : 0;
-        const newTodayLearned = isDaily
-          ? Math.min(state.todayGoal, baseToday + 1)
-          : baseToday;
+        const todayStr = getLocalDateStr();
         const newTotal = isFirstReview ? state.totalWordsLearned + 1 : state.totalWordsLearned;
         const newOverallPercent = Math.min(100, Math.round((newTotal / 700) * 100));
 
@@ -545,14 +560,13 @@ export const useLearningStore = create<LearningState>()(
             ...state.reviews,
             [itemId]: updatedSRS,
           },
-          todayLearned: newTodayLearned,
           lastLearnedDate: todayStr,
           totalWordsLearned: newTotal,
           overallProgressPercent: newOverallPercent,
         });
       },
 
-      recordReview: async (itemId: string, grade: ReviewGrade, userId?: string, isDaily?: boolean) => {
+      recordReview: async (itemId: string, grade: ReviewGrade, userId?: string, _isDaily?: boolean) => {
         const state = get();
         const currentSRS = state.reviews[itemId] || {
           repetitions: 0,
@@ -564,11 +578,7 @@ export const useLearningStore = create<LearningState>()(
 
         const updatedSRS = calculateSM2(grade, currentSRS);
         const isFirstReview = !state.reviews[itemId];
-        const todayStr = new Date().toISOString().split('T')[0];
-        const baseToday = state.lastLearnedDate === todayStr ? state.todayLearned : 0;
-        const newTodayLearned = isDaily
-          ? Math.min(state.todayGoal, baseToday + 1)
-          : baseToday;
+        const todayStr = getLocalDateStr();
         const newTotal = isFirstReview ? state.totalWordsLearned + 1 : state.totalWordsLearned;
         const newOverallPercent = Math.min(100, Math.round((newTotal / 700) * 100));
 
@@ -577,7 +587,6 @@ export const useLearningStore = create<LearningState>()(
             ...state.reviews,
             [itemId]: updatedSRS,
           },
-          todayLearned: newTodayLearned,
           lastLearnedDate: todayStr,
           totalWordsLearned: newTotal,
           overallProgressPercent: newOverallPercent,

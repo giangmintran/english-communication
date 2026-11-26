@@ -72,10 +72,14 @@ export interface ReviewSessionSummary {
   wrongAnswers: ReviewAnswerResult[];
 }
 
+export type DailyWordReason = 'forgot' | 'hard' | 'due' | 'new' | 'reinforce';
+
 export interface DailyReviewProgress {
   date: string; // YYYY-MM-DD
   deckId: string; // e.g. "daily"
-  wordIds: string[]; // Danh sách 20 word IDs
+  wordIds: string[]; // Danh sách word IDs của mục tiêu hôm nay
+  wordReasons?: Record<string, DailyWordReason>; // Lý do chọn từ (Quên, Mơ hồ, Đến hạn, Từ mới...)
+  flashcardGrades?: Record<string, 0 | 1 | 2 | 3>; // Đánh giá ở bước Flashcard trong ngày
   currentIndex: number; // Vị trí câu hỏi hiện tại (0..59)
   totalQuestions: number; // 60
   answeredCount: number; // Số câu đã làm

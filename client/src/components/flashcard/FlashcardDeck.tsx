@@ -19,9 +19,17 @@ import {
   ReviewAnswerResult,
   ReviewSessionSummary,
   DailyReviewProgress,
+  DailyWordReason,
 } from '@/types/quiz';
 import { useLearningStore } from '@/lib/store';
 import { useAuth } from '@/context/AuthContext';
+import { api } from '@/lib/api';
+import {
+  calculateSM2,
+  computeDailySrsBatchFromResults,
+  getLocalDateStr,
+  SRSItemState,
+} from '@/lib/srs';
 import { speakText, stopSpeaking, calculateSimilarity } from '@/lib/speech';
 import { useTranslation } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
@@ -30,18 +38,25 @@ import { ListeningQuizCard } from '@/components/daily/review/ListeningQuizCard';
 import { WritingQuizCard } from '@/components/daily/review/WritingQuizCard';
 import { TranslationQuizCard } from '@/components/daily/review/TranslationQuizCard';
 import { ReviewSummary } from '@/components/daily/review/ReviewSummary';
+import { WordReasonBadge } from '@/components/daily/review/WordReasonBadge';
 import { QuickDictionaryModal } from '@/components/common/QuickDictionaryModal';
 
 interface FlashcardDeckProps {
   deckTitle: string;
   items: LearningItem[];
   isDaily?: boolean;
+  wordReasons?: Record<string, DailyWordReason>;
 }
 
-export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDeckProps) {
+export function FlashcardDeck({ deckTitle, items, isDaily = false, wordReasons }: FlashcardDeckProps) {
   const { user } = useAuth();
-  const { recordReview, addSpeakingTime, saveDailyReviewProgress, saveDailyReviewProgressLocal } =
-    useLearningStore();
+  const {
+    recordReview,
+    addSpeakingTime,
+    saveDailyReviewProgress,
+    saveDailyReviewProgressLocal,
+    applyDailySrsBatch,
+  } = useLearningStore();
   const { t, language } = useTranslation();
 
   // Các giai đoạn học:
@@ -77,16 +92,22 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
   // Ref giữ kết quả mới nhất để tránh stale closure khi lưu tiến trình Daily
   const practiceResultsRef = useRef<Record<string, ReviewAnswerResult>>({});
   const pendingRetryProgressRef = useRef<DailyReviewProgress | null>(null);
+  const flashcardGradesRef = useRef<Record<string, ReviewGrade>>({});
+  const preSessionReviewsRef = useRef<Record<string, SRSItemState>>({
+    ...useLearningStore.getState().reviews,
+  });
 
   const buildDailyProgress = useCallback(
     (latestResults: Record<string, ReviewAnswerResult>): DailyReviewProgress => {
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getLocalDateStr();
       const totalQ = practiceQuestions.length;
       const finalCorrect = Object.values(latestResults).filter((r) => r.isCorrect).length;
       return {
         date: todayStr,
         deckId: 'daily',
         wordIds: practiceWords.map((w) => w.id),
+        wordReasons,
+        flashcardGrades: { ...flashcardGradesRef.current },
         currentIndex: totalQ,
         totalQuestions: totalQ,
         answeredCount: Object.keys(latestResults).length,
@@ -96,7 +117,20 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
         lastUpdated: new Date().toISOString(),
       };
     },
-    [practiceQuestions.length, practiceWords]
+    [practiceQuestions.length, practiceWords, wordReasons]
+  );
+
+  const commitDailySessionSrs = useCallback(
+    (latestResults: Record<string, ReviewAnswerResult>) => {
+      if (!isDaily) return;
+      const updates = computeDailySrsBatchFromResults({
+        results: latestResults,
+        flashcardGrades: flashcardGradesRef.current,
+        baselineReviews: preSessionReviewsRef.current,
+      });
+      applyDailySrsBatch(updates);
+    },
+    [isDaily, applyDailySrsBatch]
   );
 
   const flushPendingRetrySync = useCallback(() => {
@@ -207,8 +241,53 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
   const handleRate = (grade: ReviewGrade) => {
     if (!currentItem) return;
 
-    // 1. Ghi nhận đánh giá vào SM-2 Spaced Repetition
-    recordReview(currentItem.id, grade, user?.id, isDaily);
+    flashcardGradesRef.current[currentItem.id] = grade;
+
+    // 1. Ghi nhận đánh giá vào SM-2 Spaced Repetition (tính từ baseline trước phiên để không cộng dồn khi lùi lại chọn lại)
+    if (isDaily) {
+      const baseSrs = preSessionReviewsRef.current[currentItem.id] || {
+        repetitions: 0,
+        interval_days: 1,
+        ease_factor: 2.5,
+        next_review_at: new Date().toISOString(),
+        last_quality: 0,
+      };
+      const nextSrs = calculateSM2(grade, baseSrs);
+      applyDailySrsBatch({ [currentItem.id]: nextSrs });
+
+      if (user?.id) {
+        api.progress
+          .record({
+            itemId: currentItem.id,
+            repetitions: nextSrs.repetitions,
+            intervalDays: nextSrs.interval_days,
+            easeFactor: nextSrs.ease_factor,
+            nextReviewAt: nextSrs.next_review_at,
+            lastQuality: grade,
+          })
+          .catch(() => {});
+      }
+
+      const todayStr = getLocalDateStr();
+      const storeState = useLearningStore.getState();
+      const existingDaily = storeState.dailyReviewProgress[todayStr];
+      saveDailyReviewProgressLocal({
+        date: todayStr,
+        deckId: 'daily',
+        wordIds: existingDaily?.wordIds?.length ? existingDaily.wordIds : items.map((w) => w.id),
+        wordReasons: wordReasons || existingDaily?.wordReasons,
+        flashcardGrades: { ...flashcardGradesRef.current },
+        currentIndex: existingDaily?.currentIndex ?? 0,
+        totalQuestions: existingDaily?.totalQuestions ?? items.length * 3,
+        answeredCount: existingDaily?.answeredCount ?? 0,
+        correctCount: existingDaily?.correctCount ?? 0,
+        isCompleted: existingDaily?.isCompleted ?? false,
+        results: existingDaily?.results ?? {},
+        lastUpdated: new Date().toISOString(),
+      });
+    } else {
+      recordReview(currentItem.id, grade, user?.id, false);
+    }
 
     const updatedRated = new Map(ratedWordsMap);
     updatedRated.set(currentItem.id, { item: currentItem, grade });
@@ -304,8 +383,9 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
       if (retryIndex + 1 < retryQuestions.length) {
         setRetryIndex((prev) => prev + 1);
       } else {
-        // Đã hoàn thành ôn tập lại các câu sai -> Lưu kết quả đã cập nhật và về màn hình tổng kết
+        // Đã hoàn thành ôn tập lại các câu sai -> Lưu kết quả & SRS đã cập nhật và về màn hình tổng kết
         if (isDaily) {
+          commitDailySessionSrs(practiceResultsRef.current);
           const finalProgress = buildDailyProgress(practiceResultsRef.current);
           pendingRetryProgressRef.current = null;
           saveDailyReviewProgress(finalProgress, user?.id);
@@ -327,8 +407,9 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
         origin: { y: 0.6 },
       });
 
-      // Lưu kết quả hoàn thành bài tập vào database nếu là Daily Routine
+      // Lưu kết quả & SRS hoàn thành bài tập vào database nếu là Daily Routine
       if (isDaily) {
+        commitDailySessionSrs(practiceResultsRef.current);
         const progress = buildDailyProgress(practiceResultsRef.current);
         saveDailyReviewProgress(progress, user?.id);
       }
@@ -415,6 +496,7 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
         <ReviewSummary
           summary={sessionSummary}
           words={practiceWords}
+          wordReasons={wordReasons}
           onRestartAll={handleRestartPractice}
           onRetryMistakes={handleRetryMistakes}
         />
@@ -630,6 +712,9 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false }: FlashcardDe
               <span className="px-2.5 sm:px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-xs font-semibold">
                 {deckTitle}
               </span>
+              {isDaily && wordReasons?.[currentItem.id] && (
+                <WordReasonBadge reason={wordReasons[currentItem.id]} />
+              )}
               <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] sm:text-xs font-medium uppercase">
                 {currentItem.details?.part_of_speech || currentItem.type}
               </span>
