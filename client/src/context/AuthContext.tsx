@@ -198,13 +198,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } catch (_) {}
 
-      // Nếu cùng một user và client đã có tiến trình hôm nay chưa đồng bộ, giữ lại tiến trình đó
+      // Nếu cùng một user và client đã có tiến trình hôm nay mới hơn hoặc nhiều câu hơn server, giữ lại tiến trình đó
       const storeState = useLearningStore.getState();
       const isSameUser = storeState.userId === currentUser.id;
       if (isSameUser) {
         const localToday = storeState.getTodayReviewProgress(todayStr);
-        const serverAnswered = (activeDailyProgress as DailyReviewProgress | null)?.answeredCount || 0;
-        if (localToday && localToday.answeredCount > serverAnswered) {
+        const serverDaily = activeDailyProgress as DailyReviewProgress | null;
+        const serverAnswered = serverDaily?.answeredCount || 0;
+        const localUpdatedAt = localToday?.lastUpdated ? new Date(localToday.lastUpdated).getTime() : 0;
+        const serverUpdatedAt = serverDaily?.lastUpdated
+          ? new Date(serverDaily.lastUpdated).getTime()
+          : 0;
+        const isLocalNewer =
+          Boolean(localToday) &&
+          (localToday!.answeredCount > serverAnswered ||
+            (localToday!.answeredCount === serverAnswered && localUpdatedAt > serverUpdatedAt));
+
+        if (isLocalNewer && localToday) {
           activeDailyProgress = localToday;
           userDailyProgressMap[todayStr] = localToday;
         }

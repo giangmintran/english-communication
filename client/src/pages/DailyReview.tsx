@@ -68,6 +68,7 @@ export default function DailyReviewPage() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Ref quản lý gom đệm đồng bộ server (Local-first & Batch Sync)
+  const resultsRef = useRef<Record<string, ReviewAnswerResult>>({});
   const pendingSyncProgressRef = useRef<DailyReviewProgress | null>(null);
   const questionsSinceLastSyncRef = useRef<number>(0);
   const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -228,7 +229,9 @@ export default function DailyReviewPage() {
 
           // D. Khôi phục trạng thái làm bài dở hoặc đã hoàn thành
           if (savedProgress && savedProgress.answeredCount > 0) {
-            setResults(savedProgress.results || {});
+            const restoredResults = savedProgress.results || {};
+            resultsRef.current = restoredResults;
+            setResults(restoredResults);
 
             if (savedProgress.isCompleted) {
               setIsCompleted(true);
@@ -283,7 +286,7 @@ export default function DailyReviewPage() {
     return () => {
       mounted = false;
     };
-  }, [todayGoal, todayStr, user?.id, user]);
+  }, [todayGoal, todayStr, user?.id]);
 
   // Câu hỏi hiện tại (nếu đang ở chế độ làm lại câu sai thì lấy từ retryQuestions)
   const activeQuestion = isRetryingMistakes
@@ -308,10 +311,11 @@ export default function DailyReviewPage() {
 
     // Luôn ghi đè / cập nhật vào bảng kết quả tổng thể 60 câu
     const newResults = {
-      ...results,
+      ...resultsRef.current,
       [activeQuestion.id]: answerRecord,
     };
 
+    resultsRef.current = newResults;
     setResults(newResults);
 
     // Cập nhật SRS review cho từ này ở LocalStore (isDaily = true)
@@ -370,6 +374,8 @@ export default function DailyReviewPage() {
 
   // 3. Chuyển sang câu hỏi tiếp theo
   const handleNext = () => {
+    const latestResults = resultsRef.current;
+
     // A. Nếu đang ở chế độ làm lại các câu sai
     if (isRetryingMistakes) {
       if (retryIndex + 1 < retryQuestions.length) {
@@ -380,17 +386,17 @@ export default function DailyReviewPage() {
         setIsCompleted(true);
 
         // Lưu cập nhật cuối cùng cho toàn bộ 60 câu: BATCH SYNC 1 LẦN DUY NHẤT LÊN SERVER
-        const finalCorrectCount = Object.values(results).filter((r) => r.isCorrect).length;
+        const finalCorrectCount = Object.values(latestResults).filter((r) => r.isCorrect).length;
         const finalProgress: DailyReviewProgress = {
           date: todayStr,
           deckId: 'daily',
           wordIds: words.map((w) => w.id),
           currentIndex: totalQuestions,
           totalQuestions: totalQuestions,
-          answeredCount: totalQuestions,
+          answeredCount: Math.max(Object.keys(latestResults).length, totalQuestions),
           correctCount: finalCorrectCount,
           isCompleted: true,
-          results: results,
+          results: latestResults,
           lastUpdated: new Date().toISOString(),
         };
         saveDailyReviewProgressLocal(finalProgress);
@@ -414,10 +420,10 @@ export default function DailyReviewPage() {
         wordIds: words.map((w) => w.id),
         currentIndex: nextIdx,
         totalQuestions: totalQuestions,
-        answeredCount: Object.keys(results).length,
-        correctCount: Object.values(results).filter((r) => r.isCorrect).length,
+        answeredCount: Object.keys(latestResults).length,
+        correctCount: Object.values(latestResults).filter((r) => r.isCorrect).length,
         isCompleted: wasAlreadyCompleted,
-        results: results,
+        results: latestResults,
         lastUpdated: new Date().toISOString(),
       };
       saveDailyReviewProgressLocal(updatedProgress);
@@ -426,7 +432,7 @@ export default function DailyReviewPage() {
       setIsCompleted(true);
       const effectiveGoal = profile?.daily_goal_words || todayGoal || 20;
       const uniqueWords = new Set(
-        Object.values(results).map((r) => r.question?.wordId || r.questionId).filter(Boolean)
+        Object.values(latestResults).map((r) => r.question?.wordId || r.questionId).filter(Boolean)
       ).size;
       setTodayLearned(Math.min(effectiveGoal, Math.max(words.length, uniqueWords)));
 
@@ -438,9 +444,9 @@ export default function DailyReviewPage() {
         currentIndex: totalQuestions,
         totalQuestions: totalQuestions,
         answeredCount: totalQuestions,
-        correctCount: Object.values(results).filter((r) => r.isCorrect).length,
+        correctCount: Object.values(latestResults).filter((r) => r.isCorrect).length,
         isCompleted: true,
-        results: results,
+        results: latestResults,
         lastUpdated: new Date().toISOString(),
       };
       saveDailyReviewProgressLocal(finalProgress);
@@ -496,6 +502,7 @@ export default function DailyReviewPage() {
 
     // Sinh lại bộ câu hỏi bài tập mới xáo trộn ngẫu nhiên cho chính tập từ này
     const refreshedQuestions = generateDailyReviewQuestions(currentWords, currentWords.length, 'shuffled');
+    resultsRef.current = {};
     setQuestions(refreshedQuestions);
     setResults({});
     setCurrentIndex(0);
@@ -507,7 +514,7 @@ export default function DailyReviewPage() {
     const existingProgress = getTodayReviewProgress(todayStr);
     const wasAlreadyCompleted = Boolean(existingProgress?.isCompleted);
 
-    useLearningStore.getState().saveDailyReviewProgressLocal({
+    const resetProgress: DailyReviewProgress = {
       date: todayStr,
       deckId: 'daily',
       wordIds: currentWords.map((w) => w.id),
@@ -518,7 +525,9 @@ export default function DailyReviewPage() {
       isCompleted: wasAlreadyCompleted,
       results: {},
       lastUpdated: new Date().toISOString(),
-    });
+    };
+    saveDailyReviewProgressLocal(resetProgress);
+    flushServerSync(resetProgress);
   };
 
   // 6. Ôn tập lại các câu đã làm sai (Không xóa tiến trình 60 câu, chỉ cập nhật thêm)
@@ -655,6 +664,7 @@ export default function DailyReviewPage() {
             <button
               type="button"
               onClick={() => {
+                flushServerSync();
                 setIsRetryingMistakes(false);
                 setIsCompleted(true);
               }}
@@ -711,6 +721,7 @@ export default function DailyReviewPage() {
           <button
             type="button"
             onClick={() => {
+              flushServerSync();
               setIsRetryingMistakes(false);
               setIsCompleted(true);
             }}
