@@ -94,7 +94,21 @@ export default function DailyReviewPage() {
       pendingSyncProgressRef.current = null;
 
       if (user?.id) {
-        api.progress.saveDailyReview(toSync).catch(async (err) => {
+        api.progress.saveDailyReview(toSync).then((saved) => {
+          if (typeof saved?.streakCount === 'number' && saved.streakCount > 0) {
+            const store = useLearningStore.getState();
+            if (saved.streakCount > store.streakDays) {
+              store.setUserData({
+                profile: {
+                  ...store.profile,
+                  streak_count: saved.streakCount,
+                  last_active_date: toSync.date,
+                },
+                streakDays: saved.streakCount,
+              });
+            }
+          }
+        }).catch(async (err) => {
           console.warn('Background batch sync failed, trying Supabase fallback:', err);
           try {
             const { supabase } = await import('@/lib/supabaseClient');
@@ -113,8 +127,16 @@ export default function DailyReviewPage() {
               updated_at: now,
             }, { onConflict: 'user_id,review_date' });
 
-            // Cập nhật last_active_date trong profiles (tiến trình Daily độc lập với collection_reviews)
-            await supabase.from('profiles').update({ last_active_date: now }).eq('id', user.id);
+            // Cập nhật streak_count & last_active_date trong profiles
+            const currentStreak = Math.max(1, useLearningStore.getState().streakDays || 1);
+            await supabase
+              .from('profiles')
+              .update({
+                streak_count: currentStreak,
+                last_active_date: toSync.date,
+                updated_at: now,
+              })
+              .eq('id', user.id);
           } catch (_) {}
         });
       }

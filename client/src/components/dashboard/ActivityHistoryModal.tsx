@@ -1,6 +1,8 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import { X, Flame, Calendar, Trophy, Info, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useLearningStore } from '@/lib/store';
+import { getLocalDateStr } from '@/lib/srs';
+import { collectStudiedDatesFromState, computeBestStreakFromDates } from '@/lib/streak';
 import { useTranslation } from '@/context/LanguageContext';
 import { cn } from '@/lib/utils';
 
@@ -52,7 +54,7 @@ function getWordsCountFromReview(review?: any, fallbackCount: number = 0): numbe
 }
 
 export function ActivityHistoryModal({ isOpen, onClose }: ActivityHistoryModalProps) {
-  const { streakDays, todayLearned, lastLearnedDate, dailyReviewProgress } = useLearningStore();
+  const { streakDays, todayLearned, lastLearnedDate, dailyReviewProgress, collectionProgress, lessonProgress } = useLearningStore();
   const { t, language } = useTranslation();
 
   // Chế độ xem: 16 tuần (4 tháng), 26 tuần (6 tháng) hoặc 52 tuần (cả năm)
@@ -75,7 +77,7 @@ export function ActivityHistoryModal({ isOpen, onClose }: ActivityHistoryModalPr
   // Tính toán lưới các ngày (Grid of Days) và nhãn tháng
   const { weeks, monthLabels, totalContributions, activeDaysCount, longestStreak, consistencyRate } = useMemo(() => {
     const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
+    const todayStr = getLocalDateStr(now);
 
     // Ngày kết thúc: Chủ nhật của tuần hiện tại
     const currentDayOfWeek = (now.getDay() + 6) % 7; // Chuyển về 0: Thứ 2 -> 6: Chủ nhật
@@ -112,7 +114,7 @@ export function ActivityHistoryModal({ isOpen, onClose }: ActivityHistoryModalPr
         const dateObj = new Date(startDate);
         dateObj.setDate(startDate.getDate() + (w * 7 + d));
 
-        const dateStr = dateObj.toISOString().split('T')[0];
+        const dateStr = getLocalDateStr(dateObj);
         const isToday = dateStr === todayStr;
         const isFuture = dateObj > now && !isToday;
 
@@ -185,7 +187,14 @@ export function ActivityHistoryModal({ isOpen, onClose }: ActivityHistoryModalPr
       generatedWeeks.push(currentWeek);
     }
 
-    const bestStreak = Math.max(streakDays, 14);
+    const studiedDates = collectStudiedDatesFromState({
+      dailyReviewProgress,
+      collectionProgress,
+      lessonProgress,
+      todayLearned,
+      lastLearnedDate,
+    });
+    const bestStreak = computeBestStreakFromDates(studiedDates, streakDays);
     const rate = elapsedDays > 0 ? Math.min(100, Math.round((activeDays / elapsedDays) * 100)) : 0;
 
     return {
@@ -196,7 +205,7 @@ export function ActivityHistoryModal({ isOpen, onClose }: ActivityHistoryModalPr
       longestStreak: bestStreak,
       consistencyRate: rate,
     };
-  }, [totalWeeks, streakDays, todayLearned, lastLearnedDate, dailyReviewProgress, isEn]);
+  }, [totalWeeks, streakDays, todayLearned, lastLearnedDate, dailyReviewProgress, collectionProgress, lessonProgress, isEn]);
 
   if (!isOpen) return null;
 

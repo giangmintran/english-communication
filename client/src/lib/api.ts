@@ -13,6 +13,7 @@ import {
 } from '@/types/database';
 import { initialDecks, sampleLearningItems, initialCollections, sampleCollectionItems } from '@/data/mockData';
 import { DailyReviewProgress } from '@/types/quiz';
+import { getLocalDateStr } from './srs';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -274,7 +275,7 @@ export const api = {
   // Hồ sơ & Cài đặt (Profile)
   profile: {
     getMe: async (): Promise<Profile> => {
-      return requestWithAuth<Profile>('/profile/me');
+      return requestWithAuth<Profile>(`/profile/me?date=${getLocalDateStr()}`);
     },
     updateMe: async (data: Partial<Profile>): Promise<Profile> => {
       return requestWithAuth<Profile>('/profile/me', {
@@ -296,16 +297,20 @@ export const api = {
       easeFactor: number;
       nextReviewAt: string;
       lastQuality: number;
+      date?: string;
     }) => {
-      return requestWithAuth('/progress/record', {
+      return requestWithAuth<{ itemId: string; repetitions: number; intervalDays: number; streakCount?: number }>('/progress/record', {
         method: 'POST',
-        body: JSON.stringify(record),
+        body: JSON.stringify({
+          ...record,
+          date: record.date || getLocalDateStr(),
+        }),
       });
     },
 
     // Lấy tiến trình ôn tập 20 từ (60 câu)
     getDailyReview: async (dateStr?: string): Promise<DailyReviewProgress | null> => {
-      const targetDate = dateStr || new Date().toISOString().split('T')[0];
+      const targetDate = dateStr || getLocalDateStr();
       try {
         return await requestWithAuth<DailyReviewProgress | null>(
           `/progress/daily-review?date=${targetDate}`
@@ -328,16 +333,16 @@ export const api = {
     },
 
     // Lưu tiến trình ôn tập lên server
-    saveDailyReview: async (progress: DailyReviewProgress): Promise<DailyReviewProgress> => {
-      return requestWithAuth<DailyReviewProgress>('/progress/daily-review', {
+    saveDailyReview: async (progress: DailyReviewProgress): Promise<DailyReviewProgress & { streakCount?: number }> => {
+      return requestWithAuth<DailyReviewProgress & { streakCount?: number }>('/progress/daily-review', {
         method: 'POST',
         body: JSON.stringify({ progress }),
       });
     },
 
     // Gộp tiến trình từ client lên server khi đăng nhập
-    mergeDailyReview: async (clientProgress: DailyReviewProgress): Promise<DailyReviewProgress> => {
-      return requestWithAuth<DailyReviewProgress>('/progress/daily-review/merge', {
+    mergeDailyReview: async (clientProgress: DailyReviewProgress): Promise<DailyReviewProgress & { streakCount?: number }> => {
+      return requestWithAuth<DailyReviewProgress & { streakCount?: number }>('/progress/daily-review/merge', {
         method: 'POST',
         body: JSON.stringify({ clientProgress }),
       });
@@ -345,7 +350,7 @@ export const api = {
 
     // Đặt lại / làm lại bài tập
     resetDailyReview: async (dateStr?: string): Promise<void> => {
-      const targetDate = dateStr || new Date().toISOString().split('T')[0];
+      const targetDate = dateStr || getLocalDateStr();
       try {
         await requestWithAuth(`/progress/daily-review?date=${targetDate}`, {
           method: 'DELETE',
@@ -363,9 +368,9 @@ export const api = {
       score: number;
       totalQuestions: number;
       completed: boolean;
-    }) => {
+    }): Promise<{ reviewDate: string; lessonId: string; completed: boolean; streakCount?: number } | null> => {
       try {
-        return await requestWithAuth('/progress/daily-lesson', {
+        return await requestWithAuth<{ reviewDate: string; lessonId: string; completed: boolean; streakCount?: number }>('/progress/daily-lesson', {
           method: 'POST',
           body: JSON.stringify(payload),
         });

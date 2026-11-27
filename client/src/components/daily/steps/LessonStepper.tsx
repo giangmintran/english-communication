@@ -24,6 +24,7 @@ import { PracticeStep } from './PracticeStep';
 import { LessonComplete } from './LessonComplete';
 import { useTranslation } from '@/context/LanguageContext';
 import { useLearningStore } from '@/lib/store';
+import { getLocalDateStr } from '@/lib/srs';
 import { cn } from '@/lib/utils';
 
 interface LessonStepperProps {
@@ -102,7 +103,7 @@ export function LessonStepper({ lessonContent }: LessonStepperProps) {
           collectionId: lessonContent.lesson.collection_id || lessonContent.lesson.deck_id,
           sprintDay: lessonContent.lesson.sprint_day || 1,
           wordIds: lessonContent.vocabulary.map((v) => v.id),
-          dateStr: new Date().toISOString().split('T')[0],
+          dateStr: getLocalDateStr(),
         }
       );
     }

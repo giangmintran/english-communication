@@ -3,9 +3,64 @@ import { persist } from 'zustand/middleware';
 import { Profile, ReviewGrade, CollectionProgress, PhraseProgressState } from '@/types/database';
 import { mockProfile } from '@/data/mockData';
 import { calculateSM2, getLocalDateStr, SRSItemState } from './srs';
+import {
+  collectStudiedDatesFromState,
+  computeNextStreakOnActivity,
+  computeStreakFromDates,
+  hasStudiedOnReview,
+  normalizeLocalDateStr,
+  shiftDateStr,
+} from './streak';
 import { supabase } from './supabaseClient';
 import { DailyReviewProgress } from '@/types/quiz';
 import { api } from '@/lib/api';
+
+function computeStreakForStoreActivity(
+  state: Pick<
+    LearningState,
+    'dailyReviewProgress' | 'collectionProgress' | 'lessonProgress' | 'todayLearned' | 'lastLearnedDate' | 'streakDays'
+  >,
+  activityDate: string = getLocalDateStr()
+): number {
+  const studiedDates = collectStudiedDatesFromState({
+    dailyReviewProgress: state.dailyReviewProgress,
+    collectionProgress: state.collectionProgress,
+    lessonProgress: state.lessonProgress,
+    todayLearned: state.todayLearned,
+    lastLearnedDate: state.lastLearnedDate,
+  });
+  return computeNextStreakOnActivity({
+    studiedDates,
+    prevStreakDays: state.streakDays,
+    prevLastLearnedDate: state.lastLearnedDate,
+    activityDate,
+  });
+}
+
+function computeReconciledStreakForStore(
+  state: Pick<
+    LearningState,
+    'dailyReviewProgress' | 'collectionProgress' | 'lessonProgress' | 'todayLearned' | 'lastLearnedDate' | 'streakDays'
+  >,
+  todayStr: string = getLocalDateStr()
+): number {
+  const studiedDates = collectStudiedDatesFromState({
+    dailyReviewProgress: state.dailyReviewProgress,
+    collectionProgress: state.collectionProgress,
+    lessonProgress: state.lessonProgress,
+    todayLearned: state.todayLearned,
+    lastLearnedDate: state.lastLearnedDate,
+  });
+  const historyStreak = computeStreakFromDates(studiedDates, todayStr);
+  const lastActive = normalizeLocalDateStr(state.lastLearnedDate);
+  const yesterday = shiftDateStr(todayStr, -1);
+  const isAlive = Boolean(lastActive && (lastActive === todayStr || lastActive === yesterday));
+
+  if (studiedDates.size > 0) {
+    return Math.max(historyStreak, isAlive ? state.streakDays : 0);
+  }
+  return isAlive && state.streakDays > 1 ? state.streakDays : 0;
+}
 
 export interface LessonProgressState {
   currentStep: number;
@@ -23,7 +78,7 @@ export const isTodayGoalCompleted = (
     todayGoal: number;
     dailyReviewProgress: Record<string, DailyReviewProgress>;
   },
-  todayStr: string = new Date().toISOString().split('T')[0]
+  todayStr: string = getLocalDateStr()
 ): boolean => {
   const review = state.dailyReviewProgress[todayStr];
   if (review?.isCompleted) return true;
@@ -104,7 +159,7 @@ export const useLearningStore = create<LearningState>()(
       userId: null,
       profile: mockProfile,
       todayLearned: 0, // Guest starts with 0 learned words
-      lastLearnedDate: new Date().toISOString().split('T')[0],
+      lastLearnedDate: getLocalDateStr(),
       todayGoal: 20,
       overallProgressPercent: 0,
       totalWordsLearned: 0,
@@ -120,12 +175,12 @@ export const useLearningStore = create<LearningState>()(
         set({
           userId: newUserId || null,
           todayLearned: 0,
-          lastLearnedDate: new Date().toISOString().split('T')[0],
+          lastLearnedDate: getLocalDateStr(),
           todayGoal: 20,
           overallProgressPercent: 0,
           totalWordsLearned: 0,
           speakingTimeMinutes: 0,
-          streakDays: 1,
+          streakDays: 0,
           reviews: {},
           collectionReviews: {},
           collectionProgress: {},
@@ -199,18 +254,34 @@ export const useLearningStore = create<LearningState>()(
           phrase_states: newPhraseStates,
         };
 
-        // Lưu vào state riêng của Collection
-        set((s) => ({
-          collectionProgress: {
+        // Lưu vào state riêng của Collection và cập nhật streak
+        const todayStr = getLocalDateStr();
+        let nextStreak = state.streakDays;
+        set((s) => {
+          const nextCollectionProgress = {
             ...s.collectionProgress,
             [collectionId]: updatedColProgress,
-          },
-          // Đồng thời duy trì collectionReviews để tra cứu nhanh SRS
-          collectionReviews: {
-            ...s.collectionReviews,
-            [phraseId]: updatedSRS,
-          },
-        }));
+          };
+          nextStreak = computeStreakForStoreActivity(
+            { ...s, collectionProgress: nextCollectionProgress },
+            todayStr
+          );
+          return {
+            collectionProgress: nextCollectionProgress,
+            // Đồng thời duy trì collectionReviews để tra cứu nhanh SRS
+            collectionReviews: {
+              ...s.collectionReviews,
+              [phraseId]: updatedSRS,
+            },
+            lastLearnedDate: todayStr,
+            streakDays: nextStreak,
+            profile: {
+              ...s.profile,
+              streak_count: nextStreak,
+              last_active_date: todayStr,
+            },
+          };
+        });
 
         // Ghi nhận lên bảng riêng của Collection trên Supabase (nếu bảng đã tồn tại)
         try {
@@ -263,6 +334,15 @@ export const useLearningStore = create<LearningState>()(
                 });
               }
             }
+
+            await supabase
+              .from('profiles')
+              .update({
+                streak_count: nextStreak,
+                last_active_date: todayStr,
+                updated_at: now,
+              })
+              .eq('id', uid);
           }
         } catch (_) {
           // Bảng riêng trên DB sẽ được tạo sau, tiến trình được bảo toàn local an toàn
@@ -276,21 +356,59 @@ export const useLearningStore = create<LearningState>()(
       },
 
       saveDailyReviewProgressLocal: (progress: DailyReviewProgress) => {
-        set((state) => ({
-          dailyReviewProgress: {
+        set((state) => {
+          const nextDailyMap = {
             ...state.dailyReviewProgress,
             [progress.date]: progress,
-          },
-        }));
+          };
+          if (!hasStudiedOnReview(progress)) {
+            return { dailyReviewProgress: nextDailyMap };
+          }
+          const todayStr = getLocalDateStr();
+          const nextStreak = computeStreakForStoreActivity(
+            { ...state, dailyReviewProgress: nextDailyMap },
+            progress.date || todayStr
+          );
+          return {
+            dailyReviewProgress: nextDailyMap,
+            lastLearnedDate: progress.date === todayStr ? todayStr : state.lastLearnedDate,
+            streakDays: nextStreak,
+            profile: {
+              ...state.profile,
+              streak_count: nextStreak,
+              last_active_date: progress.date || todayStr,
+            },
+          };
+        });
       },
 
       saveDailyReviewProgress: async (progress: DailyReviewProgress, userId?: string) => {
-        set((state) => ({
-          dailyReviewProgress: {
+        const hasActivity = hasStudiedOnReview(progress);
+        let computedStreak = get().streakDays;
+        set((state) => {
+          const nextDailyMap = {
             ...state.dailyReviewProgress,
             [progress.date]: progress,
-          },
-        }));
+          };
+          if (!hasActivity) {
+            return { dailyReviewProgress: nextDailyMap };
+          }
+          const todayStr = getLocalDateStr();
+          computedStreak = computeStreakForStoreActivity(
+            { ...state, dailyReviewProgress: nextDailyMap },
+            progress.date || todayStr
+          );
+          return {
+            dailyReviewProgress: nextDailyMap,
+            lastLearnedDate: progress.date === todayStr ? todayStr : state.lastLearnedDate,
+            streakDays: computedStreak,
+            profile: {
+              ...state.profile,
+              streak_count: computedStreak,
+              last_active_date: progress.date || todayStr,
+            },
+          };
+        });
 
         // Đồng bộ lên server nếu có người dùng đăng nhập
         try {
@@ -302,7 +420,16 @@ export const useLearningStore = create<LearningState>()(
 
           if (uid) {
             try {
-              await api.progress.saveDailyReview(progress);
+              const saved = await api.progress.saveDailyReview(progress);
+              if (typeof saved?.streakCount === 'number' && saved.streakCount > 0) {
+                set((s) => ({
+                  streakDays: Math.max(s.streakDays, saved.streakCount!),
+                  profile: {
+                    ...s.profile,
+                    streak_count: Math.max(s.profile.streak_count || 0, saved.streakCount!),
+                  },
+                }));
+              }
             } catch (apiErr) {
               // Direct Supabase fallback
               const now = new Date().toISOString();
@@ -320,8 +447,17 @@ export const useLearningStore = create<LearningState>()(
                 updated_at: now,
               }, { onConflict: 'user_id,review_date' });
 
-              // Cập nhật last_active_date trong profiles (tiến độ Daily riêng biệt, không ghi vào collection_reviews)
-              await supabase.from('profiles').update({ last_active_date: now }).eq('id', uid);
+              // Cập nhật streak_count & last_active_date trong profiles nếu có hoạt động thực tế
+              if (hasActivity) {
+                await supabase
+                  .from('profiles')
+                  .update({
+                    streak_count: Math.max(1, computedStreak),
+                    last_active_date: progress.date,
+                    updated_at: now,
+                  })
+                  .eq('id', uid);
+              }
             }
           }
         } catch (err) {
@@ -330,7 +466,7 @@ export const useLearningStore = create<LearningState>()(
       },
 
       resetDailyReviewProgress: async (dateStr?: string, userId?: string) => {
-        const targetDate = dateStr || new Date().toISOString().split('T')[0];
+        const targetDate = dateStr || getLocalDateStr();
         set((state) => {
           const next = { ...state.dailyReviewProgress };
           delete next[targetDate];
@@ -357,7 +493,7 @@ export const useLearningStore = create<LearningState>()(
       },
 
       getTodayReviewProgress: (dateStr?: string) => {
-        const targetDate = dateStr || new Date().toISOString().split('T')[0];
+        const targetDate = dateStr || getLocalDateStr();
         return get().dailyReviewProgress[targetDate] || null;
       },
 
@@ -366,6 +502,8 @@ export const useLearningStore = create<LearningState>()(
         updates: Partial<LessonProgressState>,
         meta?: { collectionId?: string; sprintDay?: number; wordIds?: string[]; dateStr?: string }
       ) => {
+        const todayStr = meta?.dateStr || getLocalDateStr();
+        let nextStreak = get().streakDays;
         set((state) => {
           const current = state.lessonProgress[lessonId] || {
             currentStep: 0,
@@ -387,94 +525,131 @@ export const useLearningStore = create<LearningState>()(
             totalWordsCount += addedWords;
           }
 
-          const todayStr = meta?.dateStr || new Date().toISOString().split('T')[0];
+          const nextLessonProgress = {
+            ...state.lessonProgress,
+            [lessonId]: {
+              ...current,
+              ...updates,
+              completed: isNowCompleted,
+              lastStudiedAt: new Date().toISOString(),
+            },
+          };
+
+          if (updates.completed) {
+            nextStreak = computeStreakForStoreActivity(
+              { ...state, lessonProgress: nextLessonProgress },
+              todayStr
+            );
+          }
+
           return {
             todayLearned: todayLearnedCount,
             totalWordsLearned: totalWordsCount,
             lastLearnedDate: todayStr,
-            lessonProgress: {
-              ...state.lessonProgress,
-              [lessonId]: {
-                ...current,
-                ...updates,
-                completed: isNowCompleted,
-                lastStudiedAt: new Date().toISOString(),
-              },
-            },
+            lessonProgress: nextLessonProgress,
+            ...(updates.completed
+              ? {
+                  streakDays: nextStreak,
+                  profile: {
+                    ...state.profile,
+                    streak_count: nextStreak,
+                    last_active_date: todayStr,
+                  },
+                }
+              : {}),
           };
         });
 
         // Nếu bài học hoàn thành, lưu receipt lên server
         if (updates.completed) {
-          const todayStr = meta?.dateStr || new Date().toISOString().split('T')[0];
-          api.progress.saveDailyLesson({
-            date: todayStr,
-            lessonId,
-            collectionId: meta?.collectionId || 'col-restaurant',
-            sprintDay: meta?.sprintDay || 1,
-            wordIds: meta?.wordIds || [],
-            score: updates.quizScore || 0,
-            totalQuestions: updates.totalQuestions || 8,
-            completed: true,
-          }).catch(async (err) => {
-            console.warn('Lỗi khi lưu kết quả bài học daily lên server, dùng direct Supabase fallback:', err);
-            try {
-              const { data: { session } } = await supabase.auth.getSession();
-              const uid = session?.user?.id;
-              if (uid) {
-                const now = new Date().toISOString();
-                await supabase.from('daily_reviews').upsert({
-                  user_id: uid,
-                  review_date: todayStr,
-                  deck_id: meta?.collectionId || 'daily',
-                  word_ids: meta?.wordIds || [],
-                  is_completed: true,
-                  correct_count: updates.quizScore || 0,
-                  total_questions: updates.totalQuestions || 8,
-                  results: {
-                    daily_lesson: {
-                      lessonId,
-                      collectionId: meta?.collectionId,
-                      sprintDay: meta?.sprintDay || 1,
-                      wordIds: meta?.wordIds || [],
-                      score: updates.quizScore || 0,
-                      totalQuestions: updates.totalQuestions || 8,
-                      completed: true,
-                      completedAt: now,
-                    },
+          api.progress
+            .saveDailyLesson({
+              date: todayStr,
+              lessonId,
+              collectionId: meta?.collectionId || 'col-restaurant',
+              sprintDay: meta?.sprintDay || 1,
+              wordIds: meta?.wordIds || [],
+              score: updates.quizScore || 0,
+              totalQuestions: updates.totalQuestions || 8,
+              completed: true,
+            })
+            .then((res) => {
+              if (typeof res?.streakCount === 'number' && res.streakCount > 0) {
+                set((s) => ({
+                  streakDays: Math.max(s.streakDays, res.streakCount!),
+                  profile: {
+                    ...s.profile,
+                    streak_count: Math.max(s.profile.streak_count || 0, res.streakCount!),
                   },
-                  updated_at: now,
-                }, { onConflict: 'user_id,review_date' });
-
-                // Lưu các từ vựng vào collection_reviews CHỈ KHI thuộc về một collection cụ thể (không phải Daily)
-                if (meta?.collectionId && meta.collectionId !== 'col-daily') {
-                  for (const wid of (meta?.wordIds || [])) {
-                    if (!wid) continue;
-                    await supabase.from('collection_reviews').upsert({
-                      user_id: uid,
-                      collection_id: meta.collectionId,
-                      phrase_id: wid,
-                      repetitions: 1,
-                      interval_days: 1,
-                      ease_factor: 2.5,
-                      next_review_at: new Date(Date.now() + 86400000).toISOString(),
-                      last_reviewed_at: now,
-                      last_quality: 2,
-                      is_mastered: false,
-                      updated_at: now,
-                    }, { onConflict: 'user_id,collection_id,phrase_id' });
-                  }
-                }
-
-                // Cập nhật last_active_date trong profiles
-                await supabase.from('profiles').update({ last_active_date: now }).eq('id', uid);
+                }));
               }
-            } catch (_) {}
-          });
+            })
+            .catch(async (err) => {
+              console.warn('Lỗi khi lưu kết quả bài học daily lên server, dùng direct Supabase fallback:', err);
+              try {
+                const { data: { session } } = await supabase.auth.getSession();
+                const uid = session?.user?.id;
+                if (uid) {
+                  const now = new Date().toISOString();
+                  await supabase.from('daily_reviews').upsert({
+                    user_id: uid,
+                    review_date: todayStr,
+                    deck_id: meta?.collectionId || 'daily',
+                    word_ids: meta?.wordIds || [],
+                    is_completed: true,
+                    correct_count: updates.quizScore || 0,
+                    total_questions: updates.totalQuestions || 8,
+                    results: {
+                      daily_lesson: {
+                        lessonId,
+                        collectionId: meta?.collectionId,
+                        sprintDay: meta?.sprintDay || 1,
+                        wordIds: meta?.wordIds || [],
+                        score: updates.quizScore || 0,
+                        totalQuestions: updates.totalQuestions || 8,
+                        completed: true,
+                        completedAt: now,
+                      },
+                    },
+                    updated_at: now,
+                  }, { onConflict: 'user_id,review_date' });
+
+                  // Lưu các từ vựng vào collection_reviews CHỈ KHI thuộc về một collection cụ thể (không phải Daily)
+                  if (meta?.collectionId && meta.collectionId !== 'col-daily') {
+                    for (const wid of (meta?.wordIds || [])) {
+                      if (!wid) continue;
+                      await supabase.from('collection_reviews').upsert({
+                        user_id: uid,
+                        collection_id: meta.collectionId,
+                        phrase_id: wid,
+                        repetitions: 1,
+                        interval_days: 1,
+                        ease_factor: 2.5,
+                        next_review_at: new Date(Date.now() + 86400000).toISOString(),
+                        last_reviewed_at: now,
+                        last_quality: 2,
+                        is_mastered: false,
+                        updated_at: now,
+                      }, { onConflict: 'user_id,collection_id,phrase_id' });
+                    }
+                  }
+
+                  // Cập nhật streak_count & last_active_date trong profiles
+                  await supabase
+                    .from('profiles')
+                    .update({
+                      streak_count: Math.max(1, nextStreak),
+                      last_active_date: todayStr,
+                      updated_at: now,
+                    })
+                    .eq('id', uid);
+                }
+              } catch (_) {}
+            });
         }
       },
 
-      // Tự động kiểm tra sang ngày mới để reset todayLearned về 0 nếu chưa học hôm nay
+      // Tự động kiểm tra sang ngày mới để reset todayLearned về 0 nếu chưa học hôm nay và đồng bộ streak
       checkAndResetNewDay: () => {
         const todayStr = getLocalDateStr();
         const state = get();
@@ -497,17 +672,32 @@ export const useLearningStore = create<LearningState>()(
           }
         }
 
+        const reconciledStreak = computeReconciledStreakForStore(state, todayStr);
+
         if (state.lastLearnedDate !== todayStr) {
           const newDailyGoal = state.profile?.daily_goal_words || 20;
           set({
             todayLearned: countToday,
             lastLearnedDate: todayStr,
             todayGoal: newDailyGoal,
+            streakDays: reconciledStreak,
+            profile: {
+              ...state.profile,
+              streak_count: reconciledStreak,
+            },
           });
-        } else if (countToday === 0 && state.todayLearned > 0) {
-          // Khắc phục trường hợp cache cũ lưu nhầm todayLearned > 0 khi chưa làm bài học nào hôm nay
+        } else if (
+          (countToday === 0 && state.todayLearned > 0) ||
+          reconciledStreak !== state.streakDays
+        ) {
+          // Khắc phục trường hợp cache cũ lưu nhầm todayLearned > 0 hoặc streakDays bị lệch
           set({
-            todayLearned: 0,
+            ...(countToday === 0 && state.todayLearned > 0 ? { todayLearned: 0 } : {}),
+            streakDays: reconciledStreak,
+            profile: {
+              ...state.profile,
+              streak_count: reconciledStreak,
+            },
           });
         }
       },
@@ -554,6 +744,7 @@ export const useLearningStore = create<LearningState>()(
         const todayStr = getLocalDateStr();
         const newTotal = isFirstReview ? state.totalWordsLearned + 1 : state.totalWordsLearned;
         const newOverallPercent = Math.min(100, Math.round((newTotal / 700) * 100));
+        const nextStreak = computeStreakForStoreActivity(state, todayStr);
 
         set({
           reviews: {
@@ -563,6 +754,12 @@ export const useLearningStore = create<LearningState>()(
           lastLearnedDate: todayStr,
           totalWordsLearned: newTotal,
           overallProgressPercent: newOverallPercent,
+          streakDays: nextStreak,
+          profile: {
+            ...state.profile,
+            streak_count: nextStreak,
+            last_active_date: todayStr,
+          },
         });
       },
 
@@ -581,6 +778,7 @@ export const useLearningStore = create<LearningState>()(
         const todayStr = getLocalDateStr();
         const newTotal = isFirstReview ? state.totalWordsLearned + 1 : state.totalWordsLearned;
         const newOverallPercent = Math.min(100, Math.round((newTotal / 700) * 100));
+        const nextStreak = computeStreakForStoreActivity(state, todayStr);
 
         set({
           reviews: {
@@ -590,6 +788,12 @@ export const useLearningStore = create<LearningState>()(
           lastLearnedDate: todayStr,
           totalWordsLearned: newTotal,
           overallProgressPercent: newOverallPercent,
+          streakDays: nextStreak,
+          profile: {
+            ...state.profile,
+            streak_count: nextStreak,
+            last_active_date: todayStr,
+          },
         });
 
         // Persist review to Supabase & Backend API if authenticated
@@ -602,7 +806,6 @@ export const useLearningStore = create<LearningState>()(
 
           if (uid) {
             const now = new Date().toISOString();
-            const isMastered = updatedSRS.repetitions >= 3 || updatedSRS.interval_days >= 7;
 
             // 1. Gửi qua Backend API
             api.progress.record({
@@ -612,13 +815,16 @@ export const useLearningStore = create<LearningState>()(
               easeFactor: updatedSRS.ease_factor,
               nextReviewAt: updatedSRS.next_review_at,
               lastQuality: grade,
+              date: todayStr,
             }).catch(() => {});
 
-            // 2. Cập nhật last_active_date trong profiles (tiến trình Daily độc lập với collections)
+            // 2. Cập nhật streak_count & last_active_date trong profiles
             await supabase
               .from('profiles')
               .update({
-                last_active_date: now,
+                streak_count: Math.max(1, nextStreak),
+                last_active_date: todayStr,
+                updated_at: now,
               })
               .eq('id', uid);
           }
@@ -641,6 +847,8 @@ export const useLearningStore = create<LearningState>()(
         const isFirstReview = !state.collectionReviews[itemId];
         const newTotal = isFirstReview ? state.totalWordsLearned + 1 : state.totalWordsLearned;
         const newOverallPercent = Math.min(100, Math.round((newTotal / 700) * 100));
+        const todayStr = getLocalDateStr();
+        const nextStreak = computeStreakForStoreActivity(state, todayStr);
 
         set({
           collectionReviews: {
@@ -649,6 +857,13 @@ export const useLearningStore = create<LearningState>()(
           },
           totalWordsLearned: newTotal,
           overallProgressPercent: newOverallPercent,
+          lastLearnedDate: todayStr,
+          streakDays: nextStreak,
+          profile: {
+            ...state.profile,
+            streak_count: nextStreak,
+            last_active_date: todayStr,
+          },
         });
 
         // Tự động lưu lên bảng riêng 'collection_reviews' nếu người dùng đã tạo bảng trên database
@@ -739,7 +954,7 @@ export const useLearningStore = create<LearningState>()(
             return {
               userId: data.profile.id,
               profile: data.profile,
-              streakDays: data.streakDays !== undefined ? data.streakDays : 1,
+              streakDays: data.streakDays !== undefined ? data.streakDays : 0,
               todayGoal: data.todayGoal !== undefined ? data.todayGoal : (data.profile.daily_goal_words || 20),
               todayLearned: data.todayLearned !== undefined ? data.todayLearned : 0,
               totalWordsLearned: data.totalWordsLearned !== undefined ? data.totalWordsLearned : 0,
@@ -750,7 +965,7 @@ export const useLearningStore = create<LearningState>()(
               collectionProgress: data.collectionProgress || {},
               dailyReviewProgress: data.dailyReviewProgress || {},
               lessonProgress: {},
-              lastLearnedDate: new Date().toISOString().split('T')[0],
+              lastLearnedDate: getLocalDateStr(),
             };
           }
 
@@ -785,12 +1000,12 @@ export const useLearningStore = create<LearningState>()(
           userId: null,
           profile: mockProfile,
           todayLearned: 0,
-          lastLearnedDate: new Date().toISOString().split('T')[0],
+          lastLearnedDate: getLocalDateStr(),
           todayGoal: 20,
           overallProgressPercent: 0,
           totalWordsLearned: 0,
           speakingTimeMinutes: 0,
-          streakDays: 1,
+          streakDays: 0,
           reviews: {},
           collectionReviews: {},
           collectionProgress: {},

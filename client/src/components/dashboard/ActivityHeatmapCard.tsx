@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Flame, Calendar, ArrowRight, CheckCircle2, Sparkles, BookOpen } from 'lucide-react';
 import { useLearningStore } from '@/lib/store';
+import { getLocalDateStr } from '@/lib/srs';
 import { useTranslation } from '@/context/LanguageContext';
 import { ActivityHistoryModal } from './ActivityHistoryModal';
 import { cn } from '@/lib/utils';
@@ -56,7 +57,7 @@ export function ActivityHeatmapCard() {
   // Tính toán 7 ngày của tuần hiện tại (từ Thứ 2 đến Chủ nhật)
   const { weekDays, weekTotalWords, completedDaysCount } = useMemo(() => {
     const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
+    const todayStr = getLocalDateStr(now);
 
     // Ngày bắt đầu: Thứ 2 của tuần hiện tại (ISO week: 0 là Thứ 2, 6 là Chủ nhật)
     const currentDayOfWeek = (now.getDay() + 6) % 7;
@@ -75,7 +76,7 @@ export function ActivityHeatmapCard() {
       const dObj = new Date(startOfWeek);
       dObj.setDate(startOfWeek.getDate() + i);
 
-      const dStr = dObj.toISOString().split('T')[0];
+      const dStr = getLocalDateStr(dObj);
       const isToday = dStr === todayStr;
       const isFuture = dObj > now && !isToday;
 

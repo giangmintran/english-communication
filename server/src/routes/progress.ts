@@ -4,6 +4,7 @@ import { authenticateUser, AuthRequest } from '../middlewares/auth';
 import { sendSuccess, sendError } from '../utils/response';
 import { noCache } from '../middlewares/cache';
 import { sanitizePostgrestParam } from '../utils/sanitize';
+import { syncAndUpdateStreak } from '../utils/streak';
 
 const router = Router();
 
@@ -39,7 +40,7 @@ router.post('/record', authenticateUser, async (req: Request, res: Response) => 
   const authReq = req as AuthRequest;
   const userId = authReq.user.id;
   const db = authReq.supabase || supabase;
-  const { itemId, collectionId, repetitions, intervalDays, easeFactor, nextReviewAt, lastQuality } = req.body;
+  const { itemId, collectionId, repetitions, intervalDays, easeFactor, nextReviewAt, lastQuality, date } = req.body;
 
   if (!itemId) {
     return sendError(res, 'itemId is required', 400, 'BAD_REQUEST');
@@ -47,6 +48,7 @@ router.post('/record', authenticateUser, async (req: Request, res: Response) => 
 
   try {
     const now = new Date().toISOString();
+    const activityDate = typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : now.split('T')[0];
     const colId = collectionId || 'col-daily';
     const cleanItemId = sanitizePostgrestParam(itemId);
     const isMastered = (repetitions || 0) >= 3 || (intervalDays || 1) >= 7;
@@ -73,17 +75,14 @@ router.post('/record', authenticateUser, async (req: Request, res: Response) => 
       console.warn('Lỗi lưu collection_reviews trong /record:', colErr.message);
     }
 
-    // Update last_active_date in profiles
-    try {
-      await db
-        .from('profiles')
-        .update({
-          last_active_date: now,
-        })
-        .eq('id', userId);
-    } catch (_) {}
+    // Cập nhật streak_count & last_active_date trong profiles
+    const streakCount = await syncAndUpdateStreak(db, userId, { activityDate });
 
-    return sendSuccess(res, { itemId, repetitions, intervalDays }, 'Lưu kết quả ôn tập thành công');
+    return sendSuccess(
+      res,
+      { itemId, repetitions, intervalDays, streakCount },
+      'Lưu kết quả ôn tập thành công'
+    );
   } catch (err: any) {
     return sendError(res, err.message, 500, 'PROGRESS_UPDATE_ERROR');
   }
@@ -184,7 +183,19 @@ async function saveServerReviewProgress(db: any, scopedClient: any, user: any, p
     await batchUpdateWordIdsReviews(db, user.id, progress.wordIds);
   }
 
-  return { ...progress, lastUpdated: now };
+  // Cập nhật streak_count & last_active_date nếu phiên có hoạt động học thực tế
+  const hasActivity = Boolean(
+    progress.isCompleted ||
+      (progress.answeredCount || 0) > 0 ||
+      (progress.results && Object.keys(progress.results).length > 0) ||
+      (progress.flashcardGrades && Object.keys(progress.flashcardGrades).length > 0)
+  );
+  let streakCount: number | undefined;
+  if (hasActivity) {
+    streakCount = await syncAndUpdateStreak(db, user.id, { activityDate: progress.date });
+  }
+
+  return { ...progress, lastUpdated: now, ...(streakCount !== undefined ? { streakCount } : {}) };
 }
 
 function computeServerDailyGrade(
@@ -302,11 +313,6 @@ async function batchUpdateWordReviews(
       console.warn('Lỗi batchUpdateWordReviews cho từ:', wordId, err.message);
     }
   }
-
-  // Cập nhật last_active_date trong profiles
-  try {
-    await db.from('profiles').update({ last_active_date: now }).eq('id', userId);
-  } catch (_) {}
 }
 
 // Helper cập nhật SRS cho danh sách từ vựng khi ôn tập qua flashcards hoặc bài học Daily
@@ -356,11 +362,6 @@ async function batchUpdateWordIdsReviews(db: any, userId: string, wordIds: strin
       console.warn('Lỗi batchUpdateWordIdsReviews cho từ:', wordId, err.message);
     }
   }
-
-  // Cập nhật last_active_date trong profiles
-  try {
-    await db.from('profiles').update({ last_active_date: now }).eq('id', userId);
-  } catch (_) {}
 }
 
 function mergeReviewProgress(serverP: any, clientP: any) {
@@ -569,13 +570,13 @@ router.post('/daily-lesson', authenticateUser, async (req: Request, res: Respons
     }
 
     // Cập nhật streak & last_active_date trong profiles
-    try {
-      await db.from('profiles').update({
-        last_active_date: now,
-      }).eq('id', userId);
-    } catch (_) {}
+    const streakCount = await syncAndUpdateStreak(db, userId, { activityDate: reviewDate });
 
-    return sendSuccess(res, { reviewDate, lessonId, completed: true }, 'Lưu kết quả bài học thành công');
+    return sendSuccess(
+      res,
+      { reviewDate, lessonId, completed: true, streakCount },
+      'Lưu kết quả bài học thành công'
+    );
   } catch (err: any) {
     return sendError(res, err.message, 500, 'SAVE_DAILY_LESSON_ERROR');
   }

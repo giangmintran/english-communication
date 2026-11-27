@@ -3,6 +3,7 @@ import { supabase } from '../config/supabase';
 import { authenticateUser, AuthRequest } from '../middlewares/auth';
 import { sendSuccess, sendError } from '../utils/response';
 import { noCache } from '../middlewares/cache';
+import { isValidDateStr, syncAndUpdateStreak } from '../utils/streak';
 
 const router = Router();
 
@@ -33,10 +34,10 @@ router.get('/me', authenticateUser, async (req: Request, res: Response) => {
         id: userId,
         display_name: userMeta.full_name || userMeta.name || authReq.user.email?.split('@')[0] || 'Learner',
         avatar_url: userMeta.avatar_url || userMeta.picture || null,
-        streak_count: 1,
+        streak_count: 0,
         daily_goal_words: 10,
         current_level: 'A2',
-        last_active_date: new Date().toISOString().split('T')[0],
+        last_active_date: null,
       };
 
       const { data: inserted, error: insertError } = await db
@@ -49,10 +50,16 @@ router.get('/me', authenticateUser, async (req: Request, res: Response) => {
         return sendError(res, insertError.message, 500, 'PROFILE_INIT_ERROR');
       }
 
-      return sendSuccess(res, inserted || newProfile, 'Khởi tạo profile thành công');
+      const refDate = isValidDateStr(req.query.date) ? req.query.date : undefined;
+      const syncedStreak = await syncAndUpdateStreak(db, userId, { referenceDate: refDate });
+      const resolved = inserted || newProfile;
+      return sendSuccess(res, { ...resolved, streak_count: syncedStreak }, 'Khởi tạo profile thành công');
     }
 
-    return sendSuccess(res, profile, 'Lấy thông tin profile thành công');
+    const refDate = isValidDateStr(req.query.date) ? req.query.date : undefined;
+    const syncedStreak = await syncAndUpdateStreak(db, userId, { referenceDate: refDate });
+
+    return sendSuccess(res, { ...profile, streak_count: syncedStreak }, 'Lấy thông tin profile thành công');
   } catch (err: any) {
     return sendError(res, err.message, 500, 'PROFILE_FETCH_ERROR');
   }
@@ -116,10 +123,10 @@ router.put('/me', authenticateUser, async (req: Request, res: Response) => {
         id: userId,
         display_name: display_name || userMeta.full_name || userMeta.name || authReq.user.email?.split('@')[0] || 'Learner',
         avatar_url: avatar_url || userMeta.avatar_url || userMeta.picture || null,
-        streak_count: 1,
+        streak_count: 0,
         daily_goal_words: daily_goal_words || 10,
         current_level: current_level || 'A2',
-        last_active_date: new Date().toISOString().split('T')[0],
+        last_active_date: null,
         ...updates,
       };
 
