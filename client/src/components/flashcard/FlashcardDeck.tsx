@@ -264,6 +264,7 @@ export function FlashcardDeck({ deckTitle, items, isDaily = false, wordReasons }
             easeFactor: nextSrs.ease_factor,
             nextReviewAt: nextSrs.next_review_at,
             lastQuality: grade,
+            date: getLocalDateStr(),
           })
           .catch(() => {});
       }

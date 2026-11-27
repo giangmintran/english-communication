@@ -3,6 +3,12 @@ import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { useLearningStore } from '@/lib/store';
 import { getLocalDateStr } from '@/lib/srs';
+import {
+  collectStudiedDatesFromState,
+  computeStreakFromDates,
+  normalizeLocalDateStr,
+  shiftDateStr,
+} from '@/lib/streak';
 import { api } from '@/lib/api';
 import type { DailyReviewProgress } from '@/types/quiz';
 
@@ -53,13 +59,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: currentUser.id,
         display_name: displayName,
         avatar_url: avatarUrl,
-        streak_count: isSameUser ? currentStore.profile.streak_count : 1,
+        streak_count: isSameUser ? currentStore.profile.streak_count : 0,
         daily_goal_words: isSameUser ? currentStore.profile.daily_goal_words : 10,
         current_level: isSameUser ? currentStore.profile.current_level : 'A2',
         last_active_date: isSameUser ? currentStore.profile.last_active_date : new Date().toISOString(),
         created_at: isSameUser ? currentStore.profile.created_at : new Date().toISOString(),
       },
-      streakDays: isSameUser ? currentStore.streakDays : 1,
+      streakDays: isSameUser ? currentStore.streakDays : 0,
       todayGoal: isSameUser ? currentStore.todayGoal : 10,
       todayLearned: isSameUser ? currentStore.todayLearned : 0,
       totalWordsLearned: isSameUser ? currentStore.totalWordsLearned : 0,
@@ -108,6 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const reviewsMap: Record<string, any> = {};
       const collectionReviewsMap: Record<string, any> = {};
       const collectionProgressMap: Record<string, any> = {};
+      const colActivityDates: string[] = [];
       const todayStr = getLocalDateStr();
 
       try {
@@ -118,6 +125,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (!colError && colData && colData.length > 0) {
           colData.forEach((rev) => {
+            const activityRaw = rev.last_reviewed_at || rev.updated_at;
+            if (activityRaw) {
+              const localDate = normalizeLocalDateStr(activityRaw);
+              if (localDate) colActivityDates.push(localDate);
+            }
+
             const key = rev.phrase_id || rev.item_id;
             const colId = rev.collection_id || rev.deck_id;
 
@@ -272,7 +285,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Tổng hợp từ vựng đã học (tổng từ Collection + Daily SRS)
       const dailyLearnedTotal = Math.max(Object.keys(mergedReviewsMap).length, initialDailyLearned);
       const totalWordsLearned = Object.keys(collectionReviewsMap).length + dailyLearnedTotal;
-      const streakCount = dbProfile?.streak_count ?? 1;
+
+      // Tính chính xác chuỗi ngày học liên tục (Streak) từ lịch sử hoạt động thực tế
+      const studiedDates = collectStudiedDatesFromState({
+        dailyReviewProgress: userDailyProgressMap,
+        collectionProgress: collectionProgressMap,
+        lessonProgress: isSameUser ? storeState.lessonProgress : {},
+        todayLearned: initialDailyLearned,
+        lastLearnedDate: todayStr,
+        extraDates: colActivityDates,
+      });
+      const historyStreak = computeStreakFromDates(studiedDates, todayStr);
+      const dbLastActive = normalizeLocalDateStr(dbProfile?.last_active_date);
+      const yesterdayStr = shiftDateStr(todayStr, -1);
+      const isDbAlive = Boolean(
+        dbLastActive && (dbLastActive === todayStr || dbLastActive === yesterdayStr)
+      );
+      const dbStreak = Math.max(0, Number(dbProfile?.streak_count ?? 0));
+      const streakCount =
+        studiedDates.size > 0
+          ? Math.max(historyStreak, isDbAlive ? dbStreak : 0)
+          : isDbAlive && dbStreak > 1
+            ? dbStreak
+            : 0;
+
       const dailyGoal = dbProfile?.daily_goal_words ?? 20;
       const progressPercent = totalWordsLearned > 0 ? Math.min(100, Math.round((totalWordsLearned / 700) * 100)) : 0;
 
@@ -296,7 +332,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           streak_count: streakCount,
           daily_goal_words: dailyGoal,
           current_level: dbProfile?.current_level ?? 'A2',
-          last_active_date: dbProfile?.last_active_date ?? new Date().toISOString(),
+          last_active_date: studiedDates.has(todayStr)
+            ? todayStr
+            : (dbProfile?.last_active_date ?? new Date().toISOString()),
           created_at: dbProfile?.created_at ?? new Date().toISOString(),
         },
         streakDays: streakCount,
@@ -310,17 +348,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         dailyReviewProgress: userDailyProgressMap,
       });
 
-      // 6. Upsert to profiles table if row doesn't exist yet
+      // 6. Đồng bộ lại streak_count nếu DB bị lệch (ví dụ streak bị kẹt ở 1) hoặc tạo profile mới nếu chưa có
       if (!dbProfile && !fetchError) {
         await supabase.from('profiles').upsert({
           id: currentUser.id,
           display_name: displayName,
           avatar_url: avatarUrl,
-          streak_count: 1,
+          streak_count: streakCount,
           daily_goal_words: 10,
           current_level: 'A2',
-          last_active_date: new Date().toISOString(),
+          last_active_date: studiedDates.has(todayStr) ? todayStr : null,
         });
+      } else if (
+        dbProfile &&
+        (streakCount !== dbStreak || (studiedDates.has(todayStr) && dbLastActive !== todayStr))
+      ) {
+        const profilePatch: Record<string, any> = {
+          streak_count: streakCount,
+          updated_at: new Date().toISOString(),
+        };
+        if (studiedDates.has(todayStr) && dbLastActive !== todayStr) {
+          profilePatch.last_active_date = todayStr;
+        }
+        await supabase.from('profiles').update(profilePatch).eq('id', currentUser.id);
       }
     } catch (err) {
       console.warn('Profile sync warning:', err);
